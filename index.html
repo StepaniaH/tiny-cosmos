@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>微型宇宙 · Tiny Cosmos</title>
-  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/game.css?v=2">
 </head>
 <body>
 
@@ -12,88 +12,81 @@
   <header class="header">
     <h1 class="title">微型宇宙 <span class="title-en">Tiny Cosmos</span></h1>
     <div class="header-actions">
-      <button id="save-btn" class="btn btn-ghost" title="保存进度">💾 保存</button>
-      <button id="reset-btn" class="btn btn-ghost" title="清除所有数据">🔄 重置</button>
+      <button id="save-btn" class="btn btn-ghost">💾</button>
+      <button id="reset-btn" class="btn btn-ghost">🔄</button>
     </div>
   </header>
 
-  <!-- ═══ Research Bar ═══ -->
-  <div class="research-bar">
-    <div class="research-info">
-      <span class="rp-label">🔬 研究点数</span>
-      <span id="rp-display" class="rp-value">0</span>
-    </div>
-    <div class="rp-bar-track">
-      <div id="rp-bar" class="rp-bar-fill"></div>
-    </div>
-    <button id="research-btn" class="btn btn-research" disabled>研究下一层</button>
-    <span id="research-next" class="research-next-label"></span>
-  </div>
-
-  <!-- ═══ Canvas (placeholder) ═══ -->
-  <div class="cosmos-stage">
+  <!-- ═══ Canvas — Visual Center ═══ -->
+  <div id="cosmos-stage" class="cosmos-stage">
     <canvas id="cosmos-canvas"></canvas>
+    <div id="click-hint" class="click-hint">👆 点击产生夸克</div>
   </div>
 
-  <!-- ═══ Tier Cards ═══ -->
-  <div id="tier-cards" class="tier-grid">
-    <!-- dynamically rendered by ui.js -->
+  <!-- ═══ Focus Stats ═══ -->
+  <div class="focus-bar">
+    <div id="focus-quarks" class="focus-stat">
+      <span class="focus-value" id="focus-q-count">0</span>
+      <span class="focus-label">夸克</span>
+      <span class="focus-rate" id="focus-q-rate">+0.3/s</span>
+    </div>
+    <div id="focus-rp" class="focus-stat focus-stat-rp">
+      <span class="focus-label">🔬 研究</span>
+      <span class="focus-value" id="focus-rp-count">0</span>
+      <span class="focus-rate">RP</span>
+    </div>
   </div>
 
-  <!-- ═══ Progress ═══ -->
-  <div class="progress-section">
-    <div class="progress-label">已解锁 <span id="progress-text">2/7</span></div>
-    <div class="progress-track">
-      <div id="progress-fill" class="progress-fill"></div>
+  <!-- ═══ Action Buttons ═══ -->
+  <div id="action-bar" class="action-bar">
+    <!-- dynamically rendered -->
+  </div>
+
+  <!-- ═══ Evolution Line ═══ -->
+  <div class="evolution-section">
+    <div class="evolution-label">宇宙演化</div>
+    <div id="evolution-line" class="evolution-line">
+      <!-- dynamically rendered -->
     </div>
   </div>
 
   <!-- ═══ Prestige Panel ═══ -->
-  <div id="prestige-panel" class="prestige-panel" style="display: none;">
-    <div class="prestige-header">
-      <h2>🌌 大坍缩 · Big Crunch</h2>
-      <p class="prestige-desc">宇宙将坍缩回奇点，所有物质归零。<br>你将获得 <strong id="prestige-cp-gain">0</strong> 恒定点，用于调整宇宙常数。</p>
+  <div id="prestige-panel" class="prestige-panel" style="display:none">
+    <div class="prestige-trigger">
+      <button id="prestige-btn" class="btn btn-prestige">🌌 大坍缩 · Big Crunch</button>
+      <span class="prestige-gain" id="prestige-gain-text">获得 0 恒定点</span>
     </div>
-
-    <div class="prestige-constants">
+    <div class="prestige-detail" id="prestige-detail" style="display:none">
       <div class="constant-row">
-        <span class="constant-label" title="降低合成成本">💪 强核力 <span id="sf-level">0</span></span>
-        <input type="range" id="constant-strong" min="0" max="100" value="0" class="constant-slider">
+        <span class="constant-label">💪 强核力 <span id="sf-level">0</span></span>
+        <input type="range" id="constant-strong" min="0" value="0" class="constant-slider">
         <span class="constant-effect">成本 ÷<span id="sf-effect">1.00</span></span>
       </div>
       <div class="constant-row">
-        <span class="constant-label" title="提升全局生产速度">⚡ 光速 <span id="ls-level">0</span></span>
-        <input type="range" id="constant-light" min="0" max="100" value="0" class="constant-slider">
+        <span class="constant-label">⚡ 光速 <span id="ls-level">0</span></span>
+        <input type="range" id="constant-light" min="0" value="0" class="constant-slider">
         <span class="constant-effect">速度 ×<span id="ls-effect">1.00</span></span>
       </div>
       <div class="constant-row">
-        <span class="constant-label" title="提升底层 (tier 0-2) 产量">🌍 引力 <span id="gv-level">0</span></span>
-        <input type="range" id="constant-gravity" min="0" max="100" value="0" class="constant-slider">
+        <span class="constant-label">🌍 引力 <span id="gv-level">0</span></span>
+        <input type="range" id="constant-gravity" min="0" value="0" class="constant-slider">
         <span class="constant-effect">底层 ×<span id="gv-effect">1.00</span></span>
       </div>
+      <div class="cp-info">
+        恒定点: <span id="cp-total">0</span> | 已分配: <span id="cp-used">0</span> | 未分配: <span id="cp-free">0</span>
+      </div>
     </div>
-
-    <div class="prestige-info">
-      恒定点: <span id="cp-display">0</span>
-      &nbsp;|&nbsp; 已分配: <span id="cp-allocated">0</span>
-      &nbsp;|&nbsp; 未分配: <span id="cp-unspent">0</span>
-    </div>
-
-    <button id="prestige-btn" class="btn btn-prestige">⚡ 触发大坍缩</button>
   </div>
 
   <!-- ═══ Milestones ═══ -->
-  <div id="milestones-section" class="milestones-section" style="display: none;">
-    <h3>🏆 已解锁里程碑</h3>
-    <div id="milestones-list" class="milestones-list"></div>
-  </div>
+  <div id="milestones-bar" class="milestones-bar" style="display:none"></div>
 
   <!-- ═══ Scripts ═══ -->
   <script src="js/constants.js"></script>
   <script src="js/state.js"></script>
   <script src="js/engine.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/render.js?v=2"></script>
+  <script src="js/ui.js?v=2"></script>
+  <script src="js/main.js?v=2"></script>
 </body>
 </html>

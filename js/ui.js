@@ -1,6 +1,5 @@
-// tiny-cosmos — UI Layer
-// DOM manipulation: tier cards, research bar, prestige panel, milestones.
-// Pure rendering — no game logic.
+// tiny-cosmos v2 — UI Layer
+// Event delegation. Context-sensitive action buttons. Evolution line.
 (function () {
   'use strict';
 
@@ -8,337 +7,253 @@
   var GS = window.GameState;
   var GE = window.GameEngine;
 
-  // ── Research Bar ────────────────────────────────────────────────
+  // ── Helpers ──
 
-  function updateResearchBar() {
-    var rp = GS.getRP();
-    var maxTier = GS.getMaxResearchedTier();
-    var nextTier = maxTier + 1;
-
-    document.getElementById('rp-display').textContent = formatNumber(rp, 1);
-
-    // Progress bar: show RP progress toward next research
-    if (nextTier < GC.TIERS.length) {
-      var cost = GS.getResearchCost(nextTier);
-      var pct = Math.min(100, (rp / cost) * 100);
-      document.getElementById('rp-bar').style.width = pct + '%';
-
-      var nextName = GC.TIERS[nextTier].nameZh;
-      document.getElementById('research-next').textContent = '→ ' + nextName + ' (' + formatNumber(cost, 0) + ' RP)';
-
-      var btn = document.getElementById('research-btn');
-      btn.disabled = !GS.canResearch(nextTier);
-    } else {
-      document.getElementById('rp-bar').style.width = '100%';
-      document.getElementById('research-next').textContent = '全部已解锁';
-      document.getElementById('research-btn').disabled = true;
-    }
-  }
-
-  // ── Tier Cards ──────────────────────────────────────────────────
-
-  function formatNumber(n, decimals) {
-    if (decimals === undefined) decimals = 2;
-    if (n >= 1e6) return (n / 1e6).toFixed(decimals) + 'M';
-    if (n >= 1e4) return (n / 1e3).toFixed(decimals) + 'K';
+  function fmt(n, d) {
+    if (d === undefined) d = 1;
+    if (n >= 1e6) return (n / 1e6).toFixed(d) + 'M';
+    if (n >= 1e4) return (n / 1e3).toFixed(d) + 'K';
     if (n >= 100) return Math.floor(n).toString();
-    return n.toFixed(decimals);
+    return n.toFixed(d);
   }
 
-  function calcNetProduction(tierId) {
-    var t = GS.getTier(tierId);
-    if (!t || !t.researched) return { prod: 0, demand: 0, net: 0 };
+  function fmtInt(n) { return Math.floor(n).toString(); }
 
-    var prod = 0;
-    if (tierId === 0) {
-      prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
-    } else {
-      // Producers auto-synthesize — approximate rate
-      var speedMult = GS.getSpeedMultiplier();
-      prod = GS.getProducerOutput(tierId) * speedMult * GS.getGravityMultiplier(tierId);
-    }
+  // ── Focus Stats ──
 
-    var demand = 0;
-    if (tierId < GC.TIERS.length - 1) {
-      var higherTier = GS.getTier(tierId + 1);
-      if (higherTier && higherTier.researched) {
-        var demandMult = GC.DEMAND_PER_UNIT * GC.TICKS_PER_SEC;
-        if (GS.hasMilestone(7)) demandMult *= 0.7;
-        demand = higherTier.count * demandMult;
-      }
-    }
-
-    return { prod: prod, demand: demand, net: prod - demand };
+  function updateFocus() {
+    var s = GS.getState();
+    var q = s.tiers[0];
+    var prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
+    document.getElementById('focus-q-count').textContent = fmt(q.count, q.count < 100 ? 2 : 0);
+    document.getElementById('focus-q-rate').textContent = '+' + fmt(prod, 1) + '/s';
+    document.getElementById('focus-rp-count').textContent = fmt(s.researchPoints, 1);
   }
 
-  function renderTierCard(tierId) {
-    var t = GS.getTier(tierId);
-    var tpl = GC.TIERS[tierId];
-    var maxResearched = GS.getMaxResearchedTier();
-    var nextResearchable = maxResearched + 1;
+  // ── Action Buttons ──
 
-    var card = document.createElement('div');
-    card.className = 'tier-card';
+  function updateActions() {
+    var container = document.getElementById('action-bar');
+    var s = GS.getState();
+    var maxRes = GS.getMaxResearchedTier();
+    var nextTier = maxRes + 1;
+    var html = '';
 
-    // Locked / Researchable state
-    if (!t.researched) {
-      if (tierId === nextResearchable) {
-        card.className += ' researchable';
-        card.addEventListener('click', function () {
-          if (GS.canResearch(tierId)) {
-            GE.research(tierId);
-            refreshAll();
-          }
-        });
-        card.innerHTML =
-          '<div class="tier-card-header">' +
-            '<span class="tier-dot" style="background: ' + tpl.color + '"></span>' +
-            '<span class="tier-name">' + tpl.nameZh + '</span>' +
-            '<span class="tier-name-en">' + tpl.name + '</span>' +
-          '</div>' +
-          '<div class="tier-locked-content">' +
-            '<div class="tier-locked-icon">🔬</div>' +
-            '<div>研究需要 ' + GS.getResearchCost(tierId) + ' RP</div>' +
-          '</div>';
-      } else {
-        card.className += ' locked';
-        card.innerHTML =
-          '<div class="tier-card-header">' +
-            '<span class="tier-dot" style="background: ' + tpl.color + '; opacity: 0.3"></span>' +
-            '<span class="tier-name" style="color: var(--text-muted)">' + tpl.nameZh + '</span>' +
-          '</div>' +
-          '<div class="tier-locked-content">' +
-            '<div class="tier-locked-icon">🔒</div>' +
-            '<div>尚未揭示</div>' +
-          '</div>';
-      }
-      return card;
-    }
+    // 1. Quark producer (always available)
+    var qCost = GS.getProducerCost(0);
+    var canBuyQ = s.tiers[0].count >= qCost;
+    html += '<button class="btn btn-primary" data-action="buy-producer" data-tier="0"' +
+      (canBuyQ ? '' : ' disabled') + '>' +
+      '⚡ 自动观测 (' + fmtInt(qCost) + ' 夸克)' +
+      '</button>';
 
-    // Active tier card
-    var net = calcNetProduction(tierId);
-    var cost = GS.getSynthCost(tierId);
-    var batch = GS.getSynthBatchSize();
-    var showBars = tierId < GC.TIERS.length - 1 || tierId === 0;
-
-    // Production bar
-    var maxBar = Math.max(net.prod, net.demand, 1);
-    var prodPct = (net.prod / maxBar) * 100;
-    var demandPct = (net.demand / maxBar) * 100;
-
-    var producerCost = tpl.producerBaseCost > 0 ? GS.getProducerCost(tierId) : Infinity;
-
-    var barsHTML = '';
-    if (showBars) {
-      barsHTML =
-        '<div class="tier-bars">' +
-          '<div class="tier-bar-row">' +
-            '<span class="tier-bar-label">产</span>' +
-            '<div class="tier-bar-track"><div class="tier-bar-fill prod" style="width:' + prodPct + '%"></div></div>' +
-            '<span class="tier-bar-value prod-text">+' + formatNumber(net.prod, 1) + '/s</span>' +
-          '</div>' +
-          '<div class="tier-bar-row">' +
-            '<span class="tier-bar-label">耗</span>' +
-            '<div class="tier-bar-track"><div class="tier-bar-fill demand" style="width:' + demandPct + '%"></div></div>' +
-            '<span class="tier-bar-value demand-text">-' + formatNumber(net.demand, 2) + '/s</span>' +
-          '</div>' +
-        '</div>';
-    }
-
-    var netClass = net.net >= 0 ? 'positive' : 'negative';
-    var netSign = net.net >= 0 ? '+' : '';
-
-    var actionsHTML = '';
-    if (tpl.producerBaseCost > 0) {
-      var canAfford = t.count >= producerCost;
-      actionsHTML +=
-        '<button class="btn btn-tier btn-producer" data-action="buy-producer" data-tier="' + tierId + '"' +
-        (canAfford ? '' : ' disabled') + '>' +
-          '⚙ 生产 (' + formatNumber(producerCost, 0) + ')' +
-        '</button>';
-    }
-    if (tierId > 0) {
-      var lowerName = GC.TIERS[tierId - 1].nameZh;
-      var canSynth = GS.getTier(tierId - 1).count >= (cost * batch);
-      actionsHTML +=
-        '<button class="btn btn-tier btn-synth" data-action="synthesize" data-tier="' + tierId + '"' +
+    // 2. Synthesis for highest accessible tier
+    for (var t = maxRes; t >= 1; t--) {
+      if (t === 6) continue; // civilization has no manual synth
+      var cost = GS.getSynthCost(t);
+      var batch = GS.getSynthBatchSize();
+      var canSynth = s.tiers[t - 1].count >= (cost * batch);
+      var tierName = GC.TIERS[t].nameZh;
+      var srcName = GC.TIERS[t - 1].nameZh;
+      html += '<button class="btn" data-action="synthesize" data-tier="' + t + '"' +
         (canSynth ? '' : ' disabled') + '>' +
-          '⬆ ' + lowerName + ' → (' + formatNumber(cost, 0) + '×' + batch + ')' +
+        '⬆ ' + srcName + '→' + tierName + ' (' + fmtInt(cost) + '×' + batch + ')' +
+        '</button>';
+      break; // only show one synth button at a time
+    }
+
+    // 3. Buy producer for current tier (if available and not quark)
+    for (var p = maxRes; p >= 1; p--) {
+      var tp = GC.TIERS[p];
+      if (tp.producerBaseCost === 0) continue;
+      var pCost = GS.getProducerCost(p);
+      var canBuyP = s.tiers[p].count >= pCost;
+      html += '<button class="btn" data-action="buy-producer" data-tier="' + p + '"' +
+        (canBuyP ? '' : ' disabled') + '>' +
+        '⚙ ' + tp.nameZh + ' 生产 (' + fmtInt(pCost) + ')' +
+        '</button>';
+      break;
+    }
+
+    // 4. Research (if next tier exists)
+    if (nextTier < GC.TIERS.length) {
+      var rCost = GS.getResearchCost(nextTier);
+      var rName = GC.TIERS[nextTier].nameZh;
+      var canResearch = GS.canResearch(nextTier);
+      html += '<button class="btn btn-blue" data-action="research" data-tier="' + nextTier + '"' +
+        (canResearch ? '' : ' disabled') + '>' +
+        '🔬 研究 ' + rName + ' (' + fmt(s.researchPoints, 0) + '/' + rCost + ' RP)' +
         '</button>';
     }
 
-    card.innerHTML =
-      '<div class="tier-card-header">' +
-        '<span class="tier-dot" style="background: ' + tpl.color + '"></span>' +
-        '<span class="tier-name">' + tpl.nameZh + '</span>' +
-        '<span class="tier-name-en">' + tpl.name + '</span>' +
-      '</div>' +
-      '<div class="tier-count">' + formatNumber(t.count, tierId <= 2 ? 2 : 0) + '</div>' +
-      barsHTML +
-      '<div class="tier-net ' + netClass + '">净 ' + netSign + formatNumber(net.net, 2) + '/s</div>' +
-      '<div class="tier-actions">' + actionsHTML + '</div>';
-
-    return card;
+    container.innerHTML = html;
   }
 
-  function refreshTierCards() {
-    var container = document.getElementById('tier-cards');
-    container.innerHTML = '';
+  // ── Evolution Line ──
+
+  function updateEvolution() {
+    var container = document.getElementById('evolution-line');
+    var s = GS.getState();
+    var maxRes = GS.getMaxResearchedTier();
+    var html = '';
+
     for (var i = 0; i < GC.TIERS.length; i++) {
-      container.appendChild(renderTierCard(i));
+      var tpl = GC.TIERS[i];
+      var t = s.tiers[i];
+
+      if (i > 0) {
+        html += '<span class="evo-arrow">→</span>';
+      }
+
+      if (t.researched) {
+        // Active node
+        var cnt = t.count > 0 ? ' <span class="evo-count">' + fmt(t.count, 0) + '</span>' : '';
+        html += '<span class="evo-step">' +
+          '<span class="evo-node active" style="background:' + tpl.color + ';--node-color:' + tpl.glow + '">' +
+            tpl.symbol +
+          '</span>' +
+          cnt +
+          '</span>';
+      } else if (i === maxRes + 1) {
+        // Next researchable
+        html += '<span class="evo-step">' +
+          '<span class="evo-node researchable" title="' + GS.getResearchCost(i) + ' RP">?</span>' +
+          '</span>';
+      } else {
+        // Locked
+        html += '<span class="evo-step">' +
+          '<span class="evo-node locked">·</span>' +
+          '</span>';
+      }
     }
 
-    // Bind button events
-    container.querySelectorAll('[data-action="buy-producer"]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var tierId = parseInt(btn.dataset.tier);
-        GE.buyProducer(tierId);
-        refreshAll();
-      });
-    });
-    container.querySelectorAll('[data-action="synthesize"]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var tierId = parseInt(btn.dataset.tier);
-        GE.synthesize(tierId);
-        refreshAll();
-      });
-    });
+    container.innerHTML = html;
   }
 
-  // ── Progress ────────────────────────────────────────────────────
+  // ── Prestige ──
 
-  function updateProgress() {
-    var maxResearched = GS.getMaxResearchedTier();
-    var count = maxResearched + 1; // tiers 0..maxResearched
-    var total = GC.TIERS.length;
-    document.getElementById('progress-text').textContent = count + '/' + total;
-    document.getElementById('progress-fill').style.width = (count / total * 100) + '%';
-  }
-
-  // ── Prestige Panel ──────────────────────────────────────────────
-
-  function updatePrestigePanel() {
-    var can = GS.canPrestige();
+  function updatePrestige() {
     var panel = document.getElementById('prestige-panel');
+    var canP = GS.canPrestige();
+    var hasPrestiged = GS.getPrestiges() > 0;
 
-    if (can) {
+    if (canP || hasPrestiged) {
       panel.style.display = 'block';
-      var cpGain = GS.calcCPGain();
-      document.getElementById('prestige-cp-gain').textContent = cpGain;
-    } else if (GS.getPrestiges() > 0) {
-      // Show panel if already prestiged, to adjust constants
-      panel.style.display = 'block';
-    }
+      if (canP) {
+        var gain = GS.calcCPGain();
+        document.getElementById('prestige-gain-text').textContent = '获得 ' + gain + ' 恒定点';
+        document.getElementById('prestige-btn').style.display = '';
+      } else {
+        document.getElementById('prestige-btn').style.display = 'none';
+      }
 
-    if (panel.style.display !== 'none') {
-      updateConstantSliders();
+      // Constants detail (only show if has prestiged)
+      if (hasPrestiged) {
+        document.getElementById('prestige-detail').style.display = 'flex';
+        updateConstantSliders();
+      }
+    } else {
+      panel.style.display = 'none';
     }
   }
 
   function updateConstantSliders() {
     var cp = GS.getCP();
     var c = GS.getConstants();
-    var allocated = GS.getAllocatedCP();
-    var unspent = GS.getUnspentCP();
+    var used = GS.getAllocatedCP();
+    var free = GS.getUnspentCP();
 
-    document.getElementById('cp-display').textContent = cp;
-    document.getElementById('cp-allocated').textContent = allocated;
-    document.getElementById('cp-unspent').textContent = unspent;
+    document.getElementById('cp-total').textContent = cp;
+    document.getElementById('cp-used').textContent = used;
+    document.getElementById('cp-free').textContent = free;
 
-    // Update sliders (max = total CP)
-    var sfSlider = document.getElementById('constant-strong');
-    var lsSlider = document.getElementById('constant-light');
-    var gvSlider = document.getElementById('constant-gravity');
+    var sfS = document.getElementById('constant-strong');
+    var lsS = document.getElementById('constant-light');
+    var gvS = document.getElementById('constant-gravity');
 
-    [sfSlider, lsSlider, gvSlider].forEach(function (s) { s.max = cp; });
+    [sfS, lsS, gvS].forEach(function (s) { s.max = cp; });
+    if (+sfS.value !== c.strongForce) sfS.value = c.strongForce;
+    if (+lsS.value !== c.lightSpeed) lsS.value = c.lightSpeed;
+    if (+gvS.value !== c.gravity) gvS.value = c.gravity;
 
-    if (parseInt(sfSlider.value) !== c.strongForce) sfSlider.value = c.strongForce;
-    if (parseInt(lsSlider.value) !== c.lightSpeed) lsSlider.value = c.lightSpeed;
-    if (parseInt(gvSlider.value) !== c.gravity) gvSlider.value = c.gravity;
-
-    // Update effect displays
-    updateConstantEffectDisplay(c.strongForce, 'sf-level', 'sf-effect', GC.STRONG_FORCE_COEFF, '÷');
-    updateConstantEffectDisplay(c.lightSpeed, 'ls-level', 'ls-effect', GC.LIGHT_SPEED_COEFF, '×');
-    updateConstantEffectDisplay(c.gravity, 'gv-level', 'gv-effect', GC.GRAVITY_COEFF, '×');
+    setEffect(c.strongForce, 'sf-level', 'sf-effect', GC.STRONG_FORCE_COEFF, '÷');
+    setEffect(c.lightSpeed, 'ls-level', 'ls-effect', GC.LIGHT_SPEED_COEFF, '×');
+    setEffect(c.gravity, 'gv-level', 'gv-effect', GC.GRAVITY_COEFF, '×');
   }
 
-  function updateConstantEffectDisplay(level, levelElId, effectElId, coeff, prefix) {
-    document.getElementById(levelElId).textContent = level;
-    if (level === 0) {
-      document.getElementById(effectElId).textContent = '1.00';
-      return;
-    }
-    var bonus = Math.sqrt(level) - 1;
-    var value;
-    if (prefix === '÷') {
-      value = 1 + bonus * coeff;
-    } else {
-      value = 1 + bonus * coeff;
-    }
-    document.getElementById(effectElId).textContent = value.toFixed(2);
+  function setEffect(lvl, idLvl, idEff, coeff, prefix) {
+    document.getElementById(idLvl).textContent = lvl;
+    if (lvl === 0) { document.getElementById(idEff).textContent = '1.00'; return; }
+    var b = Math.sqrt(lvl) - 1;
+    document.getElementById(idEff).textContent = (1 + b * coeff).toFixed(2);
   }
 
-  function bindConstantSliders() {
-    function onSliderChange() {
-      var sf = parseInt(document.getElementById('constant-strong').value);
-      var ls = parseInt(document.getElementById('constant-light').value);
-      var gv = parseInt(document.getElementById('constant-gravity').value);
-      GS.allocateCP(sf, ls, gv);
-      updateConstantSliders();
-      refreshAll();
-    }
-
-    document.getElementById('constant-strong').addEventListener('input', onSliderChange);
-    document.getElementById('constant-light').addEventListener('input', onSliderChange);
-    document.getElementById('constant-gravity').addEventListener('input', onSliderChange);
-  }
-
-  // ── Milestones ──────────────────────────────────────────────────
+  // ── Milestones ──
 
   function updateMilestones() {
     var ms = GS.getMilestones();
-    if (ms.length === 0) return;
-
-    var section = document.getElementById('milestones-section');
-    section.style.display = 'block';
-
-    var list = document.getElementById('milestones-list');
-    list.innerHTML = '';
-
+    var bar = document.getElementById('milestones-bar');
+    if (ms.length === 0) { bar.style.display = 'none'; return; }
+    bar.style.display = 'flex';
+    bar.innerHTML = '';
     ms.forEach(function (at) {
       var m = GC.MILESTONES.find(function (x) { return x.at === at; });
       if (m) {
-        var badge = document.createElement('span');
-        badge.className = 'milestone-badge';
-        badge.textContent = '★ ' + m.name;
-        badge.title = m.descZh;
-        list.appendChild(badge);
+        var b = document.createElement('span');
+        b.className = 'milestone-badge';
+        b.textContent = '★ ' + m.name;
+        b.title = m.descZh;
+        bar.appendChild(b);
       }
     });
   }
 
-  // ── Full Refresh ────────────────────────────────────────────────
+  // ── Click Hint ──
 
-  function refreshAll() {
-    updateResearchBar();
-    refreshTierCards();
-    updateProgress();
-    updatePrestigePanel();
-    updateMilestones();
+  function updateClickHint() {
+    var hint = document.getElementById('click-hint');
+    var q = GS.getTier(0);
+    // Hide hint after player has produced some quarks
+    if (q && q.totalEver > 20) {
+      hint.style.opacity = '0';
+    }
   }
 
-  // ── Init ────────────────────────────────────────────────────────
+  // ── Full Refresh ──
+
+  var refreshScheduled = false;
+
+  function refreshAll() {
+    // Throttle DOM updates to ~10 fps
+    if (refreshScheduled) return;
+    refreshScheduled = true;
+    requestAnimationFrame(function () {
+      updateFocus();
+      updateActions();
+      updateEvolution();
+      updatePrestige();
+      updateMilestones();
+      updateClickHint();
+      refreshScheduled = false;
+    });
+  }
+
+  // ── Event Delegation ──
 
   function init() {
-    // Research button
-    document.getElementById('research-btn').addEventListener('click', function () {
-      var next = GS.getMaxResearchedTier() + 1;
-      if (next < GC.TIERS.length && GS.canResearch(next)) {
-        GE.research(next);
-        refreshAll();
-      }
+    // Action bar — delegated clicks
+    document.getElementById('action-bar').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn || btn.disabled) return;
+
+      var action = btn.dataset.action;
+      var tierId = parseInt(btn.dataset.tier);
+
+      if (action === 'buy-producer') GE.buyProducer(tierId);
+      else if (action === 'synthesize') GE.synthesize(tierId);
+      else if (action === 'research') GE.research(tierId);
+
+      refreshAll();
     });
 
     // Prestige button
@@ -349,15 +264,35 @@
       }
     });
 
-    bindConstantSliders();
+    // Constant sliders
+    function onSlider() {
+      var sf = +document.getElementById('constant-strong').value;
+      var ls = +document.getElementById('constant-light').value;
+      var gv = +document.getElementById('constant-gravity').value;
+      GS.allocateCP(sf, ls, gv);
+      updateConstantSliders();
+      // Immediate stat refresh
+      updateFocus();
+      updateActions();
+    }
+    document.getElementById('constant-strong').addEventListener('input', onSlider);
+    document.getElementById('constant-light').addEventListener('input', onSlider);
+    document.getElementById('constant-gravity').addEventListener('input', onSlider);
+
+    // Canvas click → quark production
+    var stage = document.getElementById('cosmos-stage');
+    stage.addEventListener('click', function () {
+      window.CanvasRenderer.onClick(event);
+      // Don't refresh DOM on every click — engine tick will handle it
+    });
+    // Also listen on canvas directly for event coordinates
+    document.getElementById('cosmos-canvas').addEventListener('click', function (e) {
+      window.CanvasRenderer.onClick(e);
+    });
 
     // Initial render
     refreshAll();
   }
 
-  // ── Export ──────────────────────────────────────────────────────
-  window.GameUI = {
-    init: init,
-    refreshAll: refreshAll,
-  };
+  window.GameUI = { init: init, refreshAll: refreshAll };
 })();

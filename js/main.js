@@ -1,8 +1,8 @@
-// tiny-cosmos — Main Entry
-// Initialize game state, start loop, handle save/load.
+// tiny-cosmos v2 — Main Entry
 (function () {
   'use strict';
 
+  var GC = window.GC;
   var GS = window.GameState;
   var GE = window.GameEngine;
   var UI = window.GameUI;
@@ -10,86 +10,65 @@
 
   var autosaveTimer = null;
 
-  // ── Save / Load ─────────────────────────────────────────────────
-
+  // ── Save / Load ──
   function saveGame() {
-    try {
-      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
-    } catch (e) {
-      // localStorage full or unavailable — silently ignore
-    }
+    try { localStorage.setItem(GC.SAVE_KEY, GS.toJSON()); } catch (e) {}
   }
-
   function loadGame() {
     try {
-      var json = localStorage.getItem(window.GC.SAVE_KEY);
-      if (json) {
-        return GS.fromJSON(json);
-      }
-    } catch (e) {
-      // corrupted save — ignore
-    }
+      var json = localStorage.getItem(GC.SAVE_KEY);
+      if (json) return GS.fromJSON(json);
+    } catch (e) {}
     return false;
   }
-
   function startAutosave() {
     if (autosaveTimer) clearInterval(autosaveTimer);
-    autosaveTimer = setInterval(saveGame, window.GC.AUTOSAVE_MS);
+    autosaveTimer = setInterval(saveGame, GC.AUTOSAVE_MS);
   }
 
-  // ── Init ────────────────────────────────────────────────────────
-
+  // ── Init ──
   function init() {
-    // Try to load saved game
-    var loaded = loadGame();
-    if (!loaded) {
-      GS.init();
-    }
+    // Load or new game
+    if (!loadGame()) GS.init();
 
-    // Start engine
-    GE.start();
-
-    // Wire UI refresh to engine tick
+    // Engine tick: flush canvas clicks, then refresh UI
     GE.onTick(function () {
-      UI.refreshAll();
+      Renderer.flushClicks();  // apply accumulated clicks as quark production
+      UI.refreshAll();          // throttle to ~10fps internally
     });
 
-    // Init UI (initial render + event bindings)
-    UI.init();
+    GE.start();
 
-    // Init and start Canvas renderer
+    // Canvas renderer
     Renderer.init('cosmos-canvas');
     Renderer.start();
 
-    // Start autosave
+    // UI (event bindings + initial render)
+    UI.init();
+
     startAutosave();
 
     // Save button
     document.getElementById('save-btn').addEventListener('click', function () {
       saveGame();
-      // Brief visual feedback
-      var btn = document.getElementById('save-btn');
-      var orig = btn.textContent;
-      btn.textContent = '✅ 已保存';
-      setTimeout(function () { btn.textContent = orig; }, 1500);
+      var b = document.getElementById('save-btn');
+      b.textContent = '✅'; setTimeout(function () { b.textContent = '💾'; }, 1200);
     });
 
     // Reset button
     document.getElementById('reset-btn').addEventListener('click', function () {
-      if (confirm('确定要重置所有进度吗？此操作不可撤销。\n\nReset all progress? This cannot be undone.')) {
+      if (confirm('重置所有进度？此操作不可撤销。')) {
         GE.stop();
         GS.init();
-        try { localStorage.removeItem(window.GC.SAVE_KEY); } catch (e) {}
+        try { localStorage.removeItem(GC.SAVE_KEY); } catch (e) {}
         UI.refreshAll();
         GE.start();
       }
     });
 
-    // Save on page unload
     window.addEventListener('beforeunload', saveGame);
   }
 
-  // ── Boot ────────────────────────────────────────────────────────
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
