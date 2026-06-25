@@ -1,11 +1,47 @@
-// tiny-cosmos v2 — UI Layer
-// Body-level event delegation. Context-sensitive actions. Tier overview.
+// tiny-cosmos v3 — UI Layer
+// Persistent buttons (NEVER destroyed). Evolution line with integrated counts.
+// Zero innerHTML on interactive elements.
 (function () {
   'use strict';
 
   var GC = window.GC;
   var GS = window.GameState;
   var GE = window.GameEngine;
+
+  // ── Cached DOM refs (never change) ─────────────────────────────
+  var dom = {};
+
+  function cacheDom() {
+    dom.fQuarks = document.getElementById('f-quarks');
+    dom.fQuarksRate = document.getElementById('f-quarks-rate');
+    dom.fRp = document.getElementById('f-rp');
+    dom.fRpTarget = document.getElementById('f-rp-target');
+    dom.evoLine = document.getElementById('evolution-line');
+    dom.clickHint = document.getElementById('click-hint');
+
+    dom.btnProducer0 = document.getElementById('btn-producer-0');
+    dom.btnSynth = document.getElementById('btn-synth');
+    dom.btnProducer1 = document.getElementById('btn-producer-1');
+    dom.btnResearch = document.getElementById('btn-research');
+
+    dom.prestigePanel = document.getElementById('prestige-panel');
+    dom.prestigeBtn = document.getElementById('prestige-btn');
+    dom.prestigeGain = document.getElementById('prestige-gain-text');
+    dom.prestigeDetail = document.getElementById('prestige-detail');
+    dom.constantStrong = document.getElementById('constant-strong');
+    dom.constantLight = document.getElementById('constant-light');
+    dom.constantGravity = document.getElementById('constant-gravity');
+    dom.sfLevel = document.getElementById('sf-level');
+    dom.lsLevel = document.getElementById('ls-level');
+    dom.gvLevel = document.getElementById('gv-level');
+    dom.sfEffect = document.getElementById('sf-effect');
+    dom.lsEffect = document.getElementById('ls-effect');
+    dom.gvEffect = document.getElementById('gv-effect');
+    dom.cpTotal = document.getElementById('cp-total');
+    dom.cpUsed = document.getElementById('cp-used');
+    dom.cpFree = document.getElementById('cp-free');
+    dom.milestonesBar = document.getElementById('milestones-bar');
+  }
 
   // ── Helpers ──
   function fmt(n, d) {
@@ -17,149 +53,86 @@
   }
   function fmtInt(n) { return Math.floor(n).toString(); }
 
-  // ── Focus Stats ──
+  // ── Focus ──
   function updateFocus() {
     var s = GS.getState();
     var q = s.tiers[0];
     var prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
-    document.getElementById('focus-q-count').textContent = fmt(q.count, q.count < 100 ? 2 : 0);
-    document.getElementById('focus-q-rate').textContent = '+' + fmt(prod, 1) + '/s';
+    dom.fQuarks.textContent = fmt(q.count, q.count < 100 ? 2 : 0);
+    dom.fQuarksRate.textContent = '+' + fmt(prod, 1) + '/s';
 
     var rp = s.researchPoints;
-    document.getElementById('focus-rp-count').textContent = fmt(rp, 1);
+    dom.fRp.textContent = fmt(rp, 1);
 
     var maxRes = GS.getMaxResearchedTier();
     var next = maxRes + 1;
     if (next < GC.TIERS.length) {
-      var cost = GS.getResearchCost(next);
-      document.getElementById('focus-rp-target').textContent = '/' + cost;
+      dom.fRpTarget.textContent = '/' + GS.getResearchCost(next) + ' RP';
     } else {
-      document.getElementById('focus-rp-target').textContent = '';
+      dom.fRpTarget.textContent = ' RP';
     }
   }
 
-  // ── Tier Overview (compact stats for all unlocked tiers) ──
-  function updateTierOverview() {
-    var container = document.getElementById('tier-overview');
-    var s = GS.getState();
-    var maxRes = GS.getMaxResearchedTier();
-    var html = '';
+  // ── Action Buttons (persistent — update only text/disabled/display) ──
 
-    for (var i = 0; i <= maxRes; i++) {
-      var t = s.tiers[i];
-      var tpl = GC.TIERS[i];
-
-      // Calculate net production
-      var prod = 0, demand = 0;
-      if (i === 0) {
-        prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
-      } else if (tpl.baseProd > 0) {
-        prod = GS.getProducerOutput(i) * GS.getSpeedMultiplier() * GS.getGravityMultiplier(i);
-      }
-      if (i < GC.TIERS.length - 1) {
-        var higher = s.tiers[i + 1];
-        if (higher.researched) {
-          var dm = GC.DEMAND_PER_UNIT * GC.TICKS_PER_SEC;
-          if (GS.hasMilestone(7)) dm *= 0.7;
-          demand = higher.count * dm;
-        }
-      }
-      var net = prod - demand;
-      var netSign = net >= 0 ? '+' : '';
-      var netClass = net >= 0 ? 'net-pos' : 'net-neg';
-
-      var producers = t.producers > 0 ? ' <span class="ov-prod">×' + t.producers + '</span>' : '';
-
-      html += '<div class="ov-tier">' +
-        '<span class="ov-dot" style="background:' + tpl.color + '"></span>' +
-        '<span class="ov-name">' + tpl.nameZh + '</span>' +
-        '<span class="ov-count">' + fmt(t.count, i <= 2 ? 2 : 0) + '</span>' +
-        producers +
-        '<span class="ov-net ' + netClass + '">' + netSign + fmt(net, 2) + '/s</span>' +
-        '</div>';
-    }
-
-    // Next researchable tier hint
-    var next = maxRes + 1;
-    if (next < GC.TIERS.length) {
-      var nt = GC.TIERS[next];
-      html += '<div class="ov-tier ov-next">' +
-        '<span class="ov-dot" style="background:' + nt.color + ';opacity:0.3"></span>' +
-        '<span class="ov-name" style="color:var(--text-dim)">' + nt.nameZh + '</span>' +
-        '<span class="ov-count" style="color:var(--blue)">🔬 ' + GS.getResearchCost(next) + ' RP</span>' +
-        '</div>';
-    }
-
-    container.innerHTML = html;
-  }
-
-  // ── Action Buttons ──
   function updateActions() {
-    var container = document.getElementById('action-bar');
     var s = GS.getState();
     var maxRes = GS.getMaxResearchedTier();
-    var html = '';
 
-    // 1. Quark producer
+    // ── Producer 0 (quark) — always visible ──
     var qCost = GS.getProducerCost(0);
-    var canBuyQ = s.tiers[0].count >= qCost;
-    html += '<button class="btn btn-primary" data-action="buy-producer" data-tier="0"' +
-      (canBuyQ ? '' : ' disabled') + '>' +
-      '⚡ 自动观测 (' + fmtInt(qCost) + ')' +
-      '</button>';
+    dom.btnProducer0.textContent = '⚡ 自动观测 (' + fmtInt(qCost) + ')';
+    dom.btnProducer0.disabled = s.tiers[0].count < qCost;
+    dom.btnProducer0.style.display = '';
 
-    // 2. Synthesis for most relevant unlocked tier (skip quark and civ)
-    var synthTier = 0;
-    for (var t = maxRes; t >= 1; t--) {
-      if (t === 6) continue;
-      if (s.tiers[t - 1].count > 0 || s.tiers[t].count > 0) {
-        synthTier = t;
-        break;
-      }
-    }
-    if (synthTier === 0 && maxRes >= 1) synthTier = 1;
-
-    if (synthTier > 0) {
-      var cost = GS.getSynthCost(synthTier);
+    // ── Synth — visible when tier 1+ researched ──
+    if (maxRes >= 1) {
+      // Find most relevant synth tier (highest unlocked that's not civilization)
+      var synthTier = maxRes;
+      if (synthTier === 6) synthTier = 5;
+      var sc = GS.getSynthCost(synthTier);
       var batch = GS.getSynthBatchSize();
-      var canSynth = s.tiers[synthTier - 1].count >= (cost * batch);
-      html += '<button class="btn" data-action="synthesize" data-tier="' + synthTier + '"' +
-        (canSynth ? '' : ' disabled') + '>' +
-        '⬆ ' + GC.TIERS[synthTier - 1].nameZh + '→' + GC.TIERS[synthTier].nameZh + ' (' + fmtInt(cost) + '×' + batch + ')' +
-        '</button>';
+      var canSynth = s.tiers[synthTier - 1].count >= (sc * batch);
+      dom.btnSynth.textContent = '⬆ ' + GC.TIERS[synthTier - 1].nameZh + '→' +
+        GC.TIERS[synthTier].nameZh + ' (' + fmtInt(sc) + '×' + batch + ')';
+      dom.btnSynth.disabled = !canSynth;
+      dom.btnSynth.style.display = '';
+      dom.btnSynth.dataset.tier = synthTier;
+    } else {
+      dom.btnSynth.style.display = 'none';
     }
 
-    // 3. Producer for current highest tier (skip quark and civ)
+    // ── Producer 1 (current tier) — visible when tier 1+ researched, has producers ──
+    var foundProducer = false;
     for (var p = maxRes; p >= 1; p--) {
       var tp = GC.TIERS[p];
       if (tp.producerBaseCost === 0 || p === 6) continue;
       var pCost = GS.getProducerCost(p);
-      var canBuyP = s.tiers[p].count >= pCost;
-      html += '<button class="btn" data-action="buy-producer" data-tier="' + p + '"' +
-        (canBuyP ? '' : ' disabled') + '>' +
-        '⚙ ' + tp.nameZh + ' (' + fmtInt(pCost) + ')' +
-        '</button>';
+      dom.btnProducer1.textContent = '⚙ ' + tp.nameZh + ' 生产 (' + fmtInt(pCost) + ')';
+      dom.btnProducer1.disabled = s.tiers[p].count < pCost;
+      dom.btnProducer1.style.display = '';
+      dom.btnProducer1.dataset.tier = p;
+      foundProducer = true;
       break;
     }
+    if (!foundProducer) dom.btnProducer1.style.display = 'none';
 
-    // 4. Research
+    // ── Research — visible when next tier exists ──
     var nextTier = maxRes + 1;
     if (nextTier < GC.TIERS.length) {
       var rCost = GS.getResearchCost(nextTier);
-      var rName = GC.TIERS[nextTier].nameZh;
-      var canR = GS.canResearch(nextTier);
-      html += '<button class="btn btn-blue" data-action="research" data-tier="' + nextTier + '"' +
-        (canR ? '' : ' disabled') + '>' +
-        '🔬 研究 ' + rName + ' (' + fmt(s.researchPoints, 0) + '/' + rCost + ')' +
-        '</button>';
+      dom.btnResearch.textContent = '🔬 研究 ' + GC.TIERS[nextTier].nameZh +
+        ' (' + fmt(s.researchPoints, 0) + '/' + rCost + ' RP)';
+      dom.btnResearch.disabled = !GS.canResearch(nextTier);
+      dom.btnResearch.style.display = '';
+      dom.btnResearch.dataset.tier = nextTier;
+    } else {
+      dom.btnResearch.style.display = 'none';
     }
-
-    container.innerHTML = html;
   }
 
-  // ── Evolution Line ──
+  // ── Evolution Line (innerHTML OK — no interactive elements inside) ──
   function updateEvolution() {
-    var container = document.getElementById('evolution-line');
     var s = GS.getState();
     var maxRes = GS.getMaxResearchedTier();
     var html = '';
@@ -171,99 +144,94 @@
       if (i > 0) html += '<span class="evo-arrow">→</span>';
 
       if (t.researched) {
-        html += '<span class="evo-node active" style="background:' + tpl.color + ';--node-color:' + tpl.glow + '" title="' + tpl.nameZh + ': ' + fmt(t.count, 0) + '">' +
-          tpl.symbol + '</span>';
+        var style = 'background:' + tpl.color + ';--nc:' + tpl.glow;
+        html += '<span class="evo-node active" style="' + style + '">' +
+          '<span class="evo-sym">' + tpl.symbol + '</span>' +
+          '<span class="evo-num">' + fmt(t.count, i <= 2 ? 1 : 0) + '</span>' +
+          '</span>';
       } else if (i === maxRes + 1) {
-        html += '<span class="evo-node researchable" title="研究需要 ' + GS.getResearchCost(i) + ' RP">?</span>';
+        html += '<span class="evo-node researchable">' +
+          '<span class="evo-sym">?</span>' +
+          '<span class="evo-num">' + GS.getResearchCost(i) + 'RP</span>' +
+          '</span>';
       } else {
-        html += '<span class="evo-node locked">·</span>';
+        html += '<span class="evo-node locked">' +
+          '<span class="evo-sym">·</span>' +
+          '</span>';
       }
     }
 
-    container.innerHTML = html;
+    dom.evoLine.innerHTML = html;
   }
 
   // ── Prestige ──
   function updatePrestige() {
-    var panel = document.getElementById('prestige-panel');
     var canP = GS.canPrestige();
     var hasP = GS.getPrestiges() > 0;
 
     if (canP || hasP) {
-      panel.style.display = 'block';
+      dom.prestigePanel.style.display = 'block';
       if (canP) {
-        var gain = GS.calcCPGain();
-        document.getElementById('prestige-gain-text').textContent = '获得 ' + gain + ' 恒定点';
-        document.getElementById('prestige-btn').style.display = '';
+        dom.prestigeGain.textContent = '获得 ' + GS.calcCPGain() + ' 恒定点';
+        dom.prestigeBtn.style.display = '';
       } else {
-        document.getElementById('prestige-btn').style.display = 'none';
+        dom.prestigeBtn.style.display = 'none';
       }
       if (hasP) {
-        document.getElementById('prestige-detail').style.display = 'flex';
+        dom.prestigeDetail.style.display = 'flex';
         updateConstantSliders();
       }
     } else {
-      panel.style.display = 'none';
+      dom.prestigePanel.style.display = 'none';
     }
   }
 
   function updateConstantSliders() {
     var cp = GS.getCP();
     var c = GS.getConstants();
-    document.getElementById('cp-total').textContent = cp;
-    document.getElementById('cp-used').textContent = GS.getAllocatedCP();
-    document.getElementById('cp-free').textContent = GS.getUnspentCP();
+    dom.cpTotal.textContent = cp;
+    dom.cpUsed.textContent = GS.getAllocatedCP();
+    dom.cpFree.textContent = GS.getUnspentCP();
 
-    var sliders = [
-      { id: 'constant-strong', val: c.strongForce, lvl: 'sf-level', eff: 'sf-effect', coeff: GC.STRONG_FORCE_COEFF, pfx: '÷' },
-      { id: 'constant-light', val: c.lightSpeed, lvl: 'ls-level', eff: 'ls-effect', coeff: GC.LIGHT_SPEED_COEFF, pfx: '×' },
-      { id: 'constant-gravity', val: c.gravity, lvl: 'gv-level', eff: 'gv-effect', coeff: GC.GRAVITY_COEFF, pfx: '×' },
-    ];
-    sliders.forEach(function (s) {
-      var el = document.getElementById(s.id);
-      el.max = cp;
-      if (+el.value !== s.val) el.value = s.val;
-      document.getElementById(s.lvl).textContent = s.val;
-      if (s.val === 0) { document.getElementById(s.eff).textContent = '1.00'; return; }
-      var b = Math.sqrt(s.val) - 1;
-      document.getElementById(s.eff).textContent = (1 + b * s.coeff).toFixed(2);
-    });
+    updateSlider(dom.constantStrong, c.strongForce, cp, dom.sfLevel, dom.sfEffect, GC.STRONG_FORCE_COEFF, '÷');
+    updateSlider(dom.constantLight, c.lightSpeed, cp, dom.lsLevel, dom.lsEffect, GC.LIGHT_SPEED_COEFF, '×');
+    updateSlider(dom.constantGravity, c.gravity, cp, dom.gvLevel, dom.gvEffect, GC.GRAVITY_COEFF, '×');
+  }
+
+  function updateSlider(input, val, max, lvlEl, effEl, coeff, prefix) {
+    input.max = max;
+    if (+input.value !== val) input.value = val;
+    lvlEl.textContent = val;
+    if (val === 0) { effEl.textContent = '1.00'; return; }
+    var b = Math.sqrt(val) - 1;
+    effEl.textContent = (1 + b * coeff).toFixed(2);
   }
 
   // ── Milestones ──
   function updateMilestones() {
     var ms = GS.getMilestones();
-    var bar = document.getElementById('milestones-bar');
-    if (ms.length === 0) { bar.style.display = 'none'; return; }
-    bar.style.display = 'flex';
-    bar.innerHTML = '';
+    if (ms.length === 0) { dom.milestonesBar.style.display = 'none'; return; }
+    dom.milestonesBar.style.display = 'flex';
+    var html = '';
     ms.forEach(function (at) {
       var m = GC.MILESTONES.find(function (x) { return x.at === at; });
-      if (m) {
-        var b = document.createElement('span');
-        b.className = 'milestone-badge';
-        b.textContent = '★ ' + m.name;
-        b.title = m.descZh;
-        bar.appendChild(b);
-      }
+      if (m) html += '<span class="milestone-badge" title="' + m.descZh + '">★ ' + m.name + '</span>';
     });
+    dom.milestonesBar.innerHTML = html;
   }
 
-  // ── Click hint ──
   function updateClickHint() {
-    var hint = document.getElementById('click-hint');
     var q = GS.getTier(0);
-    if (q && q.totalEver > 30) hint.style.opacity = '0';
+    if (q && q.totalEver > 30) dom.clickHint.style.opacity = '0';
   }
 
-  // ── Full Refresh ──
+  // ── Full Refresh (throttled to ~10fps) ──
   var refreshScheduled = false;
   function refreshAll() {
     if (refreshScheduled) return;
     refreshScheduled = true;
     requestAnimationFrame(function () {
       updateFocus();
-      updateTierOverview();
       updateActions();
       updateEvolution();
       updatePrestige();
@@ -273,69 +241,57 @@
     });
   }
 
-  // ── Event Delegation (on body) ──
-  function handleAction(e) {
-    var btn = e.target.closest('[data-action]');
-    if (!btn) return;
+  // ── Button Click Handlers (persistent, direct listeners) ──
 
-    // Disabled buttons don't fire click events in browsers, so this should never be true.
-    // But just in case the click came from a programmatic dispatch:
-    if (btn.disabled) return;
-
-    var action = btn.dataset.action;
-    var tierId = parseInt(btn.dataset.tier);
-
-    var ok = false;
-    if (action === 'buy-producer') ok = GE.buyProducer(tierId);
-    else if (action === 'synthesize') ok = GE.synthesize(tierId);
-    else if (action === 'research') ok = GE.research(tierId);
-
-    if (!ok) flashFeedback('资源不足');
+  function onClickProducer0() {
+    if (GE.buyProducer(0)) refreshAll();
   }
 
-  var feedbackTimer = null;
-  function flashFeedback(msg) {
-    var el = document.getElementById('feedback-toast');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'feedback-toast';
-      el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);padding:8px 20px;background:rgba(255,92,92,0.9);color:#fff;border-radius:999px;font-size:13px;z-index:999;pointer-events:none;transition:opacity 0.3s;';
-      document.body.appendChild(el);
-    }
-    el.textContent = msg;
-    el.style.opacity = '1';
-    if (feedbackTimer) clearTimeout(feedbackTimer);
-    feedbackTimer = setTimeout(function () { el.style.opacity = '0'; }, 800);
+  function onClickSynth() {
+    var tierId = parseInt(dom.btnSynth.dataset.tier);
+    if (tierId > 0 && GE.synthesize(tierId)) refreshAll();
+  }
+
+  function onClickProducer1() {
+    var tierId = parseInt(dom.btnProducer1.dataset.tier);
+    if (tierId > 0 && GE.buyProducer(tierId)) refreshAll();
+  }
+
+  function onClickResearch() {
+    var tierId = parseInt(dom.btnResearch.dataset.tier);
+    if (tierId > 0 && GE.research(tierId)) refreshAll();
   }
 
   // ── Init ──
   function init() {
-    // Body-level event delegation
-    document.body.addEventListener('click', handleAction);
+    cacheDom();
 
-    // Prestige button
-    document.getElementById('prestige-btn').addEventListener('click', function (e) {
-      e.stopPropagation(); // don't let body handler catch this
+    // Direct event listeners on persistent buttons — NEVER destroyed
+    dom.btnProducer0.addEventListener('click', onClickProducer0);
+    dom.btnSynth.addEventListener('click', onClickSynth);
+    dom.btnProducer1.addEventListener('click', onClickProducer1);
+    dom.btnResearch.addEventListener('click', onClickResearch);
+
+    // Prestige
+    dom.prestigeBtn.addEventListener('click', function () {
       if (GS.canPrestige()) { GE.bigCrunch(); refreshAll(); }
     });
 
-    // Constant sliders
+    // Constants
     function onSlider() {
       GS.allocateCP(
-        +document.getElementById('constant-strong').value,
-        +document.getElementById('constant-light').value,
-        +document.getElementById('constant-gravity').value
+        +dom.constantStrong.value,
+        +dom.constantLight.value,
+        +dom.constantGravity.value
       );
       updateConstantSliders();
     }
-    document.getElementById('constant-strong').addEventListener('input', onSlider);
-    document.getElementById('constant-light').addEventListener('input', onSlider);
-    document.getElementById('constant-gravity').addEventListener('input', onSlider);
+    dom.constantStrong.addEventListener('input', onSlider);
+    dom.constantLight.addEventListener('input', onSlider);
+    dom.constantGravity.addEventListener('input', onSlider);
 
     // Canvas click
-    var canvas = document.getElementById('cosmos-canvas');
-    canvas.addEventListener('click', function (e) {
-      e.stopPropagation();
+    document.getElementById('cosmos-canvas').addEventListener('click', function (e) {
       window.CanvasRenderer.onClick(e);
     });
 
