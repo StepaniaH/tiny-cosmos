@@ -32,7 +32,7 @@
       symbol: 'A',
       baseCost: 2,          // 2 nucleons → 1 atom
       baseProd: 0.03,
-      researchCost: 50,
+      researchCost: 25,
       producerBaseCost: 3,
       descZh: '元素就此诞生，宇宙开始有了结构',
     },
@@ -42,7 +42,7 @@
       symbol: 'M',
       baseCost: 4,          // 4 atoms → 1 molecule
       baseProd: 0.012,
-      researchCost: 150,
+      researchCost: 80,
       producerBaseCost: 2,
       descZh: '原子间的化学键合，复杂性开始涌现',
     },
@@ -52,7 +52,7 @@
       symbol: 'C',
       baseCost: 3,          // 3 molecules → 1 cell
       baseProd: 0.005,
-      researchCost: 500,
+      researchCost: 300,
       producerBaseCost: 1,
       descZh: '生命的结构单元，自组织的奇迹',
     },
@@ -62,7 +62,7 @@
       symbol: 'L',
       baseCost: 5,          // 5 cells → 1 life
       baseProd: 0.002,
-      researchCost: 2000,
+      researchCost: 1200,
       producerBaseCost: 1,
       descZh: '意识的微光，宇宙开始注视自己',
     },
@@ -72,7 +72,7 @@
       symbol: 'Civ',
       baseCost: 8,          // 8 life → 1 civilization
       baseProd: 0,          // no auto-production — achievement tier
-      researchCost: 8000,
+      researchCost: 5000,
       producerBaseCost: 0,  // no producers
       descZh: '智慧的火种，足以重塑宇宙',
     },
@@ -96,7 +96,10 @@
   var TICKS_PER_SEC = 20;
 
   // Research point generation per tick (by highest researched tier)
-  var RP_PER_TICK = [0, 0.001, 0.003, 0.008, 0.02, 0.05, 0.15];
+  var RP_PER_TICK = [0, 0.002, 0.006, 0.016, 0.04, 0.10, 0.30];
+
+  // RP reward per manual synthesis batch (by target tier)
+  var SYNTH_RP_BONUS = [0, 1, 2, 3, 5, 8, 50];
 
   // Prestige: CP = floor(totalQuarksEver^EXP / DIV) + prestiges × PRESTIGE_MULT
   var CP_EXP = 0.3;
@@ -134,6 +137,7 @@
     SYNTH_BATCH_BASE: SYNTH_BATCH_BASE,
     TICKS_PER_SEC: TICKS_PER_SEC,
     RP_PER_TICK: RP_PER_TICK,
+    SYNTH_RP_BONUS: SYNTH_RP_BONUS,
     CP_EXP: CP_EXP,
     CP_DIV: CP_DIV,
     CP_PRESTIGE_MULT: CP_PRESTIGE_MULT,

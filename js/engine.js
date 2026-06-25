@@ -45,29 +45,12 @@
       GS.addResource(0, qOutput);
     }
 
-    // Tier 1-5: producers auto-synthesize via fractional accumulation
+    // Tier 1-5: producers directly generate their own resource
     for (var i = 1; i <= 5; i++) {
       var t = st.tiers[i];
       if (!t.researched || t.producers === 0) continue;
-
-      var prodPerTick = GS.getProducerOutput(i) * tickMult * GS.getGravityMultiplier(i);
-
-      // Accumulate fractional production
-      if (t._autoAcc === undefined) t._autoAcc = 0;
-      t._autoAcc += prodPerTick;
-
-      // Synthesize whole units when enough accumulated
-      while (t._autoAcc >= 1) {
-        var cost = GS.getSynthCost(i);
-        if (st.tiers[i - 1].count >= cost) {
-          GS.spendResource(i - 1, cost);
-          GS.addResource(i, 1);
-          t._autoAcc -= 1;
-        } else {
-          t._autoAcc = 0; // can't afford — discard accumulation (no free lunch)
-          break;
-        }
-      }
+      var output = GS.getProducerOutput(i) * tickMult * GS.getGravityMultiplier(i);
+      GS.addResource(i, output);
     }
   }
 
@@ -122,6 +105,8 @@
     GS.spendResource(tierId - 1, totalCost);
     GS.addResource(tierId, batch);
     GS.recordSynth(tierId);
+    // Manual synthesis rewards RP
+    if (tierId >= 1) GS.addRP(tierId * batch);
     return true;
   }
 
