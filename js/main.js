@@ -6,6 +6,7 @@
   var GS = window.GameState;
   var GE = window.GameEngine;
   var UI = window.GameUI;
+  var Renderer = window.CanvasRenderer;
 
   var autosaveTimer = null;
 
@@ -55,6 +56,10 @@
 
     // Init UI (initial render + event bindings)
     UI.init();
+
+    // Init and start Canvas renderer
+    Renderer.init('cosmos-canvas');
+    Renderer.start();
 
     // Start autosave
     startAutosave();
