@@ -81,12 +81,13 @@
 
   function applyResearch() {
     var st = GS.getState();
-    // RP = Σ (resource count × per-unit weight) for each researched tier
+    // RP = Σ sqrt(resource count) × tier coefficient
+    // sqrt gives diminishing returns → natural late-game slowdown
     var rpThisTick = 0;
     for (var i = 0; i < GC.TIERS.length; i++) {
       var t = st.tiers[i];
-      if (!t.researched || t.count === 0) continue;
-      rpThisTick += t.count * GC.RP_PER_UNIT[i];
+      if (!t.researched || t.count <= 0) continue;
+      rpThisTick += Math.sqrt(t.count) * GC.RP_SQRT_COEFF[i];
     }
     if (rpThisTick > 0) GS.addRP(rpThisTick);
   }

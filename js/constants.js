@@ -95,10 +95,12 @@
   // Game loop: ticks per second
   var TICKS_PER_SEC = 20;
 
-  // Research point generation per tick per unit of resource (by tier)
-  // Higher tiers yield far more RP per unit — creates strategic depth:
-  //   spend resources → RP slows; save resources → RP speeds up
-  var RP_PER_UNIT = [0.000025, 0.0005, 0.0015, 0.005, 0.02, 0.1, 0.5];
+  // Research point generation per tick: sqrt(count) × coefficient
+  // sqrt dampens the effect of resource accumulation — more resources
+  // give more RP, but with diminishing returns. This naturally creates
+  // an accelerating difficulty curve: early game fast, late game slow.
+  // Per-tick; multiply by TICKS_PER_SEC for display.
+  var RP_SQRT_COEFF = [0.00015, 0.0003, 0.0006, 0.0012, 0.0025, 0.005, 0.01];
 
   // Prestige: CP = floor(totalQuarksEver^EXP / DIV) + prestiges × PRESTIGE_MULT
   var CP_EXP = 0.3;
@@ -135,7 +137,7 @@
     DEMAND_PER_UNIT: DEMAND_PER_UNIT,
     SYNTH_BATCH_BASE: SYNTH_BATCH_BASE,
     TICKS_PER_SEC: TICKS_PER_SEC,
-    RP_PER_UNIT: RP_PER_UNIT,
+    RP_SQRT_COEFF: RP_SQRT_COEFF,
     CP_EXP: CP_EXP,
     CP_DIV: CP_DIV,
     CP_PRESTIGE_MULT: CP_PRESTIGE_MULT,

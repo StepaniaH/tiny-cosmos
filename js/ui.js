@@ -10,12 +10,12 @@
   function updateResearch() {
     var rp = GS.getRP(), max = GS.getMaxResearchedTier(), next = max + 1;
     document.getElementById('rb-rp').textContent = fmt(rp, 1);
-    // RP source hint: total from all resources
+    // RP source hint: total from all resources (sqrt formula)
     var totalRPS = 0;
     for (var i = 0; i < GC.TIERS.length; i++) {
       var tt = GS.getTier(i);
       if (tt && tt.researched && tt.count > 0) {
-        totalRPS += tt.count * GC.RP_PER_UNIT[i] * GC.TICKS_PER_SEC;
+        totalRPS += Math.sqrt(tt.count) * GC.RP_SQRT_COEFF[i] * GC.TICKS_PER_SEC;
       }
     }
     var hintText = totalRPS > 0
