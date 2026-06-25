@@ -24,8 +24,11 @@
 
 <!-- Research -->
 <div class="research-bar">
-  <span class="rb-label">🔬 研究点数</span>
-  <span class="rb-value" id="rb-rp">0</span>
+  <div class="rb-left">
+    <span class="rb-label">🔬 研究点数</span>
+    <span class="rb-value" id="rb-rp">0</span>
+    <span class="rb-hint" id="rb-hint">由已解锁最高层自动产出</span>
+  </div>
   <div class="rb-track"><div id="rb-fill" class="rb-fill"></div></div>
   <button id="btn-research-global" class="btn btn-blue" disabled>研究下一层</button>
   <span class="rb-next" id="rb-next-label"></span>
@@ -55,28 +58,55 @@
   <!-- Tier 2: Atom -->
   <div id="card-2" class="tier-card locked">
     <div class="tc-head"><span class="tc-dot" style="background:#ffd43b"></span><span class="tc-name">原子</span><span class="tc-en">Atom</span></div>
+    <div class="tc-count" id="count-2" style="display:none">0</div>
+    <div class="tc-bars" id="bars-2" style="display:none"></div>
+    <div class="tc-net" id="net-2" style="display:none"></div>
     <div class="tc-locked">🔒 尚未揭示</div>
+    <button id="btn-prod-2" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
+    <button id="btn-synth-2" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
     <button id="btn-research-2" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究 (0/50 RP)</button>
   </div>
   <!-- Tier 3: Molecule -->
   <div id="card-3" class="tier-card locked">
     <div class="tc-head"><span class="tc-dot" style="background:#69db7c"></span><span class="tc-name">分子</span><span class="tc-en">Molecule</span></div>
+    <div class="tc-count" id="count-3" style="display:none">0</div>
+    <div class="tc-bars" id="bars-3" style="display:none"></div>
+    <div class="tc-net" id="net-3" style="display:none"></div>
     <div class="tc-locked">🔒 尚未揭示</div>
+    <button id="btn-prod-3" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
+    <button id="btn-synth-3" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
+    <button id="btn-research-3" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
   </div>
   <!-- Tier 4: Cell -->
   <div id="card-4" class="tier-card locked">
     <div class="tc-head"><span class="tc-dot" style="background:#4dabf7"></span><span class="tc-name">细胞</span><span class="tc-en">Cell</span></div>
+    <div class="tc-count" id="count-4" style="display:none">0</div>
+    <div class="tc-bars" id="bars-4" style="display:none"></div>
+    <div class="tc-net" id="net-4" style="display:none"></div>
     <div class="tc-locked">🔒 尚未揭示</div>
+    <button id="btn-prod-4" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
+    <button id="btn-synth-4" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
+    <button id="btn-research-4" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
   </div>
   <!-- Tier 5: Life -->
   <div id="card-5" class="tier-card locked">
     <div class="tc-head"><span class="tc-dot" style="background:#cc5de8"></span><span class="tc-name">生命</span><span class="tc-en">Life</span></div>
+    <div class="tc-count" id="count-5" style="display:none">0</div>
+    <div class="tc-bars" id="bars-5" style="display:none"></div>
+    <div class="tc-net" id="net-5" style="display:none"></div>
     <div class="tc-locked">🔒 尚未揭示</div>
+    <button id="btn-prod-5" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
+    <button id="btn-synth-5" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
+    <button id="btn-research-5" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
   </div>
   <!-- Tier 6: Civilization -->
   <div id="card-6" class="tier-card locked">
     <div class="tc-head"><span class="tc-dot" style="background:#f783ac"></span><span class="tc-name">文明</span><span class="tc-en">Civilization</span></div>
+    <div class="tc-count" id="count-6" style="display:none">0</div>
+    <div class="tc-bars" id="bars-6" style="display:none"></div>
+    <div class="tc-net" id="net-6" style="display:none"></div>
     <div class="tc-locked">🔒 尚未揭示</div>
+    <button id="btn-research-6" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
   </div>
 </div>
 

@@ -10,6 +10,10 @@
   function updateResearch() {
     var rp = GS.getRP(), max = GS.getMaxResearchedTier(), next = max + 1;
     document.getElementById('rb-rp').textContent = fmt(rp, 1);
+    // RP source hint
+    var rpPerSec = GC.RP_PER_TICK[max] * GC.TICKS_PER_SEC;
+    var srcName = GC.TIERS[max].nameZh;
+    document.getElementById('rb-hint').textContent = '来自 ' + srcName + ' (+' + fmt(rpPerSec, 2) + '/s)';
     if (next < GC.TIERS.length) {
       var cost = GS.getResearchCost(next);
       document.getElementById('rb-fill').style.width = Math.min(100, rp / cost * 100) + '%';
@@ -202,19 +206,13 @@
     if (q && q.totalEver > 30) document.getElementById('click-hint').style.opacity = '0';
   }
 
-  // ── Full refresh ──
-  var scheduled = false;
+  // ── Full refresh (synchronous — engine ticks at 20/s, fast enough) ──
   function refreshAll() {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(function(){
-      updateResearch();
-      for (var i = 0; i < GC.TIERS.length; i++) updateCard(i);
-      updatePrestige();
-      updateMilestones();
-      updateClickHint();
-      scheduled = false;
-    });
+    updateResearch();
+    for (var i = 0; i < GC.TIERS.length; i++) updateCard(i);
+    updatePrestige();
+    updateMilestones();
+    updateClickHint();
   }
 
   // ── Button handlers ──

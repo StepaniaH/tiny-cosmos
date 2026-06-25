@@ -205,32 +205,39 @@
   }
 
   function drawCenter(cx, cy, s) {
-    var tq = GS.getTotalQuarksEver() || 0;
+    var q = s.tiers[0];
+    var count = q.count || 0;
+    var prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
 
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Subtle glow
     ctx.beginPath();
     ctx.arc(cx, cy, 30, 0, Math.PI*2);
     ctx.fillStyle = 'rgba(255,212,59,0.03)';
     ctx.fill();
 
-    // Count
+    // Current quarks (main number)
     ctx.font = 'bold 18px ' + getMono();
     ctx.fillStyle = '#ffd43b';
-    ctx.fillText(formatShort(tq), cx, cy - 6);
+    ctx.fillText(fmt(count), cx, cy - 6);
 
+    // Label
     ctx.font = '10px ' + getMono();
     ctx.fillStyle = '#6a6a82';
-    ctx.fillText('夸克总量', cx, cy + 12);
+    ctx.fillText('夸克', cx, cy + 10);
+
+    // Net rate
+    ctx.font = '9px ' + getMono();
+    ctx.fillStyle = prod >= 0.01 ? '#5cdb7c' : '#6a6a82';
+    ctx.fillText('+' + prod.toFixed(1) + '/s', cx, cy + 24);
 
     var prestiges = GS.getPrestiges();
     if (prestiges > 0) {
       ctx.font = '9px ' + getMono();
       ctx.fillStyle = '#cc5de8';
-      ctx.fillText('🌌 ×' + prestiges, cx, cy + 26);
+      ctx.fillText('🌌 ×' + prestiges, cx, cy + 38);
     }
     ctx.restore();
   }
@@ -266,7 +273,15 @@
     if (n >= 1e9)  return (n/1e9).toFixed(1)+'G';
     if (n >= 1e6)  return (n/1e6).toFixed(1)+'M';
     if (n >= 1e3)  return (n/1e3).toFixed(1)+'K';
-    return Math.floor(n).toString();
+    if (n >= 100)  return Math.floor(n).toString();
+    return n.toFixed(1);
+  }
+
+  function fmt(n) {
+    if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+    if (n >= 1e4) return (n/1e3).toFixed(1)+'K';
+    if (n >= 100) return Math.floor(n).toString();
+    return n.toFixed(1);
   }
 
   window.CanvasRenderer = {
