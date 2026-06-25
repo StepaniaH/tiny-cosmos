@@ -1,47 +1,147 @@
 // tiny-cosmos — Game Constants
-// Tier definitions, cost curves, and balance parameters
+// Tier definitions, balance parameters, milestones
+// All game tuning lives here — change numbers, not logic.
 (function () {
   'use strict';
 
+  // ── Tier Definitions ────────────────────────────────────────────
   var TIERS = [
-    { id: 0, name: 'Quark', nameZh: '夸克', color: '#ff6b6b', glow: 'rgba(255,107,107,0.6)', symbol: 'q', synthesisCost: 0,  baseProd: 0.3,  researchCost: 0,      producerCost: 10,   descZh: '宇宙最基本的粒子' },
-    { id: 1, name: 'Nucleon', nameZh: '核子', color: '#ffa94d', glow: 'rgba(255,169,77,0.6)', symbol: 'N', synthesisCost: 3,  baseProd: 0.08, researchCost: 15,     producerCost: 25,   descZh: '质子与中子，原子核的基石' },
-    { id: 2, name: 'Atom', nameZh: '原子', color: '#ffd43b', glow: 'rgba(255,212,59,0.6)', symbol: 'A', synthesisCost: 2,  baseProd: 0.03, researchCost: 50,     producerCost: 60,   descZh: '元素就此诞生' },
-    { id: 3, name: 'Molecule', nameZh: '分子', color: '#69db7c', glow: 'rgba(105,219,124,0.6)', symbol: 'M', synthesisCost: 4,  baseProd: 0.012, researchCost: 150,    producerCost: 150,  descZh: '原子间的化学键合' },
-    { id: 4, name: 'Cell', nameZh: '细胞', color: '#4dabf7', glow: 'rgba(77,171,247,0.6)', symbol: 'C', synthesisCost: 3,  baseProd: 0.005, researchCost: 500,    producerCost: 400,  descZh: '生命的结构单元' },
-    { id: 5, name: 'Life', nameZh: '生命', color: '#cc5de8', glow: 'rgba(204,93,232,0.6)', symbol: 'L', synthesisCost: 5,  baseProd: 0.002, researchCost: 2000,   producerCost: 1000, descZh: '意识的微光' },
-    { id: 6, name: 'Civilization', nameZh: '文明', color: '#f783ac', glow: 'rgba(247,131,172,0.6)', symbol: 'Civ', synthesisCost: 8, baseProd: 0,     researchCost: 8000,   producerCost: 3000, descZh: '智慧的火种' },
+    {
+      id: 0, name: 'Quark', nameZh: '夸克',
+      color: '#ff6b6b', glow: 'rgba(255,107,107,0.5)',
+      symbol: 'q',
+      baseCost: 0,          // no lower tier to consume
+      baseProd: 0.3,        // per producer, per second
+      researchCost: 0,      // already researched
+      producerBaseCost: 10, // first producer price (in own resource)
+      descZh: '宇宙最基本的粒子，一切的开端',
+    },
+    {
+      id: 1, name: 'Nucleon', nameZh: '核子',
+      color: '#ffa94d', glow: 'rgba(255,169,77,0.5)',
+      symbol: 'N',
+      baseCost: 3,          // 3 quarks → 1 nucleon
+      baseProd: 0.08,
+      researchCost: 15,
+      producerBaseCost: 5,  // price in nucleons (produces nucleons automatically)
+      descZh: '质子与中子，原子核的基石',
+    },
+    {
+      id: 2, name: 'Atom', nameZh: '原子',
+      color: '#ffd43b', glow: 'rgba(255,212,59,0.5)',
+      symbol: 'A',
+      baseCost: 2,          // 2 nucleons → 1 atom
+      baseProd: 0.03,
+      researchCost: 50,
+      producerBaseCost: 3,
+      descZh: '元素就此诞生，宇宙开始有了结构',
+    },
+    {
+      id: 3, name: 'Molecule', nameZh: '分子',
+      color: '#69db7c', glow: 'rgba(105,219,124,0.5)',
+      symbol: 'M',
+      baseCost: 4,          // 4 atoms → 1 molecule
+      baseProd: 0.012,
+      researchCost: 150,
+      producerBaseCost: 2,
+      descZh: '原子间的化学键合，复杂性开始涌现',
+    },
+    {
+      id: 4, name: 'Cell', nameZh: '细胞',
+      color: '#4dabf7', glow: 'rgba(77,171,247,0.5)',
+      symbol: 'C',
+      baseCost: 3,          // 3 molecules → 1 cell
+      baseProd: 0.005,
+      researchCost: 500,
+      producerBaseCost: 1,
+      descZh: '生命的结构单元，自组织的奇迹',
+    },
+    {
+      id: 5, name: 'Life', nameZh: '生命',
+      color: '#cc5de8', glow: 'rgba(204,93,232,0.5)',
+      symbol: 'L',
+      baseCost: 5,          // 5 cells → 1 life
+      baseProd: 0.002,
+      researchCost: 2000,
+      producerBaseCost: 1,
+      descZh: '意识的微光，宇宙开始注视自己',
+    },
+    {
+      id: 6, name: 'Civilization', nameZh: '文明',
+      color: '#f783ac', glow: 'rgba(247,131,172,0.5)',
+      symbol: 'Civ',
+      baseCost: 8,          // 8 life → 1 civilization
+      baseProd: 0,          // no auto-production — achievement tier
+      researchCost: 8000,
+      producerBaseCost: 0,  // no producers
+      descZh: '智慧的火种，足以重塑宇宙',
+    },
   ];
 
-  // Demand: each unit of tier N consumes this many tier N-1 per tick (20 ticks/sec)
-  var DEMAND_PER_UNIT = 0.00025; // ~0.005/s per unit → 100 units = 0.5/s consumption
+  // ── Balance Parameters ──────────────────────────────────────────
 
-  // Manual synthesis batch size
-  var SYNTH_BATCH = 1;
+  // Semi-exponential cost growth: cost = baseCost × COST_GROWTH^synthCount
+  var COST_GROWTH = 1.05;   // +5% per synthesis
 
-  // Ticks per second
+  // Producer cost scaling: cost = producerBaseCost × PROD_COST_SCALE^producers
+  var PROD_COST_SCALE = 1.15; // +15% per producer
+
+  // Demand: each unit of tier N+1 consumes this much tier N per tick
+  var DEMAND_PER_UNIT = 0.00025; // 0.005/s per unit
+
+  // Manual synthesis batch size (increased by milestone)
+  var SYNTH_BATCH_BASE = 1;
+
+  // Game loop: ticks per second
   var TICKS_PER_SEC = 20;
 
-  // Prestige: constant point gain formula → floor(log10(totalQuarksEver) * PRESTIGE_MULT)
-  var PRESTIGE_MULT = 1.0;
+  // Research point generation per tick (by highest researched tier)
+  var RP_PER_TICK = [0, 0.001, 0.003, 0.008, 0.02, 0.05, 0.15];
 
-  // Research point generation: highest unlocked tier produces RP
-  var RP_PER_TICK = { 0: 0, 1: 0.001, 2: 0.003, 3: 0.008, 4: 0.02, 5: 0.05, 6: 0.15 };
+  // Prestige: CP = floor(totalQuarksEver^EXP / DIV) + prestiges × PRESTIGE_MULT
+  var CP_EXP = 0.3;
+  var CP_DIV = 3;
+  var CP_PRESTIGE_MULT = 2;
 
-  // Producer cost multiplier (each new producer costs more)
-  var PRODUCER_COST_SCALE = 1.15;
+  // Constant effect coefficients (all use sqrt(constant) - 1 as base bonus)
+  var STRONG_FORCE_COEFF = 0.5;  // cost divisor
+  var LIGHT_SPEED_COEFF = 0.3;   // speed multiplier
+  var GRAVITY_COEFF = 0.4;       // tier 0-2 production multiplier
 
-  // Save interval (ms)
+  // ── Milestones (permanent unlocks) ─────────────────────────────
+  var MILESTONES = [
+    { at: 1,  name: '夸克凝聚', nameEn: 'Quark Condensation', descZh: '夸克生产者产量 +50%', descEn: 'Quark producers +50%' },
+    { at: 3,  name: '核聚变催化', nameEn: 'Fusion Catalysis', descZh: '核子→原子成本 ×0.7', descEn: 'Nucleon→Atom cost ×0.7' },
+    { at: 5,  name: '自复制分子', nameEn: 'Self-Replicating Molecules', descZh: '分子自动产 0.002/s', descEn: 'Molecules auto-produce 0.002/s' },
+    { at: 7,  name: '共生网络', nameEn: 'Symbiotic Network', descZh: '所有代谢消耗 -30%', descEn: 'All metabolic demand -30%' },
+    { at: 10, name: '星际工程', nameEn: 'Interstellar Engineering', descZh: 'tier 0-3 生产者产量 ×2', descEn: 'Tier 0-3 producer output ×2' },
+    { at: 15, name: '维度折叠', nameEn: 'Dimensional Folding', descZh: '合成批量 ×10', descEn: 'Synthesis batch size ×10' },
+    { at: 20, name: '熵的驯服', nameEn: 'Entropy Tamed', descZh: '所有合成成本 ×0.5', descEn: 'All synthesis costs ×0.5' },
+  ];
+
+  // ── Storage key ─────────────────────────────────────────────────
+  var SAVE_KEY = 'tiny-cosmos-save';
+
+  // Auto-save interval (ms)
   var AUTOSAVE_MS = 30000;
 
+  // ── Export ──────────────────────────────────────────────────────
   window.GC = {
     TIERS: TIERS,
+    COST_GROWTH: COST_GROWTH,
+    PROD_COST_SCALE: PROD_COST_SCALE,
     DEMAND_PER_UNIT: DEMAND_PER_UNIT,
-    SYNTH_BATCH: SYNTH_BATCH,
+    SYNTH_BATCH_BASE: SYNTH_BATCH_BASE,
     TICKS_PER_SEC: TICKS_PER_SEC,
-    PRESTIGE_MULT: PRESTIGE_MULT,
     RP_PER_TICK: RP_PER_TICK,
-    PRODUCER_COST_SCALE: PRODUCER_COST_SCALE,
+    CP_EXP: CP_EXP,
+    CP_DIV: CP_DIV,
+    CP_PRESTIGE_MULT: CP_PRESTIGE_MULT,
+    STRONG_FORCE_COEFF: STRONG_FORCE_COEFF,
+    LIGHT_SPEED_COEFF: LIGHT_SPEED_COEFF,
+    GRAVITY_COEFF: GRAVITY_COEFF,
+    MILESTONES: MILESTONES,
+    SAVE_KEY: SAVE_KEY,
     AUTOSAVE_MS: AUTOSAVE_MS,
   };
 })();
