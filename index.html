@@ -4,87 +4,115 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>微型宇宙 · Tiny Cosmos</title>
-  <link rel="stylesheet" href="css/game.css?v=4">
+  <link rel="stylesheet" href="css/game.css?v=5">
 </head>
 <body>
 
-  <header class="header">
-    <h1 class="title">微型宇宙 <span class="title-en">Tiny Cosmos</span></h1>
-    <div class="header-actions">
-      <button id="save-btn" class="btn btn-ghost">💾</button>
-      <button id="reset-btn" class="btn btn-ghost">🔄</button>
-    </div>
-  </header>
-
-  <!-- Canvas -->
-  <div id="cosmos-stage" class="cosmos-stage">
-    <canvas id="cosmos-canvas"></canvas>
-    <div id="click-hint" class="click-hint">👆 点击产生夸克</div>
+<header class="header">
+  <h1 class="title">微型宇宙 <span class="title-en">Tiny Cosmos</span></h1>
+  <div class="header-actions">
+    <button id="save-btn" class="btn btn-ghost">💾</button>
+    <button id="reset-btn" class="btn btn-ghost">🔄</button>
   </div>
+</header>
 
-  <!-- Focus -->
-  <div class="focus-bar">
-    <div class="focus-stat">
-      <span class="focus-value" id="f-quarks">0</span>
-      <span class="focus-label">夸克</span>
-      <span class="focus-rate" id="f-quarks-rate">+0.3/s</span>
-    </div>
-    <div class="focus-stat">
-      <span class="focus-label">🔬 研究</span>
-      <span class="focus-value" id="f-rp">0</span>
-      <span class="focus-rate" id="f-rp-target">/50 RP</span>
-    </div>
+<!-- Canvas -->
+<div id="cosmos-stage" class="cosmos-stage" style="height:35vh">
+  <canvas id="cosmos-canvas"></canvas>
+  <div id="click-hint" class="click-hint">👆 点击产生夸克</div>
+</div>
+
+<!-- Research -->
+<div class="research-bar">
+  <span class="rb-label">🔬 研究点数</span>
+  <span class="rb-value" id="rb-rp">0</span>
+  <div class="rb-track"><div id="rb-fill" class="rb-fill"></div></div>
+  <button id="btn-research-global" class="btn btn-blue" disabled>研究下一层</button>
+  <span class="rb-next" id="rb-next-label"></span>
+</div>
+
+<!-- Tier Cards — all 7 persistent -->
+<div class="tier-grid" id="tier-grid">
+  <!-- Tier 0: Quark -->
+  <div id="card-0" class="tier-card">
+    <div class="tc-head"><span class="tc-dot" style="background:#ff6b6b"></span><span class="tc-name">夸克</span><span class="tc-en">Quark</span></div>
+    <div class="tc-count" id="count-0">0</div>
+    <div class="tc-bars" id="bars-0"></div>
+    <div class="tc-net" id="net-0"></div>
+    <button id="btn-prod-0" class="btn btn-tier" disabled>⚙ 生产 (11)</button>
   </div>
-
-  <!-- Actions — persistent buttons, NEVER destroyed -->
-  <div class="action-bar">
-    <button id="btn-producer-0" class="btn btn-primary" disabled>⚡ 自动观测</button>
-    <button id="btn-synth" class="btn" disabled style="display:none">⬆ 合成</button>
-    <button id="btn-producer-1" class="btn" disabled style="display:none">⚙ 生产</button>
-    <button id="btn-research" class="btn btn-blue" disabled style="display:none">🔬 研究</button>
-  </div>
-
-  <!-- Evolution -->
-  <div class="evolution-section">
-    <div class="evolution-label">宇宙演化</div>
-    <div id="evolution-line" class="evolution-line"></div>
-  </div>
-
-  <!-- Prestige -->
-  <div id="prestige-panel" class="prestige-panel" style="display:none">
-    <div class="prestige-trigger">
-      <button id="prestige-btn" class="btn btn-prestige">🌌 大坍缩</button>
-      <span class="prestige-gain" id="prestige-gain-text"></span>
-    </div>
-    <div id="prestige-detail" class="prestige-detail" style="display:none">
-      <div class="constant-row">
-        <span class="constant-label">💪 强核力 <span id="sf-level">0</span></span>
-        <input type="range" id="constant-strong" min="0" value="0" class="constant-slider">
-        <span class="constant-effect">÷<span id="sf-effect">1.00</span></span>
-      </div>
-      <div class="constant-row">
-        <span class="constant-label">⚡ 光速 <span id="ls-level">0</span></span>
-        <input type="range" id="constant-light" min="0" value="0" class="constant-slider">
-        <span class="constant-effect">×<span id="ls-effect">1.00</span></span>
-      </div>
-      <div class="constant-row">
-        <span class="constant-label">🌍 引力 <span id="gv-level">0</span></span>
-        <input type="range" id="constant-gravity" min="0" value="0" class="constant-slider">
-        <span class="constant-effect">×<span id="gv-effect">1.00</span></span>
-      </div>
-      <div class="cp-info">
-        恒定点: <span id="cp-total">0</span> | 已用: <span id="cp-used">0</span> | 可用: <span id="cp-free">0</span>
-      </div>
+  <!-- Tier 1: Nucleon -->
+  <div id="card-1" class="tier-card">
+    <div class="tc-head"><span class="tc-dot" style="background:#ffa94d"></span><span class="tc-name">核子</span><span class="tc-en">Nucleon</span></div>
+    <div class="tc-count" id="count-1">0</div>
+    <div class="tc-bars" id="bars-1"></div>
+    <div class="tc-net" id="net-1"></div>
+    <div class="tc-btns">
+      <button id="btn-prod-1" class="btn btn-tier" disabled>⚙ 生产 (5)</button>
+      <button id="btn-synth-1" class="btn btn-tier" disabled>⬆ 合成 (3)</button>
     </div>
   </div>
+  <!-- Tier 2: Atom -->
+  <div id="card-2" class="tier-card locked">
+    <div class="tc-head"><span class="tc-dot" style="background:#ffd43b"></span><span class="tc-name">原子</span><span class="tc-en">Atom</span></div>
+    <div class="tc-locked">🔒 尚未揭示</div>
+    <button id="btn-research-2" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究 (0/50 RP)</button>
+  </div>
+  <!-- Tier 3: Molecule -->
+  <div id="card-3" class="tier-card locked">
+    <div class="tc-head"><span class="tc-dot" style="background:#69db7c"></span><span class="tc-name">分子</span><span class="tc-en">Molecule</span></div>
+    <div class="tc-locked">🔒 尚未揭示</div>
+  </div>
+  <!-- Tier 4: Cell -->
+  <div id="card-4" class="tier-card locked">
+    <div class="tc-head"><span class="tc-dot" style="background:#4dabf7"></span><span class="tc-name">细胞</span><span class="tc-en">Cell</span></div>
+    <div class="tc-locked">🔒 尚未揭示</div>
+  </div>
+  <!-- Tier 5: Life -->
+  <div id="card-5" class="tier-card locked">
+    <div class="tc-head"><span class="tc-dot" style="background:#cc5de8"></span><span class="tc-name">生命</span><span class="tc-en">Life</span></div>
+    <div class="tc-locked">🔒 尚未揭示</div>
+  </div>
+  <!-- Tier 6: Civilization -->
+  <div id="card-6" class="tier-card locked">
+    <div class="tc-head"><span class="tc-dot" style="background:#f783ac"></span><span class="tc-name">文明</span><span class="tc-en">Civilization</span></div>
+    <div class="tc-locked">🔒 尚未揭示</div>
+  </div>
+</div>
 
-  <div id="milestones-bar" class="milestones-bar" style="display:none"></div>
+<!-- Prestige -->
+<div id="prestige-panel" class="prestige-panel" style="display:none">
+  <div class="prestige-trigger">
+    <button id="prestige-btn" class="btn btn-prestige">🌌 大坍缩</button>
+    <span id="prestige-gain-text"></span>
+  </div>
+  <div id="prestige-detail" class="prestige-detail" style="display:none">
+    <div class="constant-row">
+      <span>💪 强核力 <span id="sf-level">0</span></span>
+      <input type="range" id="constant-strong" min="0" value="0">
+      <span>÷<span id="sf-effect">1.00</span></span>
+    </div>
+    <div class="constant-row">
+      <span>⚡ 光速 <span id="ls-level">0</span></span>
+      <input type="range" id="constant-light" min="0" value="0">
+      <span>×<span id="ls-effect">1.00</span></span>
+    </div>
+    <div class="constant-row">
+      <span>🌍 引力 <span id="gv-level">0</span></span>
+      <input type="range" id="constant-gravity" min="0" value="0">
+      <span>×<span id="gv-effect">1.00</span></span>
+    </div>
+    <div class="cp-info">恒定点: <span id="cp-total">0</span> | 已用: <span id="cp-used">0</span> | 可用: <span id="cp-free">0</span></div>
+  </div>
+</div>
 
-  <script src="js/constants.js?v=4"></script>
-  <script src="js/state.js?v=4"></script>
-  <script src="js/engine.js?v=4"></script>
-  <script src="js/render.js?v=4"></script>
-  <script src="js/ui.js?v=4"></script>
-  <script src="js/main.js?v=4"></script>
+<div id="milestones-bar" class="milestones-bar" style="display:none"></div>
+
+<script src="js/constants.js?v=5"></script>
+<script src="js/state.js?v=5"></script>
+<script src="js/engine.js?v=5"></script>
+<script src="js/render.js?v=5"></script>
+<script src="js/ui.js?v=5"></script>
+<script src="js/main.js?v=5"></script>
 </body>
 </html>
