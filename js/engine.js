@@ -80,11 +80,15 @@
   // ── Research ────────────────────────────────────────────────────
 
   function applyResearch() {
-    var maxTier = GS.getMaxResearchedTier();
-    var rpPerTick = GC.RP_PER_TICK[maxTier];
-    if (rpPerTick > 0) {
-      GS.addRP(rpPerTick);
+    var st = GS.getState();
+    // RP = Σ (resource count × per-unit weight) for each researched tier
+    var rpThisTick = 0;
+    for (var i = 0; i < GC.TIERS.length; i++) {
+      var t = st.tiers[i];
+      if (!t.researched || t.count === 0) continue;
+      rpThisTick += t.count * GC.RP_PER_UNIT[i];
     }
+    if (rpThisTick > 0) GS.addRP(rpThisTick);
   }
 
   // ── Manual actions ──────────────────────────────────────────────
@@ -105,8 +109,6 @@
     GS.spendResource(tierId - 1, totalCost);
     GS.addResource(tierId, batch);
     GS.recordSynth(tierId);
-    // Manual synthesis rewards RP
-    if (tierId >= 1) GS.addRP(tierId * batch);
     return true;
   }
 

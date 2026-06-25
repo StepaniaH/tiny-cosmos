@@ -95,11 +95,10 @@
   // Game loop: ticks per second
   var TICKS_PER_SEC = 20;
 
-  // Research point generation per tick (by highest researched tier)
-  var RP_PER_TICK = [0, 0.002, 0.006, 0.016, 0.04, 0.10, 0.30];
-
-  // RP reward per manual synthesis batch (by target tier)
-  var SYNTH_RP_BONUS = [0, 1, 2, 3, 5, 8, 50];
+  // Research point generation per tick per unit of resource (by tier)
+  // Higher tiers yield far more RP per unit — creates strategic depth:
+  //   spend resources → RP slows; save resources → RP speeds up
+  var RP_PER_UNIT = [0.000025, 0.0005, 0.0015, 0.005, 0.02, 0.1, 0.5];
 
   // Prestige: CP = floor(totalQuarksEver^EXP / DIV) + prestiges × PRESTIGE_MULT
   var CP_EXP = 0.3;
@@ -136,8 +135,7 @@
     DEMAND_PER_UNIT: DEMAND_PER_UNIT,
     SYNTH_BATCH_BASE: SYNTH_BATCH_BASE,
     TICKS_PER_SEC: TICKS_PER_SEC,
-    RP_PER_TICK: RP_PER_TICK,
-    SYNTH_RP_BONUS: SYNTH_RP_BONUS,
+    RP_PER_UNIT: RP_PER_UNIT,
     CP_EXP: CP_EXP,
     CP_DIV: CP_DIV,
     CP_PRESTIGE_MULT: CP_PRESTIGE_MULT,

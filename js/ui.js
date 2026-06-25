@@ -10,10 +10,18 @@
   function updateResearch() {
     var rp = GS.getRP(), max = GS.getMaxResearchedTier(), next = max + 1;
     document.getElementById('rb-rp').textContent = fmt(rp, 1);
-    // RP source hint
-    var rpPerSec = GC.RP_PER_TICK[max] * GC.TICKS_PER_SEC;
-    var srcName = GC.TIERS[max].nameZh;
-    document.getElementById('rb-hint').textContent = '来自 ' + srcName + ' (+' + fmt(rpPerSec, 2) + '/s)';
+    // RP source hint: total from all resources
+    var totalRPS = 0;
+    for (var i = 0; i < GC.TIERS.length; i++) {
+      var tt = GS.getTier(i);
+      if (tt && tt.researched && tt.count > 0) {
+        totalRPS += tt.count * GC.RP_PER_UNIT[i] * GC.TICKS_PER_SEC;
+      }
+    }
+    var hintText = totalRPS > 0
+      ? '来自全部资源 (+' + fmt(totalRPS, 2) + '/s)'
+      : '点击或合成获得资源';
+    document.getElementById('rb-hint').textContent = hintText;
     if (next < GC.TIERS.length) {
       var cost = GS.getResearchCost(next);
       document.getElementById('rb-fill').style.width = Math.min(100, rp / cost * 100) + '%';
