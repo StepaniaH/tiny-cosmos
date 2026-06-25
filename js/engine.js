@@ -45,24 +45,27 @@
       GS.addResource(0, qOutput);
     }
 
-    // Tier 1-5: producers perform auto-synthesis each tick
+    // Tier 1-5: producers auto-synthesize via fractional accumulation
     for (var i = 1; i <= 5; i++) {
       var t = st.tiers[i];
       if (!t.researched || t.producers === 0) continue;
 
       var prodPerTick = GS.getProducerOutput(i) * tickMult * GS.getGravityMultiplier(i);
-      // Fractional production: accumulate and synthesize when >= 1 unit worth
-      // Simplified: each producer contributes baseProd/tick, and we synthesize in full units
-      var toProduce = prodPerTick;
 
-      while (toProduce >= 1) {
+      // Accumulate fractional production
+      if (t._autoAcc === undefined) t._autoAcc = 0;
+      t._autoAcc += prodPerTick;
+
+      // Synthesize whole units when enough accumulated
+      while (t._autoAcc >= 1) {
         var cost = GS.getSynthCost(i);
         if (st.tiers[i - 1].count >= cost) {
           GS.spendResource(i - 1, cost);
           GS.addResource(i, 1);
-          toProduce -= 1;
+          t._autoAcc -= 1;
         } else {
-          break; // can't afford — stop
+          t._autoAcc = 0; // can't afford — discard accumulation (no free lunch)
+          break;
         }
       }
     }

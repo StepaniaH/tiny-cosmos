@@ -156,6 +156,17 @@
       ctx.strokeStyle = tpl.color;
       ctx.lineWidth = 1;
       ctx.stroke();
+
+      // Label at rightmost point of ring
+      var lx = cx + r + 8;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 10px ' + getMono();
+      ctx.fillStyle = tpl.color;
+      ctx.fillText(tpl.symbol, lx, cy - 4);
+      ctx.font = '9px ' + getMono();
+      ctx.fillStyle = '#aaa';
+      ctx.fillText(fmt(t.count), lx, cy + 6);
     } else {
       // Dashed ring
       ctx.beginPath();
@@ -205,39 +216,26 @@
   }
 
   function drawCenter(cx, cy, s) {
-    var q = s.tiers[0];
-    var count = q.count || 0;
-    var prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
+    var tq = GS.getTotalQuarksEver() || 0;
+    var prestiges = GS.getPrestiges();
 
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    ctx.beginPath();
-    ctx.arc(cx, cy, 30, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,212,59,0.03)';
-    ctx.fill();
-
-    // Current quarks (main number)
-    ctx.font = 'bold 18px ' + getMono();
+    // Total quarks ever
+    ctx.font = 'bold 13px ' + getMono();
     ctx.fillStyle = '#ffd43b';
-    ctx.fillText(fmt(count), cx, cy - 6);
+    ctx.fillText(formatShort(tq), cx, cy - 4);
 
-    // Label
-    ctx.font = '10px ' + getMono();
-    ctx.fillStyle = '#6a6a82';
-    ctx.fillText('夸克', cx, cy + 10);
-
-    // Net rate
     ctx.font = '9px ' + getMono();
-    ctx.fillStyle = prod >= 0.01 ? '#5cdb7c' : '#6a6a82';
-    ctx.fillText('+' + prod.toFixed(1) + '/s', cx, cy + 24);
+    ctx.fillStyle = '#6a6a82';
+    ctx.fillText('总夸克', cx, cy + 12);
 
-    var prestiges = GS.getPrestiges();
     if (prestiges > 0) {
       ctx.font = '9px ' + getMono();
       ctx.fillStyle = '#cc5de8';
-      ctx.fillText('🌌 ×' + prestiges, cx, cy + 38);
+      ctx.fillText('🌌 ×' + prestiges, cx, cy + 26);
     }
     ctx.restore();
   }
