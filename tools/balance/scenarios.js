@@ -30,7 +30,7 @@ function performGuidedActions(game) {
     }
     if (acted) continue;
 
-    for (let tierId = Math.min(5, GS.getMaxResearchedTier()); tierId >= 1; tierId -= 1) {
+    for (let tierId = Math.min(6, GS.getMaxResearchedTier()); tierId >= 1; tierId -= 1) {
       if (GE.synthesize(tierId)) {
         acted = true;
         break;

@@ -5,9 +5,9 @@ This baseline captures the deterministic validation run for the current balance 
 ## Source
 
 - Command: `node tools/balance/run-validation.js --all`
-- Commit: `c55fa89`
-- Generated: 2026-07-07T09:15:45.307Z
-- Local JSON report: `reports/balance/validation-c55fa89-2026-07-07T09-15-45-307Z.json`
+- Commit: `cca1354`
+- Generated: 2026-07-07T10:32:10.318Z
+- Local JSON report: `reports/balance/validation-cca1354-2026-07-07T10-32-10-318Z.json`
 
 ## Scenario Summary
 
@@ -46,25 +46,21 @@ This baseline captures the deterministic validation run for the current balance 
 ## first-prestige
 
 - Max researched tier: 6
-- Research points: 174461.51
-- Total quarks ever: 1276029.20
-- Can prestige: false
-- Final warnings: tier-2-depleted-negative-net, tier-4-depleted-negative-net
-- Reached prestige: false
-- Prestige time: not reached
-- Failure reason: civilization-count-below-1
-- Failure tier details:
-  - 0 Quark: count=4798.1711, net=7.3924/s, synthCost=0, producerCost=18953, everReachedOne=true
-  - 1 Nucleon: count=1761.5249, net=4.3200/s, synthCost=19552, producerCost=9476, everReachedOne=true
-  - 2 Atom: count=0.0000, net=-4.4333/s, synthCost=8822, producerCost=803, everReachedOne=true
-  - 3 Molecule: count=1126.6502, net=0.5640/s, synthCost=816, producerCost=1425, everReachedOne=true
-  - 4 Cell: count=0.0000, net=-1.3592/s, synthCost=1335, producerCost=50, everReachedOne=true
-  - 5 Life: count=299.8349, net=0.0980/s, synthCost=38, producerCost=942, everReachedOne=true
-  - 6 Civilization: count=0.0000, net=0.0000/s, synthCost=8, producerCost=n/a, everReachedOne=false
+- Research points: 0.62
+- Total quarks ever: 113224.53
+- Can prestige: true
+- Final warnings: none
+- Reached prestige: true
+- Prestige time: 11496s
 
 ## post-prestige-10m
 
-- Skipped: first-prestige did not reach Big Crunch within the maximum simulated time
+- Max researched tier: 2
+- Research points: 6.96
+- Total quarks ever: 119643.83
+- Can prestige: false
+- Final warnings: none
+- Constants: strongForce=3, lightSpeed=3, gravity=4
 
 ## Interpretation
 

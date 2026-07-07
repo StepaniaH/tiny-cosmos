@@ -59,81 +59,50 @@ Current baseline summary:
 - `click-start-10m`: reaches tier 1, no warnings.
 - `guided-30m`: reaches tier 3, no warnings.
 - `guided-60m`: reaches tier 4, no warnings.
-- `first-prestige`: reaches researched tier 6 but does not produce civilization within the 24-hour simulated cap.
-- `post-prestige-10m`: skipped because first prestige is not yet reachable.
+- `first-prestige`: reaches Big Crunch at 11496 simulated seconds (~3.2 hours), no warnings.
+- `post-prestige-10m`: runs after prestige, reaches tier 2, no warnings.
 
-Primary current balance problem:
+## Root Cause Found: First Prestige Was a Harness Bug, Not a Balance Problem
 
-- The first Big Crunch is not reachable under the deterministic guided strategy within the current `first-prestige` cap.
-- At the end of `first-prestige`, warnings include depleted negative net for tier 2 and tier 4.
+The earlier `first-prestige` failure (civilization count never reaching 1) was caused by
+`performGuidedActions` in `tools/balance/scenarios.js` capping its synthesis loop at tier 5:
+
+```js
+for (let tierId = Math.min(5, GS.getMaxResearchedTier()); tierId >= 1; tierId -= 1) {
+```
+
+The deterministic guided strategy never attempted to synthesize tier 6 (Civilization) at all,
+so `canPrestige()` could never become true regardless of how much Life accumulated. Changing the
+cap from `5` to `6` fixed the scenario without any changes to `js/constants.js`:
+
+```js
+for (let tierId = Math.min(6, GS.getMaxResearchedTier()); tierId >= 1; tierId -= 1) {
+```
+
+Before concluding the game balance itself needs tuning, verify the harness is actually exercising
+every tier's synthesis/production path. Several rounds of constant tuning (Cell/Life/Civilization
+`baseCost`, Cell `baseProd`) were tried and reverted before finding this; none were necessary once
+the harness bug was fixed.
 
 ## Next Phase Goal
 
-Make first Big Crunch reachable through the deterministic guided strategy without destroying early and midgame pacing.
+First prestige is now reachable. Convert the baseline into rough acceptance ranges, then resume
+adding gameplay decisions one at a time.
 
-This is still a balance-first phase. Do not add new major gameplay decisions until first prestige is reachable and the baseline has been updated.
+This is still a balance-first phase. Do not add new major gameplay decisions until acceptance
+ranges are recorded.
 
 ## Recommended Next Work Order
 
-### 1. Add Better Failure Detail to Reports
+### 1. Update Acceptance Ranges
 
-Before tuning constants, improve report visibility for the failed `first-prestige` scenario.
-
-Recommended additions:
-
-- Last nonzero count per tier.
-- Minimum net rate per tier.
-- Time when each tier first reaches a count of at least `1`.
-- Final synthesis cost for each tier.
-- Final producer cost for each tier.
-- A clear `failureReason` field for scenarios that fail their goal.
-
-Expected files:
-
-- `tools/balance/metrics.js`
-- `tools/balance/scenarios.js`
-- `tools/balance/run-validation.js`
-- `docs/balance/reports/baseline-current.md`
-
-Validation:
-
-```bash
-node --check tools/balance/metrics.js
-node --check tools/balance/scenarios.js
-node --check tools/balance/run-validation.js
-node tools/balance/run-validation.js --all
-```
-
-### 2. Tune First Prestige Reachability
-
-Use the improved report to tune only the smallest necessary set of constants.
-
-Candidate knobs, in likely order:
-
-- Late-tier synthesis costs: `baseCost` for Cell, Life, and Civilization.
-- Late-tier production: `baseProd` for Cell and Life.
-- Demand pressure: `DEMAND_PER_UNIT`.
-- Producer cost scaling: `PROD_COST_SCALE`.
-- Research pacing only if tier unlock timing is the true blocker.
-
-Do not tune all knobs at once. Change one small group, run validation, compare, and document the effect.
-
-Target for the first successful pass:
-
-- `first-prestige` reaches Big Crunch within 24 simulated hours.
-- `guided-30m` and `guided-60m` do not regress into a slower opening.
-- No runaway-count warnings.
-- Negative net warnings are acceptable only if the affected tier can recover and progression still reaches prestige.
-
-### 3. Update Acceptance Ranges
-
-Once first prestige is reachable, convert the baseline from "current reality" into rough acceptance ranges.
+Convert the baseline from "current reality" into rough acceptance ranges.
 
 Suggested first ranges:
 
 - `guided-30m`: should reach at least tier 3.
 - `guided-60m`: should reach at least tier 4.
-- `first-prestige`: should reach Big Crunch within 24 simulated hours.
+- `first-prestige`: should reach Big Crunch within 24 simulated hours (currently ~3.2 hours).
 - `post-prestige-10m`: should run instead of skipping and should show visible second-run acceleration.
 
 Write ranges in:
@@ -141,7 +110,7 @@ Write ranges in:
 - `docs/balance/protocol.md`
 - `docs/balance/reports/baseline-current.md`
 
-### 4. Only Then Add Gameplay Decisions
+### 2. Only Then Add Gameplay Decisions
 
 After the first prestige loop is stable:
 
