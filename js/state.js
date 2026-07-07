@@ -144,6 +144,11 @@
       rawCost = rawCost / (1 + bonus * GC.STRONG_FORCE_COEFF);
     }
 
+    // Fusion catalysis: nucleon -> atom cost x0.7
+    if (tierId === 2 && state.milestones.indexOf(3) !== -1) {
+      rawCost = rawCost * 0.7;
+    }
+
     // Apply entropy tamed milestone
     if (state.milestones.indexOf(20) !== -1) {
       rawCost = rawCost * 0.5;

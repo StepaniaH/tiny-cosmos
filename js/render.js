@@ -6,7 +6,7 @@
   var GC = window.GC;
   var GS = window.GameState;
 
-  var canvas, ctx, animId, cssW, cssH, dpr;
+  var canvas, ctx, animId, cssW, cssH, dpr, bgGrad;
   var particles = [];       // orbiting particles per tier
   var bursts = [];          // click burst particles: [{x,y,vx,vy,life,color}]
   var clickCount = 0;       // accumulated clicks for batch processing
@@ -14,6 +14,8 @@
   var PARTICLE_COUNTS = [8, 12, 16, 20, 22, 24, 26];
   var PARTICLE_SIZE = 2.2;
   var BURST_COUNT = 8;
+  var TARGET_FPS = 30;
+  var FRAME_MS = 1000 / TARGET_FPS;
 
   function init(canvasId) {
     canvas = document.getElementById(canvasId);
@@ -33,6 +35,10 @@
     }
     resize();
     window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop();
+      else start();
+    });
   }
 
   function resize() {
@@ -42,6 +48,9 @@
     cssH = canvas.clientHeight;
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
+    bgGrad = ctx.createRadialGradient(cssW/2, cssH/2, 0, cssW/2, cssH/2, Math.max(cssW,cssH)*0.6);
+    bgGrad.addColorStop(0, '#10101c');
+    bgGrad.addColorStop(1, '#080812');
   }
 
   // ── Click → Quark ──
@@ -83,12 +92,14 @@
 
   // ── Render Loop ──
   function start() {
-    if (animId) return;
+    if (animId || document.hidden) return;
     var lastT = 0;
     function loop(ts) {
-      var dt = lastT ? Math.min((ts - lastT) / 1000, 0.1) : 0.016;
-      lastT = ts;
-      render(dt);
+      if (!lastT || ts - lastT >= FRAME_MS) {
+        var dt = lastT ? Math.min((ts - lastT) / 1000, 0.1) : 0.016;
+        lastT = ts;
+        render(dt);
+      }
       animId = requestAnimationFrame(loop);
     }
     animId = requestAnimationFrame(loop);
@@ -104,10 +115,7 @@
     ctx.clearRect(0, 0, cssW, cssH);
 
     // Background
-    var grad = ctx.createRadialGradient(cssW/2, cssH/2, 0, cssW/2, cssH/2, Math.max(cssW,cssH)*0.6);
-    grad.addColorStop(0, '#10101c');
-    grad.addColorStop(1, '#080812');
-    ctx.fillStyle = grad;
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, cssW, cssH);
 
     var cx = cssW / 2;
