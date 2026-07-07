@@ -38,3 +38,8 @@ temp/
 playwright-report/
 test-results/
 screenshots/
+
+# Generated balance reports
+reports/balance/*.json
+reports/balance/*.md
+!reports/balance/.gitkeep
