@@ -65,3 +65,19 @@ This baseline captures the deterministic validation run for the current balance 
 ## Interpretation
 
 Use this baseline to compare direction and magnitude of future changes. Update it after intentional balance corrections, and keep exploratory generated reports local unless they become reviewed baseline evidence.
+
+## Acceptance Ranges
+
+These are the minimum pass criteria for the deterministic guided strategy. Changes causing scenario
+results to fall outside these ranges should be reviewed and documented:
+
+- `idle-10m`: must reach tier 1 with no warnings.
+- `click-start-10m`: must reach tier 1 with no warnings.
+- `guided-30m`: must reach tier 3 with no warnings.
+- `guided-60m`: must reach tier 4 with no warnings.
+- `first-prestige`: must reach Big Crunch within 24 simulated hours (current actual: 11496s = ~3.2 hours).
+- `post-prestige-10m`: must run (not skip) and must reach at least tier 2 with no warnings, showing visible acceleration over the pre-prestige `guided` scenarios.
+
+These ranges preserve early game pacing while requiring a reachable prestige loop under the
+deterministic guided strategy. See `docs/balance/protocol.md` for how to use these ranges during
+development.

@@ -86,31 +86,22 @@ the harness bug was fixed.
 
 ## Next Phase Goal
 
-First prestige is now reachable. Convert the baseline into rough acceptance ranges, then resume
-adding gameplay decisions one at a time.
+First prestige is reachable and acceptance ranges are recorded. The next phase can add one new
+gameplay decision at a time, validated against the acceptance ranges below.
 
-This is still a balance-first phase. Do not add new major gameplay decisions until acceptance
-ranges are recorded.
+## Acceptance Ranges (Recorded)
+
+See `docs/balance/protocol.md` and `docs/balance/reports/baseline-current.md` for the full
+acceptance ranges. Summary:
+
+- `guided-30m`: must reach at least tier 3, no warnings.
+- `guided-60m`: must reach at least tier 4, no warnings.
+- `first-prestige`: must reach Big Crunch within 24 simulated hours (current actual: ~3.2 hours).
+- `post-prestige-10m`: must run (not skip) and reach at least tier 2, no warnings.
 
 ## Recommended Next Work Order
 
-### 1. Update Acceptance Ranges
-
-Convert the baseline from "current reality" into rough acceptance ranges.
-
-Suggested first ranges:
-
-- `guided-30m`: should reach at least tier 3.
-- `guided-60m`: should reach at least tier 4.
-- `first-prestige`: should reach Big Crunch within 24 simulated hours (currently ~3.2 hours).
-- `post-prestige-10m`: should run instead of skipping and should show visible second-run acceleration.
-
-Write ranges in:
-
-- `docs/balance/protocol.md`
-- `docs/balance/reports/baseline-current.md`
-
-### 2. Only Then Add Gameplay Decisions
+### 1. Add Gameplay Decisions
 
 After the first prestige loop is stable:
 
