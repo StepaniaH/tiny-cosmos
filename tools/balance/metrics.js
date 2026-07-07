@@ -75,8 +75,44 @@ function warningsForSnapshot(snap) {
   return warnings;
 }
 
+function failureDetails(game, goal) {
+  const { GC, GS } = game;
+  const tiers = GC.TIERS.map((tpl, tierId) => {
+    const tier = GS.getTier(tierId);
+    return {
+      id: tierId,
+      name: tpl.name,
+      researched: tier.researched,
+      count: tier.count,
+      producers: tier.producers,
+      synthCost: tierId === 0 ? 0 : GS.getSynthCost(tierId),
+      producerCost: tier.producerBaseCost === 0 ? null : GS.getProducerCost(tierId),
+      everReachedOne: tier.totalEver >= 1,
+      rates: tierRates(game, tierId),
+    };
+  });
+
+  return {
+    goal,
+    failureReason: describeFailure(game, tiers, goal),
+    tiers,
+  };
+}
+
+function describeFailure(game, tiers, goal) {
+  if (goal === 'first-prestige' && !game.GS.canPrestige()) {
+    const civilization = tiers[6];
+    if (civilization && civilization.count < 1) {
+      return 'civilization-count-below-1';
+    }
+    return 'prestige-condition-not-met';
+  }
+  return 'goal-not-met';
+}
+
 module.exports = {
   snapshot,
   tierRates,
   warningsForSnapshot,
+  failureDetails,
 };

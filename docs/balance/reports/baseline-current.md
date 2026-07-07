@@ -5,9 +5,9 @@ This baseline captures the deterministic validation run for the current balance 
 ## Source
 
 - Command: `node tools/balance/run-validation.js --all`
-- Commit: `1e23d33`
-- Generated: 2026-07-07T09:09:39.601Z
-- Local JSON report: `reports/balance/validation-1e23d33-2026-07-07T09-09-39-601Z.json`
+- Commit: `c55fa89`
+- Generated: 2026-07-07T09:15:45.307Z
+- Local JSON report: `reports/balance/validation-c55fa89-2026-07-07T09-15-45-307Z.json`
 
 ## Scenario Summary
 
@@ -52,6 +52,15 @@ This baseline captures the deterministic validation run for the current balance 
 - Final warnings: tier-2-depleted-negative-net, tier-4-depleted-negative-net
 - Reached prestige: false
 - Prestige time: not reached
+- Failure reason: civilization-count-below-1
+- Failure tier details:
+  - 0 Quark: count=4798.1711, net=7.3924/s, synthCost=0, producerCost=18953, everReachedOne=true
+  - 1 Nucleon: count=1761.5249, net=4.3200/s, synthCost=19552, producerCost=9476, everReachedOne=true
+  - 2 Atom: count=0.0000, net=-4.4333/s, synthCost=8822, producerCost=803, everReachedOne=true
+  - 3 Molecule: count=1126.6502, net=0.5640/s, synthCost=816, producerCost=1425, everReachedOne=true
+  - 4 Cell: count=0.0000, net=-1.3592/s, synthCost=1335, producerCost=50, everReachedOne=true
+  - 5 Life: count=299.8349, net=0.0980/s, synthCost=38, producerCost=942, everReachedOne=true
+  - 6 Civilization: count=0.0000, net=0.0000/s, synthCost=8, producerCost=n/a, everReachedOne=false
 
 ## post-prestige-10m
 

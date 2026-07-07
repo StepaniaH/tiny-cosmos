@@ -49,6 +49,14 @@ function scenarioLines(result) {
     lines.push(`- Prestige time: ${seconds(result.prestigeTimeSeconds)}`);
   }
 
+  if (result.failureDetails) {
+    lines.push(`- Failure reason: ${result.failureDetails.failureReason}`);
+    lines.push('- Failure tier details:');
+    for (const tier of result.failureDetails.tiers) {
+      lines.push(`  - ${tier.id} ${tier.name}: count=${tier.count.toFixed(4)}, net=${tier.rates.netPerSecond.toFixed(4)}/s, synthCost=${tier.synthCost}, producerCost=${tier.producerCost === null ? 'n/a' : tier.producerCost}, everReachedOne=${tier.everReachedOne}`);
+    }
+  }
+
   if (result.constants) {
     lines.push(`- Constants: strongForce=${result.constants.strongForce}, lightSpeed=${result.constants.lightSpeed}, gravity=${result.constants.gravity}`);
   }

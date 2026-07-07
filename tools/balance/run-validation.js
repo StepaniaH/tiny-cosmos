@@ -42,6 +42,13 @@ function markdownSummary(report) {
       lines.push(`- Reached prestige: ${result.reachedPrestige}`);
       lines.push(`- Prestige time seconds: ${result.prestigeTimeSeconds}`);
     }
+    if (result.failureDetails) {
+      lines.push(`- Failure reason: ${result.failureDetails.failureReason}`);
+      lines.push('- Failure tier details:');
+      for (const tier of result.failureDetails.tiers) {
+        lines.push(`  - ${tier.id} ${tier.name}: count=${tier.count.toFixed(4)}, net=${tier.rates.netPerSecond.toFixed(4)}/s, synthCost=${tier.synthCost}, producerCost=${tier.producerCost === null ? 'n/a' : tier.producerCost}, everReachedOne=${tier.everReachedOne}`);
+      }
+    }
     const warnings = result.final.warnings || [];
     lines.push(`- Final warnings: ${warnings.length ? warnings.join(', ') : 'none'}`);
     lines.push('');

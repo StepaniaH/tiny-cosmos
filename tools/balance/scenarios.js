@@ -1,5 +1,5 @@
 const { newGame } = require('./load-game');
-const { snapshot, warningsForSnapshot } = require('./metrics');
+const { failureDetails, snapshot, warningsForSnapshot } = require('./metrics');
 
 const CHECKPOINTS = [600, 1800, 3600];
 
@@ -138,6 +138,7 @@ function runFirstPrestige() {
     reachedPrestige: false,
     prestigeTimeSeconds: null,
     tierUnlocks,
+    failureDetails: failureDetails(game, 'first-prestige'),
     maxSeconds,
   });
 }
