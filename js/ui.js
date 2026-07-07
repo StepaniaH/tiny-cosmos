@@ -125,11 +125,7 @@
   function updateBars(i) {
     var t = GS.getTier(i);
     var prod = 0, demand = 0;
-    if (i === 0) {
-      prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
-    } else {
-      prod = GS.getProducerOutput(i) * GS.getSpeedMultiplier() * GS.getGravityMultiplier(i);
-    }
+    prod = GS.getProducerOutput(i) * GS.getSpeedMultiplier() * GS.getGravityMultiplier(i);
     if (i < GC.TIERS.length - 1) {
       var ht = GS.getTier(i + 1);
       if (ht.researched) {
@@ -149,8 +145,7 @@
   function updateNet(i) {
     var t = GS.getTier(i);
     var prod = 0, demand = 0;
-    if (i === 0) prod = GS.getProducerOutput(0) * GS.getGravityMultiplier(0);
-    else prod = GS.getProducerOutput(i) * GS.getSpeedMultiplier() * GS.getGravityMultiplier(i);
+    prod = GS.getProducerOutput(i) * GS.getSpeedMultiplier() * GS.getGravityMultiplier(i);
     if (i < GC.TIERS.length - 1) {
       var ht = GS.getTier(i+1);
       if (ht.researched) {

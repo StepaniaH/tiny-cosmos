@@ -18,7 +18,7 @@
 
     st.tickCount += 1;
 
-    // 1. Production (tier 0: auto-generate; tier 1-6: producers auto-synthesize)
+    // 1. Production (tier 0-5 producers generate their own tier)
     applyProduction();
 
     // 2. Metabolic demand (higher tiers consume lower tiers)
