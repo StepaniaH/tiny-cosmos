@@ -9,6 +9,8 @@
   var Renderer = window.CanvasRenderer;
 
   var autosaveTimer = null;
+  var lastUiRefresh = 0;
+  var UI_REFRESH_MS = 250;
 
   // ── Save / Load ──
   function saveGame() {
@@ -31,10 +33,14 @@
     // Load or new game
     if (!loadGame()) GS.init();
 
-    // Engine tick: flush canvas clicks, then refresh UI
+    // Engine tick: keep simulation at 20/s, but redraw DOM HUD at 4/s.
     GE.onTick(function () {
       Renderer.flushClicks();  // apply accumulated clicks as quark production
-      UI.refreshAll();          // throttle to ~10fps internally
+      var now = Date.now();
+      if (now - lastUiRefresh >= UI_REFRESH_MS) {
+        UI.refreshAll();
+        lastUiRefresh = now;
+      }
     });
 
     GE.start();
