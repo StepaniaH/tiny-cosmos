@@ -8,6 +8,38 @@
 
 **Tech Stack:** Plain JavaScript, Node.js, existing browser scripts, no runtime dependencies in phase one.
 
+## Execution Status
+
+Status: completed on `dev`.
+
+This plan has already been executed and should not be treated as the next active work queue. The task bodies below are preserved as historical implementation detail and for future reference.
+
+Completed task groups:
+
+- Task 1: Node game loader.
+- Task 2: Metrics and checkpoint snapshots.
+- Task 3: Deterministic scenario runner.
+- Task 4: Validation CLI and generated report handling.
+- Task 5: Protocol documentation and committed baseline summary.
+- Task 6: First correctness audit fixes.
+- Task 7: Machine learning backlog note.
+
+Post-plan bugfix also completed:
+
+- Reduced idle rendering workload in `js/render.js` and `js/main.js`.
+
+Remaining high-level work:
+
+- Refresh the committed baseline after the performance fix.
+- Improve failure detail in validation reports.
+- Tune the core constants until `first-prestige` reaches Big Crunch under the deterministic guided strategy.
+- Define acceptance ranges after first prestige is reachable.
+- Add new gameplay decisions only after the first prestige loop is stable.
+
+Current handoff document:
+
+- `docs/balance/roadmap.md`
+
 ## Global Constraints
 
 - Work only on the `dev` branch; do not modify `main`.

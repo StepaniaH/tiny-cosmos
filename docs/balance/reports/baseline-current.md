@@ -5,9 +5,9 @@ This baseline captures the deterministic validation run for the current balance 
 ## Source
 
 - Command: `node tools/balance/run-validation.js --all`
-- Commit: `c7a0a0a`
-- Generated: 2026-07-07T08:45:20.310Z
-- Local JSON report: `reports/balance/validation-c7a0a0a-2026-07-07T08-45-20-310Z.json`
+- Commit: `1e23d33`
+- Generated: 2026-07-07T09:09:39.601Z
+- Local JSON report: `reports/balance/validation-1e23d33-2026-07-07T09-09-39-601Z.json`
 
 ## Scenario Summary
 
