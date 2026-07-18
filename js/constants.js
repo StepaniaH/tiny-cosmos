@@ -131,16 +131,18 @@
   // Auto-save interval (ms)
   var AUTOSAVE_MS = 30000;
 
-  // ── Fifteen-minute first-contact slice ─────────────────────────
+  // ── First-loop vertical slice ──────────────────────────────────
   // These values only apply when state.slice.enabled is true. The deterministic
   // balance harness calls GameState.init() without slice mode and keeps using
   // the long-form baseline above.
   var FIRST_CONTACT = {
-    targetMinutes: 20,
+    targetMinutes: 30,
     productionMultiplier: [1, 1, 1, 1, 1, 1, 1],
+    evolutionProductionMultiplier: [1.15, 1.2, 1.35, 2.5, 4, 6, 1],
     producerBaseCosts: [14, 8, 5, 2, 1, 1, 0],
     researchMultiplier: 2.6,
-    researchCosts: [0, 0, 45, 110, 360, 1400, 5600],
+    researchCosts: [0, 0, 45, 90, 160, 280, 480],
+    evolutionResearchMultiplier: 2.2,
     focusMultiplier: 1.8,
     focusLawBonus: 0.45,
     reserveFloors: [8, 4, 2, 1, 1, 1, 0],
@@ -154,6 +156,7 @@
     earlyStabilitySeconds: 35,
     matterStabilitySeconds: 60,
     preparationSeconds: 30,
+    lifeSignalSeconds: 36,
   };
 
   // ── Export ──────────────────────────────────────────────────────

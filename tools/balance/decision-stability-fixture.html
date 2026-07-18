@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>Decision Stability Fixture</title></head>
+<body>
+  <p>Preparing a decision stability fixture…</p>
+  <script src="../../js/constants.js"></script>
+  <script src="../../js/state.js"></script>
+  <script>
+    (function () {
+      var GS = window.GameState;
+      var state = GS.init({ firstContact: true });
+      var slice = state.slice;
+      state.tiers[0].count = 54; state.tiers[0].totalEver = 120; state.tiers[0].producers = 3;
+      state.tiers[1].count = 24; state.tiers[1].totalEver = 60; state.tiers[1].producers = 3;
+      state.tiers[2].count = 18; state.tiers[2].totalEver = 30; state.tiers[2].producers = 2; state.tiers[2].researched = true;
+      state.researchPoints = 22; state.totalQuarksEver = 120;
+      slice.elapsedSeconds = 548; slice.missionStep = 10; slice.missionStartedAt = 548;
+      slice.focusTier = 1; slice.reserveTier = 1;
+      slice.stats = { canvasClicks: 5, boughtQuarkProducer: true, nucleonSyntheses: 12, atomSyntheses: 24, focusChanges: 3 };
+      slice.stability.early = window.GC.FIRST_CONTACT.earlyStabilitySeconds;
+      slice.stability.matter = window.GC.FIRST_CONTACT.matterStabilitySeconds;
+      slice.flags.atomResearched = true; slice.flags.researchExplained = true; slice.flags.reserveConfigured = true; slice.flags.lawDecisionOpen = true;
+      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      location.replace('../../index.html?fixture=decision-stability');
+    })();
+  </script>
+</body>
+</html>

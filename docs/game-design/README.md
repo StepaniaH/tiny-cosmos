@@ -12,8 +12,8 @@
 5. `docs/game-design/victory-routes.md`：多胜利路线的形成条件、终局操作和结局差异。
 6. `docs/game-design/side-branches.md`：短项目、自动化、现象队列、谱系和档案等细枝玩法。
 7. `docs/game-design/paper-playtest.md`：无需写代码即可执行的单轮与三轮纸面试玩。
-8. `docs/game-design/first-contact-vertical-slice.md`：当前已实现的二十分钟第一次接触版本。
-9. `docs/game-design/onboarding-ux.md`：前二十分钟的聚光引导、稳定任务、任务进度、聚焦说明、流量图和动效反馈。
+8. `docs/game-design/first-contact-vertical-slice.md`：当前已实现的第一轮竖切，从观测核启动延伸到文明火种与路线提案。
+9. `docs/game-design/onboarding-ux.md`：第一轮的聚光引导、稳定任务、阶段发现、任务进度、聚焦说明、流量图和动效反馈。
 10. `docs/game-design/routes/shared-campaign.md`：共同世界观、玩家身份、分幕发展剧本和共享对白。
 11. `docs/game-design/world-bible.md`：已冻结的世界规则、第一次接触剧情链与主要名词规范。
 12. `docs/art/README.md`：完整资产文档入口，以及交给 Cursor + Blender 的制作、验证和回传流程。

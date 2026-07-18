@@ -13,6 +13,14 @@
     rewrite: { name: '改写', ending: '双生大坍缩', color: '#c594ff' },
   };
 
+  var DECISION_LEVELS = {
+    law: '局部法则',
+    preparation: '接触准备',
+    enemy: '接触策略',
+    core: '余像处置',
+    complexity: '复杂性伦理',
+  };
+
   var MISSIONS = [
     {
       code: 'BOOT-01', title: '建立观测响应',
@@ -20,7 +28,7 @@
       hint: '最初几次观测需要手动完成。光核周围的轨道会显示已稳定的资源层。',
       world: '你接管的微型宇宙刚从一次坍缩中恢复。当前只有观测核和一层未稳定的夸克噪声。',
       action: '点击中央光核 5 次，让观测核确认这个宇宙会回应你的操作。',
-      restSeconds: 25,
+      restSeconds: 6,
       restMessage: '观测核保持低功率运行。继续点击可以加快第一批夸克积累，也可以观察自动产出。',
     },
     {
@@ -29,7 +37,7 @@
       hint: '生产单元会持续工作，手动点击很快会退到辅助位置。',
       world: '观测响应已经稳定。只靠持续点击会占用你的全部注意力，生产单元可以接管重复工作。',
       action: '等待夸克达到购买价格，再在左侧夸克卡片中增设第 2 个生产单元。',
-      restSeconds: 35,
+      restSeconds: 7,
       restMessage: '第二个生产单元已经接管一部分工作。继续积累库存，下一阶段会连续消耗夸克。',
     },
     {
@@ -38,7 +46,7 @@
       hint: '合成会消耗低层库存。后续每个高层也会持续消耗相邻低层。',
       world: '夸克开始重复出现，但它们仍无法形成长期结构。核子是资源链中的第一层组合物。',
       action: '在核子卡片中执行 5 次“夸克 → 核子”。每次合成都会扣除夸克，价格也会缓慢上升。',
-      restSeconds: 30,
+      restSeconds: 7,
       restMessage: '观察夸克库存的下降和恢复。接下来需要继续补足核子，建立它自己的生产单元。',
     },
     {
@@ -47,7 +55,7 @@
       hint: '焦点层生产速度变为 1.8 倍。全宇宙只能保留一个焦点，迁移没有资源成本。',
       world: '观测核的计算能力有限，同一时间只能完整追踪一个物质尺度。被追踪的层级会得到更高的生产效率。',
       action: '先把核子补到生产单元所需数量并完成购买，再点击“聚焦”。流量图会显示核子产出得到 1.8 倍加速。',
-      restSeconds: 25,
+      restSeconds: 8,
       restMessage: '保持核子焦点，先让两层库存恢复。下一项任务会要求你维持一段稳定流量。',
     },
     {
@@ -56,7 +64,7 @@
       hint: '“有盈余”就是每秒产出大于每秒消耗。监视器会逐项显示哪些条件已满足、哪些仍需调整。',
       world: '一次短暂的高产不能证明结构已经稳定。观测核需要一段连续记录，确认核子生产没有拖垮夸克层。',
       action: '看“稳态判定”清单：聚焦核子、夸克不少于 12，并让夸克与核子都显示“有盈余”。四项同时为绿色时开始计时。',
-      restSeconds: 25,
+      restSeconds: 7,
       restMessage: '双层流量记录已经成立。你可以继续扩充产能，研究通道将在下一阶段开放。',
     },
     {
@@ -65,7 +73,7 @@
       hint: '资源越多，研究贡献越高；增长采用平方根计算，因此囤积同一资源的边际收益会下降。',
       world: '观测核会把稳定存在的资源转化为可复现的规律。研究点持续增长，不需要单独安排研究人员。',
       action: '点击研究通道右侧的“研究构成”。对照每层贡献和总增长速度。',
-      restSeconds: 30,
+      restSeconds: 6,
       restMessage: '研究构成保持可查。让研究点自然增长一会，观察紫色研究速率线的位置。',
     },
     {
@@ -83,7 +91,7 @@
       hint: '原子会持续消耗核子。流量监视器中的红柱表示每秒消耗。',
       world: '原子层已经可见，但还没有形成自持循环。它会依赖核子库存完成最初扩张。',
       action: '在核子库存允许时合成原子。累计原子达到 18，并把原子生产单元增加到 2 个。',
-      restSeconds: 40,
+      restSeconds: 8,
       restMessage: '原子生产已经形成规模。观察核子的消耗红柱，下一项指令会为低层库存建立底线。',
     },
     {
@@ -92,7 +100,7 @@
       hint: '当前竖切只能保护一个层级；移动保护线没有资源成本。',
       world: '高层结构会持续消耗相邻低层。保护线公开了当前宇宙拒绝突破的库存底线。',
       action: '点击核子卡片中的“保护”，为核子保留最低库存。',
-      restSeconds: 30,
+      restSeconds: 6,
       restMessage: '保护线已经生效。观察核子接近底线时，高层消耗如何停止。',
     },
     {
@@ -101,7 +109,7 @@
       hint: '稳态不是“数字看起来很多”，而是四个条件同时成立。监视器会显示实时判定；焦点放在核子层只是推荐方法，不是隐藏条件。',
       world: '原子层正在持续抽取核子。观测核需要证明这条资源链能够承受一分钟的连续运行。',
       action: '逐项核对稳态清单。若核子没有盈余，聚焦核子或增加核子生产；若库存不足，暂停合成原子并等待恢复。四项全绿时开始计时。',
-      restSeconds: 30,
+      restSeconds: 7,
       restMessage: '一分钟稳态记录已经写入。三套现有系统都获得了足够数据，可以据此确定第一法则。',
     },
     {
@@ -110,7 +118,7 @@
       hint: '你已经实际使用过三个系统。法则会强化其中一个，并留下路线信号。',
       world: '原子让宇宙第一次拥有可长期保持的结构。观测核需要决定哪条已知规律获得优先权。',
       action: '阅读右侧三个选项。每项都列出当前效果、改变后的数值和路线记录。',
-      restSeconds: 35,
+      restSeconds: 7,
       restMessage: '第一法则正在改变资源流。观察焦点倍率、保护线或研究增长的变化。',
     },
     {
@@ -119,7 +127,7 @@
       hint: '三项准备分别强化止损、压倒方案和观测方案，也会留下 1 点路线信号。',
       world: '第一法则稳定后，视界背面出现了不同步的资源影子。外部结构尚未成形，当前仍有时间准备。',
       action: '在决策队列中比较三项准备。选定后完成显示的库存、产能或研究条件。',
-      restSeconds: 20,
+      restSeconds: 7,
       restMessage: '接触准备已经就绪。保持现有资源配置，下一项指令会读取视界背面的征兆。',
     },
     {
@@ -135,7 +143,7 @@
       hint: '第四种“同步”会在跨周目取得反宇宙样本后开放。',
       world: '真空水蛭正在截取原子，但损失存在公开上限。处理方法会决定资源代价和本轮路线记录。',
       action: '在接触面板中并列比较三种方案。每项都会说明成本、完成时间、停止损失的方法和路线记录。',
-      restSeconds: 20,
+      restSeconds: 7,
       restMessage: '真空水蛭已经退去。先检查累计损失和留下的核心余像。',
     },
     {
@@ -147,10 +155,72 @@
     },
     {
       code: 'REPORT-01', title: '第一次接触完成',
-      brief: '读取第一次接触报告，再核对路线信号与观测日志。当前宇宙可以继续自由运行。',
-      hint: '报告只归纳本轮真实选择，不评价正误。后续文明会用这些记录形成主提案、备选提案和结局继承物。',
+      brief: '读取第一次接触报告。8 秒后观测核会自动继续推进复杂物质，也可以立即继续。',
+      hint: '报告只归纳真实选择，不评价正误；它会留在决策履历中，并成为文明提案的第一组依据。',
       world: '第一次接触已经结束。系统没有把你归入固定阵营，只保存了这一轮实际采用的方法。',
-      action: '先阅读决策队列中的接触报告，再查看右侧路线信号和观测日志。当前版本可以继续自由运行或重启体验其他选择。',
+      action: '查看接触报告与路线信号。无需额外操作，倒计时结束后将开放分子层。',
+    },
+    {
+      code: 'MOLECULE-01', title: '让结构学会组合',
+      brief: '研究分子层，累计获得 8 枚分子，并建立 1 个分子生产单元。',
+      hint: '接触余像提高了复杂结构的可描述性。研究、合成和生产可以并行准备。',
+      world: '原子能够长期存在，却仍各自孤立。分子把“相邻”变成一种可重复的关系，背面宇宙也开始复制这种连接方式。',
+      action: '积累 90 RP 研究分子；用原子合成 8 枚分子，并投入 2 枚建立第一个生产单元。',
+      restSeconds: 7,
+    },
+    {
+      code: 'CELL-01', title: '建立自持边界',
+      brief: '研究细胞层，累计获得 5 枚细胞，并建立 1 个细胞生产单元。',
+      hint: '细胞不是生命本身，而是能把内部循环与外部环境分开的第一道边界。',
+      world: '分子网络越过一个临界点：一部分结构开始维护自身边界。宇宙第一次出现了“里面”和“外面”。',
+      action: '积累 160 RP 研究细胞；用分子合成 5 枚细胞，并建立第一个细胞生产单元。',
+      restSeconds: 7,
+    },
+    {
+      code: 'ETHIC-01', title: '确定复杂性的照料方式',
+      brief: '在决策队列中选择如何对待刚出现的自持结构。',
+      hint: '这是发展阶段的中层决策：它不会覆盖第一法则，而会与此前记录一起影响文明提案。',
+      world: '细胞会自行维持，也会竞争低层物质。观测核必须决定是推动扩张、维持生态、保存证据，还是让正反两侧共同试验。',
+      action: '查看“复杂性伦理”四项选择。决策队列会显示它位于第一法则与文明提案之间的层级。',
+      restSeconds: 7,
+    },
+    {
+      code: 'LIFE-01', title: '让选择成为谱系',
+      brief: '研究生命层，累计获得 3 份生命，并建立 1 个生命生产单元。',
+      hint: '生命会把环境与此前决策写进谱系；此时路线仍可改变，并未锁定。',
+      world: '自持结构开始跨代复制差异。观测核不再只记录物质发生了什么，也开始记录某些结构偏好怎样继续发生。',
+      action: '积累 280 RP 研究生命；用细胞合成 3 份生命，并建立第一个生命生产单元。',
+      restSeconds: 7,
+    },
+    {
+      code: 'SIGNAL-01', title: '辨认背面的第二种声音',
+      brief: '保持至少 2 份生命与非负细胞流量，连续记录 36 秒。',
+      hint: '这不是敌人倒计时。条件失效时记录缓慢回退，可随时返回主界面调度。',
+      world: '生命出现后，背面噪声不再只是重复资源变化。某种结构正在按固定间隔回应，像是在确认这里是否也有观察者。',
+      action: '保留至少 2 份生命，并让细胞净流量不为负。连续记录完成后，文明研究将开放。',
+      restSeconds: 7,
+    },
+    {
+      code: 'CIV-01', title: '译出共同问题',
+      brief: '积累 480 RP，研究文明层。',
+      hint: '文明不是更大的库存，而是资源链中第一次能够理解路线记录并提出自身方案的行动者。',
+      world: '正面生命与背面信号同时指向同一个问题：这个宇宙应该继续扩张、维持循环、理解观察，还是共同改写坍缩？',
+      action: '继续经营各层库存以提高研究速率。达到 480 RP 后研究文明层。',
+      restSeconds: 7,
+    },
+    {
+      code: 'CIV-02', title: '点燃第一座文明',
+      brief: '用 8 份生命合成 1 份文明。',
+      hint: '文明没有自动生产单元。它是本轮资源、研究与决策历史共同达到的第一轮大循环终点。',
+      world: '观测核已经能描述文明，但描述不会替代诞生。必须由仍在运行的生命谱系支付最后一次组合成本。',
+      action: '保留或继续合成生命；达到成本后执行“生命 → 文明”。',
+    },
+    {
+      code: 'CIV-REPORT', title: '第一轮大循环完成',
+      brief: '文明已经诞生，并根据本轮决策提出主提案与备选提案。',
+      hint: '提案解释“为什么出现”，但当前版本不会强迫你立即进入终局工程。资源链可以继续运行。',
+      world: '资源链中第一次出现了能够回看整轮历史的行动者。它们把观测核称为“那个总盯着仓库看的天体”，随后递交了两份彼此不完全相同的未来。',
+      action: '在决策队列中查看文明提案及其依据；第一轮从夸克到文明的大循环至此完成。',
     },
   ];
 
@@ -173,19 +243,19 @@
     {
       id: 'buffer', route: 'sustain', title: '库存缓冲', tag: '维持 +1',
       desc: '用现有资源建立一道可消耗的接触缓冲层。',
-      requirement: '核子不少于 24，原子不少于 12，连续保持 30 秒',
+      requirement: '核子不少于 18，原子不少于 10，连续保持 30 秒',
       effect: '真空水蛭的累计损失上限降低 1',
     },
     {
       id: 'pulse', route: 'advance', title: '脉冲蓄能', tag: '推进 +1',
       desc: '把原子产能和核子库存接入一组短时脉冲电容。',
-      requirement: '原子生产单元不少于 3，核子不少于 18，连续保持 30 秒',
+      requirement: '原子生产单元不少于 3，核子不少于 14，连续保持 30 秒',
       effect: '压倒方案每次脉冲的核子成本从 4 降到 3',
     },
     {
       id: 'sensor', route: 'inquiry', title: '远距标定', tag: '求证 +1',
       desc: '把原子层作为传感器，对视界背面的相位先行采样。',
-      requirement: '焦点位于原子层，研究点不少于 18，连续保持 30 秒',
+      requirement: '焦点位于原子层，研究点不少于 12，连续保持 30 秒',
       effect: '预警时间增加 30 秒；观测方案样本预算从 4 降到 3 原子',
     },
   ];
@@ -228,6 +298,25 @@
     },
   ];
 
+  var COMPLEXITY_OPTIONS = [
+    {
+      id: 'bloom', route: 'advance', title: '允许谱系竞速', tag: '发展决策 · 推进 +2',
+      desc: '让高适应谱系优先占用新产能。生命阶段更快，但低层波动会被文明记作可接受代价。',
+    },
+    {
+      id: 'sanctuary', route: 'sustain', title: '建立多样性保留区', tag: '发展决策 · 维持 +2',
+      desc: '为弱势谱系保留物质份额。增长略慢，但文明会继承一份从未跌破保护线的生态记录。',
+    },
+    {
+      id: 'witness', route: 'inquiry', title: '先记录再干预', tag: '发展决策 · 求证 +2',
+      desc: '保存环境变化与谱系响应的对应关系。资源收益普通，但文明会获得更完整的因果档案。',
+    },
+    {
+      id: 'braid', route: 'rewrite', title: '编织双侧样本', tag: '发展决策 · 改写 +2',
+      desc: '把核心余像的相位加入细胞环境。正反两侧第一次在生命出现前共享同一组演化约束。',
+    },
+  ];
+
   var RESEARCH_DISCOVERIES = [
     {
       id: 'quark-echo', at: 10, code: 'SERENDIPITY / Q-17',
@@ -247,6 +336,72 @@
       copy: '研究通道短暂返回了一个合法、却无法映射到现有物质层的解。它不像错误，更像一段尚未拥有名字的结构。',
       note: '无玩法加成 · 原子层揭示后可重新解释',
     },
+    {
+      id: 'balanced-orbit', steps: [4], at: 18, code: 'SERENDIPITY / F-08',
+      title: '发现：闭合流线',
+      copy: '两条净流量短暂画出同一个闭环：夸克的盈余恰好填补核子留下的缺口。观测核第一次记录到“稳定”也可以是一种形状。',
+      note: '无玩法加成 · 双层稳态阶段记录',
+    },
+    {
+      id: 'reserve-shadow', steps: [9], at: 24, code: 'SERENDIPITY / R-12',
+      title: '发现：保护线的背影',
+      copy: '核子库存接近保护线时，背面噪声也同步停止下降。那一侧似乎无法看见保护规则，却能感到当前宇宙拒绝继续失去。',
+      note: '无玩法加成 · 保护行为会被另一侧间接感知',
+    },
+    {
+      id: 'precontact-parallax', steps: [11], at: 14, code: 'SERENDIPITY / P-03',
+      title: '发现：接触视差',
+      copy: '同一枚原子在两组相位记录中出现了极小的位置差。水蛭尚未附着，但它已经在用另一侧的尺度估量这里。',
+      note: '无玩法加成 · 接触准备阶段记录',
+    },
+    {
+      id: 'molecular-rhyme', steps: [16], at: 26, code: 'SERENDIPITY / M-21',
+      title: '发现：分子押韵',
+      copy: '两组从未接触的原子链选择了相同的折叠次序。它们没有共享物质，只共享了一种更容易成立的句法。',
+      note: '无玩法加成 · 分子阶段世界记录',
+    },
+    {
+      id: 'solvent-memory', steps: [16], at: 72, code: 'SERENDIPITY / M-34',
+      title: '发现：溶剂记忆',
+      copy: '一段已经解散的分子网络让后来的组合更快抵达同一形状。结构消失了，抵达结构的路径却仍留在环境中。',
+      note: '无玩法加成 · 复杂结构会把历史留给环境',
+    },
+    {
+      id: 'inside-outside', steps: [17], at: 28, code: 'SERENDIPITY / C-05',
+      title: '发现：边界的第一人称',
+      copy: '某个细胞结构持续修补同一侧的膜。对观测核而言两侧完全对称；对它而言，其中一侧已经成为“自己”。',
+      note: '无玩法加成 · 细胞阶段世界记录',
+    },
+    {
+      id: 'borrowed-metabolism', steps: [17], at: 78, code: 'SERENDIPITY / C-19',
+      title: '发现：借来的代谢',
+      copy: '一条细胞循环使用了核心余像的相位差，却没有产生截流。曾经属于敌对结构的规律，第一次成为维持内部边界的工具。',
+      note: '无玩法加成 · 接触结果开始参与后续演化',
+    },
+    {
+      id: 'lineage-dream', steps: [19], at: 34, code: 'SERENDIPITY / L-02',
+      title: '发现：谱系之梦',
+      copy: '生命样本在没有环境变化时重复了一次旧的应激模式。它保存的并非事件本身，而是祖先曾经如何准备面对事件。',
+      note: '无玩法加成 · 生命阶段世界记录',
+    },
+    {
+      id: 'two-pulse-clock', steps: [20], at: 12, code: 'SERENDIPITY / L-17',
+      title: '发现：两只指针的钟',
+      copy: '背面信号以两个互不整除的周期重复。单独看都像噪声，叠在一起却不断指向同一个尚未出现的时刻。',
+      note: '无玩法加成 · 文明前通信记录',
+    },
+    {
+      id: 'answer-before-question', steps: [21], at: 38, code: 'SERENDIPITY / V-01',
+      title: '发现：早于问题的答案',
+      copy: '研究通道收到一句结构完整的回应，但当前生命尚未发出对应询问。观测核决定保留语序，不替未来文明猜测内容。',
+      note: '无玩法加成 · 文明研究阶段记录',
+    },
+    {
+      id: 'shared-horizon-name', steps: [21], at: 92, code: 'SERENDIPITY / V-09',
+      title: '发现：视界的另一个名字',
+      copy: '背面信号把视界编码成“被共同遗漏之处”。这不是翻译错误：对方似乎从一开始就不认为边界属于任何一侧。',
+      note: '无玩法加成 · 镜像文明的最早语义候选',
+    },
   ];
 
   function slice() {
@@ -262,6 +417,7 @@
     var s = slice();
     if (!s || !s.enabled) return;
     if (s.missionStep >= MISSIONS.length) s.missionStep = MISSIONS.length - 1;
+    if (s.missionStartedAt === undefined || s.missionStartedAt > s.elapsedSeconds) s.missionStartedAt = s.elapsedSeconds;
     evaluateMission();
   }
 
@@ -276,7 +432,7 @@
     var s = slice();
     if (!s) return;
     var signal = score === undefined ? 2 : score;
-    s.decisions.push({ time: s.elapsedSeconds, kind: kind, id: id, route: route, label: label, score: signal });
+    s.decisions.push({ time: s.elapsedSeconds, kind: kind, level: DECISION_LEVELS[kind] || '阶段决策', id: id, route: route, label: label, score: signal });
     if (route && s.tendencies[route] !== undefined) s.tendencies[route] += signal;
   }
 
@@ -308,6 +464,7 @@
     var s = slice();
     if (!s || step <= s.missionStep) return;
     s.missionStep = Math.min(step, MISSIONS.length - 1);
+    s.missionStartedAt = s.elapsedSeconds;
     var mission = MISSIONS[s.missionStep];
     addLog('GUIDE', mission.code + ' / ' + mission.title);
 
@@ -319,8 +476,12 @@
     if (s.missionStep === 12 && s.enemy.status === 'hidden') triggerWarning();
     if (s.missionStep === 14) s.flags.coreDecisionOpen = true;
     if (s.missionStep === 15) {
-      s.flags.demoComplete = true;
       addLog('SYS', '第一次接触观测窗口完成。路线信号已写入本轮档案。');
+    }
+    if (s.missionStep === 18) s.flags.complexityDecisionOpen = true;
+    if (s.missionStep === 23) {
+      s.flags.civilizationComplete = true;
+      addLog('CIV', '第一座文明开始回读观测日志。主提案与备选提案已经形成。');
     }
   }
 
@@ -354,15 +515,25 @@
       { id: 'atom-stock', label: '原子库存至少 12', met: GS.getTier(2).count >= 12, value: Math.floor(GS.getTier(2).count) + ' / 12', fix: '在核子库存允许时继续合成原子。' },
       { id: 'nucleon-net', label: '核子每秒有盈余', met: getTierNetRate(1) > 0, value: (getTierNetRate(1) >= 0 ? '+' : '') + getTierNetRate(1).toFixed(2) + '/s', fix: '聚焦核子或增加核子生产单元。' },
     ];
+    if (missionStep === 20) return [
+      { id: 'life-stock', label: '生命库存至少 2', met: GS.getTier(5).count >= 2, value: Math.floor(GS.getTier(5).count) + ' / 2', fix: '继续合成生命，并暂缓消耗生命库存。' },
+      { id: 'cell-net', label: '细胞流量不为负', met: getTierNetRate(4) >= 0, value: (getTierNetRate(4) >= 0 ? '+' : '') + getTierNetRate(4).toFixed(3) + '/s', fix: '聚焦细胞层、增加细胞生产单元，或暂缓合成生命。' },
+    ];
     return [];
   }
 
   function updateResearchDiscoveries(dt) {
     var s = slice();
-    if (!s || s.missionStep !== 6 || s.flags.atomResearched) return;
-    s.discoveries.researchWaitSeconds += dt;
+    if (!s) return;
+    if (s.missionStep === 6 && !s.flags.atomResearched) s.discoveries.researchWaitSeconds += dt;
+    if (s.discoveries.missionStep !== s.missionStep) {
+      s.discoveries.missionStep = s.missionStep;
+      s.discoveries.missionWaitSeconds = 0;
+    }
+    s.discoveries.missionWaitSeconds += dt;
     RESEARCH_DISCOVERIES.forEach(function (discovery) {
-      if (s.discoveries.researchWaitSeconds < discovery.at || s.discoveries.triggered.indexOf(discovery.id) !== -1) return;
+      var steps = discovery.steps || [6];
+      if (steps.indexOf(s.missionStep) === -1 || s.discoveries.missionWaitSeconds < discovery.at || s.discoveries.triggered.indexOf(discovery.id) !== -1) return;
       s.discoveries.triggered.push(discovery.id);
       addLog('DISCOVERY', discovery.title.replace('发现：', '') + '：' + discovery.copy);
     });
@@ -404,9 +575,9 @@
 
   function preparationConditionsMet(id) {
     var s = slice();
-    if (id === 'buffer') return GS.getTier(1).count >= 24 && GS.getTier(2).count >= 12;
-    if (id === 'pulse') return GS.getTier(2).producers >= 3 && GS.getTier(1).count >= 18;
-    if (id === 'sensor') return s.focusTier === 2 && GS.getRP() >= 18;
+    if (id === 'buffer') return GS.getTier(1).count >= 18 && GS.getTier(2).count >= 10;
+    if (id === 'pulse') return GS.getTier(2).producers >= 3 && GS.getTier(1).count >= 14;
+    if (id === 'sensor') return s.focusTier === 2 && GS.getRP() >= 12;
     return false;
   }
 
@@ -414,16 +585,16 @@
     var s = slice();
     if (!s || !s.preparation.id) return [];
     if (s.preparation.id === 'buffer') return [
-      { label: '核子库存 24', met: GS.getTier(1).count >= 24, value: Math.floor(GS.getTier(1).count) + ' / 24' },
-      { label: '原子库存 12', met: GS.getTier(2).count >= 12, value: Math.floor(GS.getTier(2).count) + ' / 12' },
+      { label: '核子库存 18', met: GS.getTier(1).count >= 18, value: Math.floor(GS.getTier(1).count) + ' / 18' },
+      { label: '原子库存 10', met: GS.getTier(2).count >= 10, value: Math.floor(GS.getTier(2).count) + ' / 10' },
     ];
     if (s.preparation.id === 'pulse') return [
       { label: '原子生产单元 3', met: GS.getTier(2).producers >= 3, value: GS.getTier(2).producers + ' / 3' },
-      { label: '核子库存 18', met: GS.getTier(1).count >= 18, value: Math.floor(GS.getTier(1).count) + ' / 18' },
+      { label: '核子库存 14', met: GS.getTier(1).count >= 14, value: Math.floor(GS.getTier(1).count) + ' / 14' },
     ];
     return [
       { label: '焦点位于原子层', met: s.focusTier === 2, value: s.focusTier === 2 ? '已完成' : '未完成' },
-      { label: '研究点 18', met: GS.getRP() >= 18, value: Math.floor(GS.getRP()) + ' / 18' },
+      { label: '研究点 12', met: GS.getRP() >= 12, value: Math.floor(GS.getRP()) + ' / 12' },
     ];
   }
 
@@ -445,6 +616,16 @@
     var met = preparationConditionsMet(s.preparation.id);
     s.preparation.progress = Math.max(0, Math.min(GC.FIRST_CONTACT.preparationSeconds, s.preparation.progress + (met ? dt : -dt * 0.5)));
     if (s.preparation.progress >= GC.FIRST_CONTACT.preparationSeconds) completePreparation();
+  }
+
+  function updateLifeSignal(dt) {
+    var s = slice();
+    if (!s || s.missionStep !== 20) return;
+    var conditionsMet = GS.getTier(5).count >= 2 && getTierNetRate(4) >= 0;
+    s.civilization.lifeSignalProgress = Math.max(0, Math.min(
+      GC.FIRST_CONTACT.lifeSignalSeconds,
+      s.civilization.lifeSignalProgress + (conditionsMet ? dt : -dt * 0.5)
+    ));
   }
 
   function evaluateMission() {
@@ -471,6 +652,14 @@
       else if (step === 12) complete = s.enemy.status === 'active';
       else if (step === 13) complete = s.enemy.status === 'resolved';
       else if (step === 14) complete = s.flags.demoComplete;
+      else if (step === 15) complete = s.flags.reportAcknowledged || s.elapsedSeconds - s.missionStartedAt >= 8;
+      else if (step === 16) complete = GS.getTier(3).researched && GS.getTier(3).totalEver >= 8 && GS.getTier(3).producers >= 1;
+      else if (step === 17) complete = GS.getTier(4).researched && GS.getTier(4).totalEver >= 5 && GS.getTier(4).producers >= 1;
+      else if (step === 18) complete = !!s.complexity;
+      else if (step === 19) complete = GS.getTier(5).researched && GS.getTier(5).totalEver >= 3 && GS.getTier(5).producers >= 1;
+      else if (step === 20) complete = s.civilization.lifeSignalProgress >= GC.FIRST_CONTACT.lifeSignalSeconds;
+      else if (step === 21) complete = GS.getTier(6).researched;
+      else if (step === 22) complete = GS.getTier(6).count >= 1;
       if (!complete || step >= MISSIONS.length - 1) break;
       if (startInterlude(step)) break;
       enterMission(step + 1);
@@ -492,6 +681,7 @@
     if (!s.guide.interlude) {
       updateStability(dt);
       updatePreparation(dt);
+      updateLifeSignal(dt);
     }
 
     if (s.enemy.status === 'warning') {
@@ -515,13 +705,16 @@
     var mult = s.focusTier === tierId ? GC.FIRST_CONTACT.focusMultiplier : 1;
     if (s.law === 'expansion' && s.focusTier === tierId) mult += GC.FIRST_CONTACT.focusLawBonus;
     if (s.law === 'conservation' && s.reserveTier === tierId) mult *= 1.2;
+    if (s.flags.demoComplete) mult *= GC.FIRST_CONTACT.evolutionProductionMultiplier[tierId] || 1;
     return mult;
   }
 
   function getResearchMultiplier() {
     var s = slice();
     if (!s || !s.enabled) return 1;
-    return s.law === 'observer' ? 1.25 : 1;
+    var mult = s.law === 'observer' ? 1.25 : 1;
+    if (s.flags.demoComplete) mult *= GC.FIRST_CONTACT.evolutionResearchMultiplier;
+    return mult;
   }
 
   function getReserveFloor(tierId) {
@@ -533,9 +726,10 @@
   function canSynthesize(tierId) {
     var s = slice();
     if (!s || !s.enabled) return true;
-    if (tierId > 2) return false;
     if (tierId === 1 && s.missionStep < 2) return false;
     if (tierId === 2 && s.missionStep < 7) return false;
+    var synthesisGates = [0, 2, 7, 16, 17, 19, 22];
+    if (s.missionStep < synthesisGates[tierId]) return false;
     if (tierId === 2 && s.enemy.method === 'cutoff' && s.enemy.isolationActive) return false;
     return true;
   }
@@ -546,6 +740,9 @@
     if (tierId === 0) return s.missionStep >= 1;
     if (tierId === 1) return s.missionStep >= 3;
     if (tierId === 2) return s.missionStep >= 7;
+    if (tierId === 3) return s.missionStep >= 16;
+    if (tierId === 4) return s.missionStep >= 17;
+    if (tierId === 5) return s.missionStep >= 19;
     return false;
   }
 
@@ -814,6 +1011,28 @@
     return true;
   }
 
+  function continueEvolution() {
+    var s = slice();
+    if (!s || s.missionStep !== 15 || !s.flags.demoComplete) return false;
+    s.flags.reportAcknowledged = true;
+    addLog('GUIDE', '接触报告保留在决策履历中。观测窗口继续向复杂物质扩展。');
+    evaluateMission();
+    return true;
+  }
+
+  function chooseComplexity(id) {
+    var s = slice();
+    if (!s || !s.flags.complexityDecisionOpen || s.complexity) return false;
+    var option = COMPLEXITY_OPTIONS.find(function (item) { return item.id === id; });
+    if (!option) return false;
+    s.complexity = id;
+    s.flags.complexityDecisionOpen = false;
+    recordDecision('complexity', id, option.route, option.title);
+    addLog('LIFE', '复杂性伦理确定：' + option.title + '。这条记录将由未来文明重新解释。');
+    evaluateMission();
+    return true;
+  }
+
   function getRouteRanking() {
     var s = slice();
     if (!s) return [];
@@ -822,6 +1041,19 @@
     }).sort(function (a, b) {
       if (b.score !== a.score) return b.score - a.score;
       return a.order - b.order;
+    });
+  }
+
+  function getCivilizationProposals() {
+    var ranking = getRouteRanking();
+    return ranking.slice(0, 2).map(function (route, index) {
+      return {
+        role: index === 0 ? '主提案' : '备选提案',
+        route: route.id,
+        title: route.meta.ending,
+        score: route.score,
+        reason: slice().decisions.filter(function (decision) { return decision.route === route.id; }).map(function (decision) { return decision.label; }),
+      };
     });
   }
 
@@ -909,9 +1141,54 @@
     } else if (step === 14) {
       value = s.flags.demoComplete ? 1 : 0;
       label = value ? '核心余像已归档' : '等待选择余像用途';
+    } else if (step === 15) {
+      max = 8;
+      value = s.flags.reportAcknowledged ? max : Math.min(max, s.elapsedSeconds - s.missionStartedAt);
+      label = s.flags.reportAcknowledged ? '继续演化已确认' : Math.ceil(max - value) + ' 秒后继续复杂物质演化';
+    } else if (step === 16) {
+      var molecule = GS.getTier(3);
+      if (!molecule.researched) {
+        max = GS.getResearchCost(3); value = Math.min(max, GS.getRP());
+        label = '分子研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else {
+        max = 16; value = Math.min(8, molecule.totalEver) + Math.min(1, molecule.producers) * 8;
+        label = '累计分子 ' + Math.floor(Math.min(8, molecule.totalEver)) + ' / 8 · 生产单元 ' + Math.min(1, molecule.producers) + ' / 1';
+      }
+    } else if (step === 17) {
+      var cell = GS.getTier(4);
+      if (!cell.researched) {
+        max = GS.getResearchCost(4); value = Math.min(max, GS.getRP());
+        label = '细胞研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else {
+        max = 10; value = Math.min(5, cell.totalEver) + Math.min(1, cell.producers) * 5;
+        label = '累计细胞 ' + Math.floor(Math.min(5, cell.totalEver)) + ' / 5 · 生产单元 ' + Math.min(1, cell.producers) + ' / 1';
+      }
+    } else if (step === 18) {
+      value = s.complexity ? 1 : 0;
+      label = s.complexity ? '复杂性伦理已记录' : '等待发展阶段决策';
+    } else if (step === 19) {
+      var life = GS.getTier(5);
+      if (!life.researched) {
+        max = GS.getResearchCost(5); value = Math.min(max, GS.getRP());
+        label = '生命研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else {
+        max = 6; value = Math.min(3, life.totalEver) + Math.min(1, life.producers) * 3;
+        label = '累计生命 ' + Math.floor(Math.min(3, life.totalEver)) + ' / 3 · 生产单元 ' + Math.min(1, life.producers) + ' / 1';
+      }
+    } else if (step === 20) {
+      max = GC.FIRST_CONTACT.lifeSignalSeconds;
+      value = s.civilization.lifeSignalProgress;
+      label = '双侧生命信号 ' + Math.floor(value) + ' / ' + max + ' 秒';
+    } else if (step === 21) {
+      max = GS.getResearchCost(6);
+      value = GS.getTier(6).researched ? max : Math.min(max, GS.getRP());
+      label = GS.getTier(6).researched ? '文明层已译出' : '文明研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+    } else if (step === 22) {
+      value = Math.min(1, GS.getTier(6).count);
+      label = value ? '第一座文明已经诞生' : '生命 ' + Math.floor(GS.getTier(5).count) + ' / ' + GS.getSynthCost(6) + ' · 文明 0 / 1';
     } else {
       value = 1;
-      label = '观测窗口完成 · 可以自由运行';
+      label = '夸克 → 文明 · 第一轮大循环完成';
     }
 
     return {
@@ -946,8 +1223,10 @@
     acknowledgeDiscovery: acknowledgeDiscovery,
     getEnemyMethods: getEnemyMethods,
     getCoreOptions: function () { return CORE_OPTIONS; },
+    getComplexityOptions: function () { return COMPLEXITY_OPTIONS; },
     getRouteMeta: function () { return ROUTES; },
     getRouteRanking: getRouteRanking,
+    getCivilizationProposals: getCivilizationProposals,
     getProductionMultiplier: getProductionMultiplier,
     getResearchMultiplier: getResearchMultiplier,
     getReserveFloor: getReserveFloor,
@@ -972,6 +1251,8 @@
     pulseOverload: pulseOverload,
     toggleIsolation: toggleIsolation,
     chooseCoreDisposition: chooseCoreDisposition,
+    continueEvolution: continueEvolution,
+    chooseComplexity: chooseComplexity,
     formatElapsed: formatElapsed,
   };
 })();

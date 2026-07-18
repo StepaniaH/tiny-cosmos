@@ -70,15 +70,15 @@ function completePreparation(game, preparation) {
   if (preparation === 'pulse') {
     buildAtomsTo(game, game.GS.getProducerCost(2));
     assert(game.GE.buyProducer(2), 'Failed to buy the third atom producer');
-    buildNucleonsTo(game, 18);
+    buildNucleonsTo(game, 14);
   }
   if (preparation === 'buffer') {
-    buildAtomsTo(game, 12);
-    buildNucleonsTo(game, 24);
+    buildAtomsTo(game, 10);
+    buildNucleonsTo(game, 18);
   }
   if (preparation === 'sensor') {
     assert(Slice.setFocus(2), 'Failed to focus atoms for sensor preparation');
-    tickUntil(game, () => game.GS.getRP() >= 18, 240, 'sensor preparation research');
+    tickUntil(game, () => game.GS.getRP() >= 12, 240, 'sensor preparation research');
   }
 
   tickUntil(game, () => game.GS.getSlice().preparation.completed, 90, `${preparation} preparation`);
@@ -229,7 +229,7 @@ function verifyLegacySaveMigration() {
   const target = createGameRuntime();
   assert(target.GS.fromJSON(JSON.stringify(legacy)), 'Failed to migrate a legacy first-contact save');
   const migrated = target.GS.getSlice();
-  assert(migrated.version === 4, 'Legacy save version was not upgraded');
+  assert(migrated.version === 5, 'Legacy save version was not upgraded');
   assert(migrated.enemy.observeLossLimit === null, 'Legacy enemy defaults were not restored');
   assert(migrated.flags.demoComplete === false, 'Legacy flag defaults were not restored');
   assert(migrated.stats.atomSyntheses === 0, 'Legacy stat defaults were not restored');

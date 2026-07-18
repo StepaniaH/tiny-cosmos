@@ -36,9 +36,10 @@
   function createSliceState(enabled) {
     return {
       enabled: !!enabled,
-      version: 4,
+      version: 5,
       elapsedSeconds: 0,
       missionStep: 0,
+      missionStartedAt: 0,
       guide: {
         interlude: false,
         remaining: 0,
@@ -81,6 +82,14 @@
         coreDecisionOpen: false,
         preparationOpen: false,
         demoComplete: false,
+        reportAcknowledged: false,
+        complexityDecisionOpen: false,
+        civilizationComplete: false,
+      },
+      complexity: null,
+      civilization: {
+        lifeSignalProgress: 0,
+        proposalRead: false,
       },
       enemy: {
         status: 'hidden',
@@ -96,6 +105,8 @@
       },
       discoveries: {
         researchWaitSeconds: 0,
+        missionStep: 0,
+        missionWaitSeconds: 0,
         triggered: [],
         acknowledged: [],
       },
@@ -267,10 +278,12 @@
     if (!state) return false;
     var t = state.tiers[tierId];
     if (t.researched) return false;
-    if (state.slice && state.slice.enabled && tierId > 2) return false;
     // Must be adjacent to max researched tier
     if (tierId !== getMaxResearchedTier() + 1) return false;
-    if (state.slice && state.slice.enabled && tierId === 2 && state.slice.missionStep < 6) return false;
+    if (state.slice && state.slice.enabled) {
+      var missionGates = [0, 0, 6, 16, 17, 19, 21];
+      if (state.slice.missionStep < missionGates[tierId]) return false;
+    }
     return state.researchPoints >= getResearchCost(tierId);
   }
 
@@ -397,12 +410,14 @@
       var sliceDefaults = createSliceState(parsed.slice && parsed.slice.enabled);
       if (!parsed.slice) parsed.slice = sliceDefaults;
       else {
+        if (parsed.slice.missionStartedAt === undefined) parsed.slice.missionStartedAt = parsed.slice.elapsedSeconds || 0;
         parsed.slice.guide = Object.assign({}, sliceDefaults.guide, parsed.slice.guide || {});
         parsed.slice.stability = Object.assign({}, sliceDefaults.stability, parsed.slice.stability || {});
         parsed.slice.preparation = Object.assign({}, sliceDefaults.preparation, parsed.slice.preparation || {});
         parsed.slice.tendencies = Object.assign({}, sliceDefaults.tendencies, parsed.slice.tendencies || {});
         parsed.slice.stats = Object.assign({}, sliceDefaults.stats, parsed.slice.stats || {});
         parsed.slice.flags = Object.assign({}, sliceDefaults.flags, parsed.slice.flags || {});
+        parsed.slice.civilization = Object.assign({}, sliceDefaults.civilization, parsed.slice.civilization || {});
         parsed.slice.enemy = Object.assign({}, sliceDefaults.enemy, parsed.slice.enemy || {});
         parsed.slice.discoveries = Object.assign({}, sliceDefaults.discoveries, parsed.slice.discoveries || {});
         parsed.slice.archive = Object.assign({}, sliceDefaults.archive, parsed.slice.archive || {});

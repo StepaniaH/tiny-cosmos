@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>Civilization Complete Fixture</title></head>
+<body>
+  <p>Preparing the civilization UI fixture…</p>
+  <script src="../../js/constants.js"></script>
+  <script src="../../js/state.js"></script>
+  <script>
+    (function () {
+      var GS = window.GameState;
+      var state = GS.init({ firstContact: true });
+      var slice = state.slice;
+      var counts = [86, 42, 30, 16, 9, 8, 1];
+      var producers = [4, 3, 3, 2, 2, 1, 0];
+      state.tiers.forEach(function (tier, index) {
+        tier.researched = true; tier.count = counts[index]; tier.totalEver = counts[index] * 2; tier.producers = producers[index];
+      });
+      state.researchPoints = 128; state.totalQuarksEver = 420;
+      slice.elapsedSeconds = 1284; slice.missionStep = 23; slice.missionStartedAt = 1284;
+      slice.focusTier = 5; slice.reserveTier = 1; slice.law = 'observer'; slice.complexity = 'braid';
+      slice.preparation = { id: 'buffer', progress: 30, completed: true, bonusApplied: false };
+      slice.enemy = { status: 'resolved', warningRemaining: 0, method: 'observe', methodStartSiphoned: 0.4, observeLossLimit: 4.4, progress: 100, siphoned: 4.4, isolationActive: false, overloadPulses: 0, resolution: 'observe' };
+      slice.tendencies = { advance: 2, sustain: 1, inquiry: 4, rewrite: 4 };
+      slice.flags.atomResearched = true; slice.flags.researchExplained = true; slice.flags.reserveConfigured = true; slice.flags.demoComplete = true; slice.flags.reportAcknowledged = true; slice.flags.civilizationComplete = true;
+      slice.civilization.lifeSignalProgress = window.GC.FIRST_CONTACT.lifeSignalSeconds;
+      slice.decisions = [
+        { time: 520, kind: 'law', level: '局部法则', id: 'observer', route: 'inquiry', label: '观测者效应', score: 2 },
+        { time: 590, kind: 'preparation', level: '接触准备', id: 'buffer', route: 'sustain', label: '库存缓冲', score: 1 },
+        { time: 650, kind: 'enemy', level: '接触策略', id: 'observe', route: 'inquiry', label: '观测', score: 2 },
+        { time: 680, kind: 'core', level: '余像处置', id: 'fuel', route: 'advance', label: '压入边界燃料', score: 2 },
+        { time: 930, kind: 'complexity', level: '复杂性伦理', id: 'braid', route: 'rewrite', label: '编织双侧样本', score: 2 }
+      ];
+      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      location.replace('../../index.html?fixture=civilization-complete');
+    })();
+  </script>
+</body>
+</html>

@@ -22,6 +22,8 @@
   var lastResearchReady = false;
   var lastDiscoveryId = null;
   var lastEnemyStatus = null;
+  var eventRenderKey = '';
+  var contactRenderKey = '';
 
   function el(id) { return document.getElementById(id); }
   function playSound(id) { if (Sound) Sound.play(id); }
@@ -53,8 +55,10 @@
     if (step === 0) return 'input';
     if (step === 1 || step === 2 || step === 7) return 'production';
     if (step === 3 || step === 4 || step === 8 || step === 9) return 'flow';
-    if (step === 5 || step === 6) return 'research';
-    if (step === 10 || step === 11 || step === 14) return 'decision';
+    if (step === 5 || step === 6 || step === 16 || step === 17 || step === 19 || step === 21) return 'research';
+    if (step === 10 || step === 11 || step === 14 || step === 15 || step === 18 || step === 23) return 'decision';
+    if (step === 20) return 'flow';
+    if (step === 22) return 'production';
     return 'contact';
   }
 
@@ -137,6 +141,14 @@
       ? '焦点未建立'
       : '焦点 ×' + Slice.getProductionMultiplier(s.focusTier).toFixed(2) + ' · ' + GC.TIERS[s.focusTier].nameZh;
 
+    var missionStrip = document.querySelector('.mission-strip');
+    var timedStep = [4, 9, 11, 12, 13, 15, 20].indexOf(s.missionStep) !== -1;
+    var nearing = timedStep && progress.percent >= 72 && progress.percent < 100;
+    var urgent = timedStep && progress.percent >= 90 && progress.percent < 100;
+    if (s.missionStep === 12 && s.enemy.status === 'warning' && s.enemy.warningRemaining <= 10) urgent = true;
+    missionStrip.classList.toggle('near-complete', nearing);
+    missionStrip.classList.toggle('urgent', urgent);
+
     var dock = el('guide-dock');
     var dockLabel = el('guide-dock-label');
     dock.classList.toggle('resting', !!(guide && guide.interlude));
@@ -155,18 +167,18 @@
     if (lastMissionStep !== null && lastMissionStep !== s.missionStep) {
       guideCollapsed = false;
       lastGuideStep = null;
-      var strip = document.querySelector('.mission-strip');
-      strip.classList.remove('mission-enter');
-      void strip.offsetWidth;
-      strip.classList.add('mission-enter');
+      missionStrip.classList.remove('mission-enter');
+      void missionStrip.offsetWidth;
+      missionStrip.classList.add('mission-enter');
       showToast('新指令已写入：' + mission.title, false);
     }
-    var researchReady = s.missionStep === 6 && GS.canResearch(2);
+    var nextResearchTier = GS.getMaxResearchedTier() + 1;
+    var researchReady = nextResearchTier < GC.TIERS.length && GS.canResearch(nextResearchTier);
     if (researchReady && !lastResearchReady && s.guide.researchGoalAcknowledged) {
       guideCollapsed = false;
       lastGuideStep = null;
       playSound('ui-research-threshold');
-      showToast('研究阈值已满足：现在可以揭示原子层', true);
+      showToast('研究阈值已满足：现在可以揭示' + GC.TIERS[nextResearchTier].nameZh + '层', true);
     }
     lastResearchReady = researchReady;
     if (s.missionStep >= 3 && !flowUserToggled && !flowAutoExpanded) {
@@ -230,18 +242,33 @@
       '<p class="research-formula">读法：Nᵢ 是每层当前库存，αᵢ 是层级系数，κ 是法则倍率。平方根让囤积仍有收益，但边际贡献逐渐下降；上方曲线是最近 60 秒的真实研究速率，不是装饰动画。</p>';
 
     var button = el('btn-research-global');
-    if (next < GC.TIERS.length && next <= 2) {
+    var researchBar = document.querySelector('.research-bar');
+    if (next < GC.TIERS.length) {
       var cost = GS.getResearchCost(next);
-      el('rb-fill').style.width = clamp(rp / cost * 100, 0, 100) + '%';
-      el('rb-next-label').textContent = '下一目标：' + GC.TIERS[next].nameZh + ' / ' + fmt(rp, 0) + ' / ' + cost + ' RP';
+      var researchPercent = clamp(rp / cost * 100, 0, 100);
+      el('rb-fill').style.width = researchPercent + '%';
       button.dataset.tier = next;
-      button.textContent = '研究' + GC.TIERS[next].nameZh + '层';
-      button.disabled = !GS.canResearch(next);
+      var gateStep = [0, 0, 6, 16, 17, 19, 21][next] || 0;
+      var gateClosed = sliceState.enabled && sliceState.missionStep < gateStep;
+      if (gateClosed) {
+        el('rb-next-label').textContent = GC.TIERS[next].nameZh + '信号尚未稳定 / 完成当前阶段后开放';
+        button.textContent = '等待' + GC.TIERS[next].nameZh + '信号';
+        button.disabled = true;
+        researchBar.classList.remove('near-ready', 'research-ready');
+      } else {
+        el('rb-next-label').textContent = '下一目标：' + GC.TIERS[next].nameZh + ' / ' + fmt(rp, 0) + ' / ' + cost + ' RP';
+        button.textContent = '研究' + GC.TIERS[next].nameZh + '层';
+        button.disabled = !GS.canResearch(next);
+        researchBar.classList.toggle('near-ready', researchPercent >= 78 && researchPercent < 100);
+        researchBar.classList.toggle('research-ready', researchPercent >= 100 && !button.disabled);
+      }
     } else {
       el('rb-fill').style.width = '100%';
-      el('rb-next-label').textContent = '原子层已稳定 / 分子层留待下一竖切';
-      button.textContent = '已达观测边界';
+      el('rb-next-label').textContent = '七层结构已完整描述 / 文明正在回读本轮记录';
+      button.textContent = '研究通道已完成';
       button.disabled = true;
+      researchBar.classList.remove('near-ready');
+      researchBar.classList.add('research-ready');
     }
   }
 
@@ -251,12 +278,8 @@
     var tpl = GC.TIERS[tierId];
     var card = el('card-' + tierId);
     var unlocked = tier.researched;
-    var nextResearchable = tierId === GS.getMaxResearchedTier() + 1 && tierId <= 2;
-
-    if (tierId > 2 && s.enabled) {
-      card.className = 'tier-card locked horizon-card';
-      return;
-    }
+    var researchGateStep = [0, 0, 6, 16, 17, 19, 21][tierId] || 0;
+    var nextResearchable = tierId === GS.getMaxResearchedTier() + 1 && (!s.enabled || s.missionStep >= researchGateStep);
 
     card.className = 'tier-card';
     if (!unlocked) card.classList.add(nextResearchable ? 'researchable' : 'locked');
@@ -298,7 +321,7 @@
     }
 
     if (locked) locked.style.display = 'none';
-    if (count) { count.style.display = ''; count.textContent = fmt(tier.count, tierId <= 2 ? 2 : 0); }
+    if (count) { count.style.display = ''; count.textContent = fmt(tier.count, tierId <= 2 ? 2 : 1); }
     if (stateLabel) stateLabel.style.display = '';
     if (bars) bars.style.display = '';
     if (net) net.style.display = '';
@@ -318,7 +341,7 @@
       producerButton.disabled = tier.count < producerCost || !Slice.canBuyProducer(tierId);
     } else if (producerButton) producerButton.style.display = 'none';
 
-    if (synthButton && tierId >= 1 && tierId <= 2) {
+    if (synthButton && tierId >= 1 && tierId <= 6) {
       var synthCost = GS.getSynthCost(tierId);
       var batch = GS.getSynthBatchSize();
       synthButton.style.display = '';
@@ -331,9 +354,10 @@
       focusButton.textContent = s.focusTier === tierId ? '焦点已锁定' : '聚焦';
       focusButton.disabled = s.missionStep < 3 || s.focusTier === tierId;
       focusButton.classList.toggle('active', s.focusTier === tierId);
-      var predictedFocus = 1.8;
+      var predictedFocus = GC.FIRST_CONTACT.focusMultiplier;
       if (s.law === 'expansion') predictedFocus += GC.FIRST_CONTACT.focusLawBonus;
       if (s.law === 'conservation' && s.reserveTier === tierId) predictedFocus *= 1.2;
+      if (s.flags.demoComplete) predictedFocus *= GC.FIRST_CONTACT.evolutionProductionMultiplier[tierId] || 1;
       focusButton.dataset.tooltipTitle = '宇宙焦点';
       focusButton.dataset.tooltip = '全宇宙同时只能聚焦一个层级。移动到' + tpl.nameZh + '后，该层当前生产倍率变为 ×' + predictedFocus.toFixed(2) + '；焦点位置也会影响部分敌人处理条件。迁移不消耗资源。';
     }
@@ -371,7 +395,7 @@
   function updateNet(tierId, rates) {
     var sign = rates.net >= 0 ? '+' : '';
     var node = el('net-' + tierId);
-    node.textContent = 'NET ' + sign + (rates.net < 0 ? '-' : '') + fmt(Math.abs(rates.net), 2) + ' / SEC';
+    node.textContent = 'NET ' + sign + fmt(Math.abs(rates.net), 2) + ' / SEC';
     node.className = 'tc-net ' + (rates.net >= 0 ? 'pos' : 'neg');
   }
 
@@ -389,12 +413,36 @@
     node.className = cls;
   }
 
+  function decisionByKind(s, kind) {
+    for (var i = s.decisions.length - 1; i >= 0; i--) if (s.decisions[i].kind === kind) return s.decisions[i];
+    return null;
+  }
+
+  function updateDecisionHierarchy() {
+    var s = GS.getSlice();
+    var law = decisionByKind(s, 'law');
+    var contactCount = s.decisions.filter(function (decision) { return ['preparation', 'enemy', 'core'].indexOf(decision.kind) !== -1; }).length;
+    var complexity = decisionByKind(s, 'complexity');
+    var proposals = s.flags.civilizationComplete ? Slice.getCivilizationProposals() : [];
+    var stages = [
+      { at: 10, done: !!law, title: 'I · 局部法则', value: law ? law.label : '等待原子稳态' },
+      { at: 11, done: contactCount === 3, title: 'II · 接触记录', value: contactCount ? contactCount + ' / 3 项已封存' : '继承第一法则' },
+      { at: 18, done: !!complexity, title: 'III · 发展伦理', value: complexity ? complexity.label : '等待细胞阶段' },
+      { at: 23, done: s.flags.civilizationComplete, title: 'IV · 文明提案', value: proposals.length ? proposals.map(function (proposal) { return proposal.title; }).join(' / ') : '汇总全部记录' },
+    ];
+    el('decision-hierarchy').innerHTML = '<header><span>DECISION DEPENDENCY</span><b>局部选择 → 路线信号 → 文明提案</b></header><ol>' + stages.map(function (stage) {
+      var stateClass = stage.done ? 'complete' : (s.missionStep >= stage.at ? 'current' : 'locked');
+      return '<li class="' + stateClass + '"><i></i><span><b>' + stage.title + '</b><small>' + escapeHTML(stage.value) + '</small></span></li>';
+    }).join('') + '</ol>';
+  }
+
   function updateEventPanel() {
     var s = GS.getSlice();
     var content = el('event-content');
     var status = el('event-status');
     var options = null;
     var kind = '';
+    updateDecisionHierarchy();
 
     if (s.flags.lawDecisionOpen && !s.law) {
       options = Slice.getLawOptions(); kind = 'law';
@@ -407,64 +455,76 @@
           return '<li class="' + (condition.met ? 'ok' : '') + '"><span>' + condition.label + '</span><b>' + condition.value + '</b></li>';
         }).join('');
         var prepPercent = clamp(s.preparation.progress / GC.FIRST_CONTACT.preparationSeconds * 100, 0, 100);
+        eventRenderKey = 'preparation-active:' + Math.floor(s.preparation.progress * 4);
         content.innerHTML = '<div class="preparation-active route-' + selectedPreparation.route + '"><span class="choice-top"><strong>' + selectedPreparation.title + '</strong><span>' + selectedPreparation.tag + '</span></span><p>' + selectedPreparation.desc + '</p><div class="progress-block"><span><b>连续稳定</b><em>' + Math.floor(s.preparation.progress) + ' / ' + GC.FIRST_CONTACT.preparationSeconds + ' 秒</em></span><div class="bar"><i style="width:' + prepPercent + '%"></i></div></div><ul class="preparation-conditions">' + conditionRows + '</ul><div class="preparation-effect"><span>完成效果</span><b>' + selectedPreparation.effect + '</b></div></div>';
         return;
       }
       options = Slice.getPreparationOptions(); kind = 'preparation';
     } else if (s.enemy.status === 'active' && !s.enemy.method) {
       status.textContent = '转至接触面板'; status.className = 'status-chip danger';
-      content.innerHTML = '<div class="empty-state small"><p>真空水蛭的三种可用处理方案已经在中部并列显示。</p><small>在那里比较成本、持续时间、止损方式与路线记录。</small></div>';
+      if (eventRenderKey !== 'contact-redirect') {
+        eventRenderKey = 'contact-redirect';
+        content.innerHTML = '<div class="empty-state small"><p>真空水蛭的三种可用处理方案已经在中部并列显示。</p><small>在那里比较成本、持续时间、止损方式与路线记录。</small></div>';
+      }
       return;
     } else if (s.flags.coreDecisionOpen && !s.flags.demoComplete) {
       options = Slice.getCoreOptions(); kind = 'core';
       status.textContent = '余像处置'; status.className = 'status-chip';
+    } else if (s.flags.complexityDecisionOpen && !s.complexity) {
+      options = Slice.getComplexityOptions(); kind = 'complexity';
+      status.textContent = '发展决策'; status.className = 'status-chip';
     }
 
     if (!options) {
-      status.textContent = s.flags.demoComplete ? '已归档' : '空闲';
-      status.className = 'status-chip ' + (s.flags.demoComplete ? 'safe' : 'muted');
-      if (s.flags.demoComplete) {
+      if (s.missionStep === 15) {
+        status.textContent = '接触已封存'; status.className = 'status-chip safe';
+        if (eventRenderKey === 'first-contact-report') return;
+        eventRenderKey = 'first-contact-report';
         var report = Lore.getFirstContactReport(s, Slice.getRouteRanking());
-        content.innerHTML = '<article class="completion-report">' +
-          '<div class="completion-kicker"><span>FIRST CONTACT / SEALED</span><b>' + Slice.formatElapsed() + '</b></div>' +
-          '<h3>' + report.title + '</h3>' +
-          '<div class="completion-signal"><span>主信号</span><strong>' + report.signal + '</strong><small>备选 · ' + report.secondary + '</small></div>' +
-          '<div class="completion-records"><span>第一法则<b>' + report.law + '</b></span><span>接触准备<b>' + report.preparation + '</b></span><span>处理方案<b>' + report.method + '</b></span><span>余像用途<b>' + report.disposition + '</b></span><span>累计损失<b>' + fmt(s.enemy.siphoned, 2) + ' 原子</b></span></div>' +
-          '<div class="completion-story"><p>' + report.opening + '</p><p>' + report.encounter + '</p><p>' + report.aftermath + '</p></div>' +
-          '<p class="completion-closing">' + report.closing + '</p>' +
-          '<button id="open-completion-archive" class="btn btn-primary" type="button">查看完整观测档案</button>' +
-          '</article>';
+        content.innerHTML = '<article class="completion-report"><div class="completion-kicker"><span>FIRST CONTACT / SEALED</span><b>记录完成</b></div><h3>' + report.title + '</h3><div class="completion-signal"><span>主信号</span><strong>' + report.signal + '</strong><small>备选 · ' + report.secondary + '</small></div><div class="completion-records"><span>第一法则<b>' + report.law + '</b></span><span>接触准备<b>' + report.preparation + '</b></span><span>处理方案<b>' + report.method + '</b></span><span>余像用途<b>' + report.disposition + '</b></span><span>累计损失<b>' + fmt(s.enemy.siphoned, 2) + ' 原子</b></span></div><div class="completion-story"><p>' + report.opening + '</p><p>' + report.encounter + '</p><p>' + report.aftermath + '</p></div><p class="completion-closing">' + report.closing + '</p><div class="report-actions"><button id="continue-evolution" class="btn btn-primary" type="button">立即继续演化</button><button id="open-completion-archive" class="btn btn-quiet" type="button">查看完整档案</button></div></article>';
         el('open-completion-archive').addEventListener('click', openLoreArchive);
-      } else {
-        content.innerHTML = '<div class="empty-state small"><p>没有待处理的重要决策。</p><small>事件会保留，不会在离线时过期。</small></div>';
+        el('continue-evolution').addEventListener('click', function () { if (Slice.continueEvolution()) refreshAll(); });
+        return;
+      }
+      if (s.flags.civilizationComplete) {
+        status.textContent = '文明已形成'; status.className = 'status-chip safe';
+        if (eventRenderKey === 'civilization-report') return;
+        eventRenderKey = 'civilization-report';
+        var civilizationProposals = Slice.getCivilizationProposals();
+        content.innerHTML = '<article class="civilization-report"><span>CIVILIZATION ASSEMBLY / FIRST LOOP</span><h3>文明议案已经形成</h3><p>文明没有把此前选择当作阵营标签，而是把它们整理成两条已经被本轮证明可行的工程方向。</p><div class="proposal-list">' + civilizationProposals.map(function (proposal) { return '<section class="proposal-card route-' + proposal.route + '"><span>' + proposal.role + ' · 信号 ' + proposal.score + '</span><strong>' + proposal.title + '</strong><small>依据：' + (proposal.reason.length ? proposal.reason.join('、') : '当前路线信号') + '</small></section>'; }).join('') + '</div><p class="completion-closing">第一轮夸克 → 文明大循环完成。终局工程会在后续版本中读取这些提案；当前资源链可以继续运行。</p><button id="open-completion-archive" class="btn btn-primary" type="button">查看本轮完整档案</button></article>';
+        el('open-completion-archive').addEventListener('click', openLoreArchive);
+        return;
+      }
+      status.textContent = s.flags.demoComplete ? '履历已保留' : '空闲';
+      status.className = 'status-chip ' + (s.flags.demoComplete ? 'safe' : 'muted');
+      var idleKey = 'idle:' + s.missionStep;
+      if (eventRenderKey !== idleKey) {
+        eventRenderKey = idleKey;
+        content.innerHTML = '<div class="empty-state small"><p>当前没有必须处理的决策。</p><small>' + (s.flags.demoComplete ? '已完成的选择保留在上方层级中；它们不会被后续决策覆盖。' : '事件会保留，不会在离线时过期。') + '</small></div>';
       }
       return;
     }
 
+    var choiceKey = 'choices:' + kind;
+    if (eventRenderKey === choiceKey) return;
+    eventRenderKey = choiceKey;
     var context = kind === 'law'
-      ? '<div class="choice-context"><b>已有经验</b><p>你已经使用过焦点、保护线和研究通道。第一法则会强化其中一项，并记录本轮倾向。</p></div>'
+      ? '<div class="choice-context"><b>I · 局部法则</b><p>强化已经使用过的一项系统，并写入路线信号。</p></div>'
       : kind === 'preparation'
-        ? '<div class="choice-context"><b>接触前窗口</b><p>准备方案会锁定一项经营目标。条件需要连续保持 30 秒，失效时进度缓慢回退。</p></div>'
-        : '';
+        ? '<div class="choice-context"><b>II-A · 接触准备</b><p>条件连续保持 30 秒；失效时进度缓慢回退。</p></div>'
+        : kind === 'complexity'
+          ? '<div class="choice-context"><b>III · 发展伦理</b><p>它继承此前记录但不覆盖它们，并将参与文明提案排序。</p></div>'
+          : '<div class="choice-context"><b>II-C · 余像处置</b><p>把本次接触结果转成资源用途与路线记录。</p></div>';
     content.innerHTML = context + '<div class="choice-list">' + options.map(function (option) {
-      var iconSource = kind === 'law'
-        ? 'assets/icons/laws/law-' + option.id + '.svg'
-        : kind === 'preparation'
-          ? 'assets/icons/preparations/preparation-' + option.id + '.svg'
-          : 'assets/icons/afterimage-actions/afterimage-' + option.id + '.svg';
-      return '<button class="choice-card route-' + option.route + '" data-kind="' + kind + '" data-id="' + option.id + '" ' + (option.disabled ? 'disabled' : '') + '>' +
-        '<span class="choice-heading"><img src="' + iconSource + '" alt=""><span class="choice-top"><strong>' + option.title + '</strong><span>' + option.tag + '</span></span></span>' +
-        '<p>' + option.desc + '</p>' + (option.requirement ? '<div class="choice-metrics"><span>条件</span><b>' + option.requirement + '</b><span>效果</span><b>' + option.effect + '</b></div>' : '') + '</button>';
+      var iconSource = kind === 'law' ? 'assets/icons/laws/law-' + option.id + '.svg' : kind === 'preparation' ? 'assets/icons/preparations/preparation-' + option.id + '.svg' : kind === 'core' ? 'assets/icons/afterimage-actions/afterimage-' + option.id + '.svg' : 'assets/icons/tiers/tier-cell.svg';
+      return '<button class="choice-card route-' + option.route + '" data-kind="' + kind + '" data-id="' + option.id + '" ' + (option.disabled ? 'disabled' : '') + '><span class="choice-heading"><img src="' + iconSource + '" alt=""><span class="choice-top"><strong>' + option.title + '</strong><span>' + option.tag + '</span></span></span><p>' + option.desc + '</p>' + (option.requirement ? '<div class="choice-metrics"><span>条件</span><b>' + option.requirement + '</b><span>效果</span><b>' + option.effect + '</b></div>' : '') + '</button>';
     }).join('') + '</div>';
 
     content.querySelectorAll('.choice-card').forEach(function (button) {
       button.addEventListener('click', function () {
         var actionKind = button.dataset.kind;
         var id = button.dataset.id;
-        var changed = false;
-        if (actionKind === 'law') changed = Slice.chooseLaw(id);
-        if (actionKind === 'preparation') changed = Slice.choosePreparation(id);
-        if (actionKind === 'core') changed = Slice.chooseCoreDisposition(id);
+        var changed = actionKind === 'law' ? Slice.chooseLaw(id) : actionKind === 'preparation' ? Slice.choosePreparation(id) : actionKind === 'core' ? Slice.chooseCoreDisposition(id) : Slice.chooseComplexity(id);
         if (changed) {
           if (actionKind === 'core') playSound('afterimage-' + id);
           showActionFeedback(button, button.querySelector('strong').textContent + ' · 已记录', 'green', true);
@@ -472,6 +532,13 @@
         refreshAll();
       });
     });
+  }
+
+  function setContactContent(key, html) {
+    if (contactRenderKey === key) return false;
+    contactRenderKey = key;
+    el('contact-content').innerHTML = html;
+    return true;
   }
 
   function updateContact() {
@@ -494,7 +561,7 @@
 
     if (enemy.status === 'hidden') {
       status.textContent = '未发现'; status.className = 'status-chip muted';
-      content.innerHTML = '<div class="empty-state"><span class="reticle-icon"></span><p>当前视界内没有稳定敌对结构。</p><small>第一次法则确定后，未被选择的可能性会开始积累。</small></div>';
+      setContactContent('hidden', '<div class="empty-state"><span class="reticle-icon"></span><p>当前视界内没有稳定敌对结构。</p><small>第一次法则确定后，未被选择的可能性会开始积累。</small></div>');
       return;
     }
 
@@ -502,11 +569,15 @@
       status.textContent = '征兆 / ' + Math.ceil(enemy.warningRemaining) + 's'; status.className = 'status-chip danger';
       overlayState.textContent = '附着倒计时 ' + Math.ceil(enemy.warningRemaining) + ' 秒';
       var warningDuration = Slice.getWarningDuration();
-      content.innerHTML = '<div class="threat-grid"><div><div class="threat-name"><span class="threat-symbol">VL</span><div><strong>真空水蛭</strong><small>原子层 / 新增产出与可用库存</small></div></div><div class="threat-stats"><div class="threat-stat"><span>目标</span><b>原子 T2</b></div><div class="threat-stat"><span>截取速率</span><b>' + GC.FIRST_CONTACT.enemyDrainPerSecond.toFixed(2) + '/s</b></div><div class="threat-stat"><span>损失上限</span><b>' + fmt(Slice.getEnemyLossCap(), 1) + '</b></div></div></div><div class="progress-block"><span><b>形成进度</b><em>' + Math.round((1 - enemy.warningRemaining / warningDuration) * 100) + '%</em></span><div class="bar"><i style="width:' + clamp((1 - enemy.warningRemaining / warningDuration) * 100, 0, 100) + '%"></i></div><button id="begin-contact-btn" class="btn btn-primary">提前建立接触</button></div></div>';
-      el('begin-contact-btn').addEventListener('click', function () {
-        if (Slice.beginContact()) showActionFeedback(this, '接触已经建立', 'amber', true);
-        refreshAll();
-      });
+      var warningPercent = clamp((1 - enemy.warningRemaining / warningDuration) * 100, 0, 100);
+      if (setContactContent('warning', '<div class="threat-grid"><div><div class="threat-name"><span class="threat-symbol">VL</span><div><strong>真空水蛭</strong><small>原子层 / 新增产出与可用库存</small></div></div><div class="threat-stats"><div class="threat-stat"><span>目标</span><b>原子 T2</b></div><div class="threat-stat"><span>截取速率</span><b>' + GC.FIRST_CONTACT.enemyDrainPerSecond.toFixed(2) + '/s</b></div><div class="threat-stat"><span>损失上限</span><b>' + fmt(Slice.getEnemyLossCap(), 1) + '</b></div></div></div><div class="progress-block"><span><b>形成进度</b><em id="contact-warning-label"></em></span><div class="bar"><i id="contact-warning-fill"></i></div><button id="begin-contact-btn" class="btn btn-primary">提前建立接触</button></div></div>')) {
+        el('begin-contact-btn').addEventListener('click', function () {
+          if (Slice.beginContact()) showActionFeedback(this, '接触已经建立', 'amber', true);
+          refreshAll();
+        });
+      }
+      el('contact-warning-label').textContent = Math.round(warningPercent) + '%';
+      el('contact-warning-fill').style.width = warningPercent + '%';
       return;
     }
 
@@ -514,20 +585,27 @@
       status.textContent = '接触中'; status.className = 'status-chip danger';
       overlayState.textContent = enemy.method ? '方案：' + methodName(enemy.method) : '等待处理方案';
       if (!enemy.method) {
-        content.innerHTML = '<div class="enemy-overview"><div class="threat-name"><span class="threat-symbol">VL</span><div><strong>真空水蛭</strong><small>已附着原子层 · 当前以 ' + GC.FIRST_CONTACT.enemyDrainPerSecond.toFixed(2) + ' 原子/秒截取</small></div></div><div class="threat-stats"><div class="threat-stat"><span>已截取</span><b>' + fmt(enemy.siphoned, 2) + '</b></div><div class="threat-stat"><span>损失上限</span><b>' + fmt(Slice.getEnemyLossCap(), 1) + '</b></div><div class="threat-stat"><span>可用方案</span><b>3 / 4</b></div></div></div>' + buildEnemyMethodChooser();
-        bindEnemyMethodChooser();
+        if (setContactContent('active-chooser', '<div class="enemy-overview"><div class="threat-name"><span class="threat-symbol">VL</span><div><strong>真空水蛭</strong><small>已附着原子层 · 当前以 ' + GC.FIRST_CONTACT.enemyDrainPerSecond.toFixed(2) + ' 原子/秒截取</small></div></div><div class="threat-stats"><div class="threat-stat"><span>已截取</span><b id="contact-siphoned"></b></div><div class="threat-stat"><span>损失上限</span><b id="contact-loss-cap"></b></div><div class="threat-stat"><span>可用方案</span><b>3 / 4</b></div></div></div>' + buildEnemyMethodChooser())) bindEnemyMethodChooser();
+        el('contact-siphoned').textContent = fmt(enemy.siphoned, 2);
+        el('contact-loss-cap').textContent = fmt(Slice.getEnemyLossCap(), 1);
         return;
       }
       var action = buildEnemyAction(enemy, s);
-      content.innerHTML = '<div class="threat-grid"><div><div class="threat-name"><span class="threat-symbol">VL</span><div><strong>真空水蛭</strong><small>已附着 / 原子层</small></div></div><div class="threat-stats"><div class="threat-stat"><span>已截取</span><b>' + fmt(enemy.siphoned, 2) + '</b></div><div class="threat-stat"><span>损失上限</span><b>' + fmt(Slice.getEnemyLossCap(), 1) + '</b></div><div class="threat-stat"><span>处理方案</span><b>' + (enemy.method ? methodName(enemy.method) : '未选择') + '</b></div></div></div>' + action + '</div>';
-      bindEnemyAction(enemy);
+      var actionKey = ['active', enemy.method, enemy.isolationActive, s.reserveTier, s.focusTier, enemy.overloadPulses].join(':');
+      if (setContactContent(actionKey, '<div class="threat-grid"><div><div class="threat-name"><span class="threat-symbol">VL</span><div><strong>真空水蛭</strong><small>已附着 / 原子层</small></div></div><div class="threat-stats"><div class="threat-stat"><span>已截取</span><b id="contact-siphoned"></b></div><div class="threat-stat"><span>损失上限</span><b id="contact-loss-cap"></b></div><div class="threat-stat"><span>处理方案</span><b>' + methodName(enemy.method) + '</b></div></div></div>' + action + '</div>')) bindEnemyAction(enemy);
+      el('contact-siphoned').textContent = fmt(enemy.siphoned, 2);
+      el('contact-loss-cap').textContent = fmt(Slice.getEnemyLossCap(), 1);
+      if (el('enemy-progress-label')) el('enemy-progress-label').textContent = Math.round(enemy.progress) + '%';
+      if (el('enemy-progress-fill')) el('enemy-progress-fill').style.width = enemy.progress + '%';
+      if (el('enemy-observe-budget')) el('enemy-observe-budget').textContent = fmt(Math.max(0, enemy.siphoned - (enemy.methodStartSiphoned || 0)), 2) + ' / ' + Slice.getObserveGoal() + ' 原子';
+      if (enemy.method === 'overload' && el('enemy-action-btn')) el('enemy-action-btn').disabled = GS.getTier(1).count < Slice.getOverloadCost();
       return;
     }
 
     status.textContent = s.flags.demoComplete ? '已归档' : '余像稳定';
     status.className = 'status-chip safe';
     overlayState.textContent = '核心余像 / 稳定';
-    content.innerHTML = '<div class="threat-grid"><div><div class="threat-name"><span class="threat-symbol">R</span><div><strong>核心余像</strong><small>处理结果：' + methodName(enemy.resolution) + '</small></div></div><div class="threat-stats"><div class="threat-stat"><span>累计截取</span><b>' + fmt(enemy.siphoned, 2) + '</b></div><div class="threat-stat"><span>核心状态</span><b>稳定</b></div><div class="threat-stat"><span>记录</span><b>' + routeNameForMethod(enemy.resolution) + '</b></div></div></div><div class="empty-state small"><p>' + (s.flags.demoComplete ? '余像处置完成，路线信号已更新。' : '请在决策队列中选择余像用途。') + '</p><small>敌人带走的资源已经转化成可追踪结构。</small></div></div>';
+    setContactContent('resolved:' + s.flags.demoComplete, '<div class="threat-grid"><div><div class="threat-name"><span class="threat-symbol">R</span><div><strong>核心余像</strong><small>处理结果：' + methodName(enemy.resolution) + '</small></div></div><div class="threat-stats"><div class="threat-stat"><span>累计截取</span><b>' + fmt(enemy.siphoned, 2) + '</b></div><div class="threat-stat"><span>核心状态</span><b>稳定</b></div><div class="threat-stat"><span>记录</span><b>' + routeNameForMethod(enemy.resolution) + '</b></div></div></div><div class="empty-state small"><p>' + (s.flags.demoComplete ? '余像处置完成，路线信号已更新。' : '请在决策队列中选择余像用途。') + '</p><small>敌人带走的资源已经转化成可追踪结构。</small></div></div>');
   }
 
   function buildEnemyMethodChooser() {
@@ -557,14 +635,14 @@
     var progress = Math.round(enemy.progress);
     if (enemy.method === 'overload') {
       var overloadCost = Slice.getOverloadCost();
-      return '<div class="progress-block"><span><b>核心过载</b><em>' + progress + '%</em></span><div class="bar"><i style="width:' + progress + '%"></i></div><ul class="condition-list"><li class="' + (GS.getTier(1).count >= overloadCost ? 'ok' : '') + '">每次脉冲消耗 ' + overloadCost + ' 核子</li><li>已注入 ' + enemy.overloadPulses + ' / ' + GC.FIRST_CONTACT.overloadPulses + ' 次</li></ul><button id="enemy-action-btn" class="btn btn-primary" ' + (GS.getTier(1).count < overloadCost ? 'disabled' : '') + '>注入过载脉冲</button></div>';
+      return '<div class="progress-block"><span><b>核心过载</b><em id="enemy-progress-label">' + progress + '%</em></span><div class="bar"><i id="enemy-progress-fill" style="width:' + progress + '%"></i></div><ul class="condition-list"><li class="' + (GS.getTier(1).count >= overloadCost ? 'ok' : '') + '">每次脉冲消耗 ' + overloadCost + ' 核子</li><li>已注入 ' + enemy.overloadPulses + ' / ' + GC.FIRST_CONTACT.overloadPulses + ' 次</li></ul><button id="enemy-action-btn" class="btn btn-primary" ' + (GS.getTier(1).count < overloadCost ? 'disabled' : '') + '>注入过载脉冲</button></div>';
     }
     if (enemy.method === 'cutoff') {
       var reserveOk = s.reserveTier === 1;
       var focusOk = s.focusTier !== 2;
-      return '<div class="progress-block"><span><b>断供稳定</b><em>' + progress + '%</em></span><div class="bar"><i style="width:' + progress + '%"></i></div><ul class="condition-list"><li class="' + (reserveOk ? 'ok' : '') + '">' + (reserveOk ? '已完成' : '需要') + '：保护核子层</li><li class="' + (focusOk ? 'ok' : '') + '">' + (focusOk ? '已完成' : '需要') + '：焦点离开原子层</li><li class="' + (enemy.isolationActive ? 'ok' : '') + '">' + (enemy.isolationActive ? '隔离正在运行' : '隔离尚未开启') + '</li></ul><button id="enemy-action-btn" class="btn btn-primary">' + (enemy.isolationActive ? '解除原子隔离' : '开启原子隔离') + '</button></div>';
+      return '<div class="progress-block"><span><b>断供稳定</b><em id="enemy-progress-label">' + progress + '%</em></span><div class="bar"><i id="enemy-progress-fill" style="width:' + progress + '%"></i></div><ul class="condition-list"><li class="' + (reserveOk ? 'ok' : '') + '">' + (reserveOk ? '已完成' : '需要') + '：保护核子层</li><li class="' + (focusOk ? 'ok' : '') + '">' + (focusOk ? '已完成' : '需要') + '：焦点离开原子层</li><li class="' + (enemy.isolationActive ? 'ok' : '') + '">' + (enemy.isolationActive ? '隔离正在运行' : '隔离尚未开启') + '</li></ul><button id="enemy-action-btn" class="btn btn-primary">' + (enemy.isolationActive ? '解除原子隔离' : '开启原子隔离') + '</button></div>';
     }
-    return '<div class="progress-block"><span><b>完整样本</b><em>' + progress + '%</em></span><div class="bar"><i style="width:' + progress + '%"></i></div><ul class="condition-list"><li class="' + (s.focusTier === 2 ? 'ok' : '') + '">' + (s.focusTier === 2 ? '原子层处于焦点中' : '请把焦点移动到原子层') + '</li><li>样本预算 ' + fmt(Math.max(0, enemy.siphoned - (enemy.methodStartSiphoned || 0)), 2) + ' / ' + Slice.getObserveGoal() + ' 原子</li><li>达到预算后自动隔离，不会继续扩大损失</li></ul></div>';
+    return '<div class="progress-block"><span><b>完整样本</b><em id="enemy-progress-label">' + progress + '%</em></span><div class="bar"><i id="enemy-progress-fill" style="width:' + progress + '%"></i></div><ul class="condition-list"><li class="' + (s.focusTier === 2 ? 'ok' : '') + '">' + (s.focusTier === 2 ? '原子层处于焦点中' : '请把焦点移动到原子层') + '</li><li>样本预算 <span id="enemy-observe-budget">' + fmt(Math.max(0, enemy.siphoned - (enemy.methodStartSiphoned || 0)), 2) + ' / ' + Slice.getObserveGoal() + ' 原子</span></li><li>达到预算后自动隔离，不会继续扩大损失</li></ul></div>';
   }
 
   function bindEnemyAction(enemy) {
@@ -628,7 +706,7 @@
 
   function updateFlowMonitor() {
     var rows = [];
-    for (var i = 0; i <= 2; i++) {
+    for (var i = 0; i < GC.TIERS.length; i++) {
       var tier = GS.getTier(i);
       if (!tier || !tier.researched) continue;
       var rates = getRates(i);
@@ -679,7 +757,7 @@
       if (GS.getTier(1).producers < 1) return { selector: '#btn-prod-1' };
       return { selector: '#btn-focus-1' };
     }
-    if (step === 4 || step === 9) return { selector: '#stability-checklist' };
+    if (step === 4 || step === 9 || step === 20) return { selector: '#stability-checklist', reveal: '#flow-monitor' };
     if (step === 5) return { selector: '#research-details-toggle' };
     if (step === 6) return { selector: GS.canResearch(2) ? '#btn-research-global' : '.research-bar' };
     if (step === 7) return { selector: GS.getTier(2).totalEver < 18 ? '#btn-synth-2' : '#btn-prod-2' };
@@ -687,6 +765,13 @@
     if (step === 10 || step === 11 || step === 14) return { selector: '#event-panel' };
     if (step === 12 || step === 13) return { selector: '#contact-panel' };
     if (step === 15) return { selector: '#event-panel' };
+    if (step === 16) return { selector: GS.getTier(3).researched ? (GS.getTier(3).totalEver < 8 ? '#btn-synth-3' : '#btn-prod-3') : (GS.canResearch(3) ? '#btn-research-global' : '.research-bar') };
+    if (step === 17) return { selector: GS.getTier(4).researched ? (GS.getTier(4).totalEver < 5 ? '#btn-synth-4' : '#btn-prod-4') : (GS.canResearch(4) ? '#btn-research-global' : '.research-bar') };
+    if (step === 18) return { selector: '#event-panel' };
+    if (step === 19) return { selector: GS.getTier(5).researched ? (GS.getTier(5).totalEver < 3 ? '#btn-synth-5' : '#btn-prod-5') : (GS.canResearch(5) ? '#btn-research-global' : '.research-bar') };
+    if (step === 21) return { selector: GS.canResearch(6) ? '#btn-research-global' : '.research-bar' };
+    if (step === 22) return { selector: '#btn-synth-6' };
+    if (step === 23) return { selector: '#event-panel' };
     return { selector: '#route-panel' };
   }
 
@@ -715,12 +800,31 @@
     el('guide-progress-fill').style.width = progress.percent + '%';
     el('guide-progress-label').textContent = progress.label;
     var returnButton = el('guide-return');
-    var needsWorkspace = (s.missionStep === 4 || s.missionStep === 9) && progress.percent < 100;
-    var needsResearchWait = s.missionStep === 6 && !GS.canResearch(2);
+    var workspaceSteps = [4, 9, 11, 16, 17, 19, 20, 21, 22];
+    var needsWorkspace = workspaceSteps.indexOf(s.missionStep) !== -1 && progress.percent < 100;
+    var researchTierByStep = { 6: 2, 16: 3, 17: 4, 19: 5, 21: 6 };
+    var waitingTier = researchTierByStep[s.missionStep];
+    var needsResearchWait = waitingTier !== undefined && !GS.getTier(waitingTier).researched && !GS.canResearch(waitingTier);
     returnButton.hidden = !(needsWorkspace || needsResearchWait);
-    returnButton.textContent = needsResearchWait ? '明白，返回主界面积累' : '返回主界面调整资源';
+    returnButton.textContent = needsResearchWait ? '明白，返回主界面积累' : (s.missionStep === 11 ? '返回主界面完成接触准备' : '返回主界面调整资源');
 
     var descriptor = getGuideTarget(s);
+    if (descriptor.reveal) {
+      var reveal = document.querySelector(descriptor.reveal);
+      if (reveal && reveal.classList.contains('collapsed')) {
+        reveal.classList.remove('collapsed');
+        el('flow-monitor-toggle').textContent = '—';
+        el('flow-monitor-toggle').setAttribute('aria-expanded', 'true');
+        el('flow-monitor-toggle').setAttribute('aria-label', '最小化物质流量监视器');
+        flowAutoExpanded = true;
+        layer.style.visibility = 'hidden';
+        setTimeout(function () {
+          layer.style.visibility = '';
+          positionGuide();
+        }, 210);
+        return;
+      }
+    }
     var target = document.querySelector(descriptor.selector);
     if (!target) return;
 
@@ -728,8 +832,13 @@
     lastGuideStep = s.missionStep;
     var rect = target.getBoundingClientRect();
     if (stepChanged && (rect.bottom < 8 || rect.top > window.innerHeight - 8)) {
+      layer.style.visibility = 'hidden';
       target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      setTimeout(positionGuide, 360);
+      setTimeout(function () {
+        layer.style.visibility = '';
+        positionGuide();
+      }, 360);
+      return;
     }
     positionGuide();
   }
@@ -1007,7 +1116,7 @@
   }
 
   function bindButtons() {
-    for (var i = 0; i <= 5; i++) {
+    for (var i = 0; i <= 6; i++) {
       (function (tierId) {
         var producer = el('btn-prod-' + tierId);
         if (producer) producer.addEventListener('click', function () {
@@ -1098,10 +1207,17 @@
     });
     el('guide-return').addEventListener('click', function () {
       var step = GS.getSlice().missionStep;
-      Slice.acknowledgeGuideGoal(step === 6 ? 'research' : 'stability');
+      var researchSteps = [6, 16, 17, 19, 21];
+      if (researchSteps.indexOf(step) !== -1) Slice.acknowledgeGuideGoal('research');
+      if ([4, 9, 20].indexOf(step) !== -1) Slice.acknowledgeGuideGoal('stability');
       animateGuideToDock();
       guideCollapsed = true;
-      showToast(step === 6 ? '继续积累研究点；达到阈值时会主动提示' : '操作区已恢复；稳态清单会持续显示实时判定', false);
+      var toastCopy = researchSteps.indexOf(step) !== -1
+        ? '继续积累研究点；达到阈值时会主动提示'
+        : step === 11
+          ? '主界面已恢复；接触准备会持续显示条件与计时'
+          : '操作区已恢复；任务进度会持续显示实时判定';
+      showToast(toastCopy, false);
       setTimeout(updateGuide, 90);
       updateMission();
     });

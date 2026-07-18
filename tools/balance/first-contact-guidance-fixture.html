@@ -25,9 +25,10 @@
 
       slice.elapsedSeconds = step === 6 ? 260 : 495;
       slice.missionStep = step;
+      slice.missionStartedAt = slice.elapsedSeconds;
       slice.focusTier = step === 9 ? 2 : 1;
       slice.stats = { canvasClicks: 5, boughtQuarkProducer: true, nucleonSyntheses: 9, atomSyntheses: 18, focusChanges: 2 };
-      slice.stability.early = window.GC.FIRST_CONTACT.earlyStabilitySeconds;
+      slice.stability.early = step === 4 ? 0 : window.GC.FIRST_CONTACT.earlyStabilitySeconds;
       slice.flags.researchExplained = true;
 
       if (step === 9) {
