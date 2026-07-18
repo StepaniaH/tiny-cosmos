@@ -141,6 +141,91 @@
       summary: '结束当前宇宙并把少量跨轮记录留给观测核的过程。',
       detail: '普通大坍缩提供恒定点，但不宣称当前宇宙回答了什么。完成文明终局后的定向大坍缩会额外留下宇宙真理与继承物。第一次接触只是形成这些答案的第一份前置记录。',
     },
+    {
+      id: 'balanced-orbit', discoveryId: 'balanced-orbit', category: '发现', unlockStep: 4,
+      title: '闭合流线', subtitle: 'CLOSED FLOW LINE', summary: '两层盈余短暂形成的闭合几何记录。',
+      detail: '它不代表资源真的沿着屏幕上的线移动，而表示两个尺度的净变化第一次互相补足。观测核由此学会：稳态不是静止，而是能够返回自身的变化。',
+    },
+    {
+      id: 'reserve-shadow', discoveryId: 'reserve-shadow', category: '发现', unlockStep: 9,
+      title: '保护线的背影', subtitle: 'RESERVE SHADOW', summary: '背面噪声对正面库存底线产生的同步停顿。',
+      detail: '背面宇宙看不到界面规则，却能感到资源关系在某个位置拒绝继续变化。后来文明把这种间接可见性视为双方建立协议的第一种可能。',
+    },
+    {
+      id: 'precontact-parallax', discoveryId: 'precontact-parallax', category: '发现', unlockStep: 11,
+      title: '接触视差', subtitle: 'CONTACT PARALLAX', summary: '同一结构在正反两组相位记录中的微小位置差。',
+      detail: '视差证明正式附着并不是接触的真正起点。只要双方开始测量同一份资源，彼此就已经进入对方的条件之中。',
+    },
+    {
+      id: 'molecule-tier', category: '物质', unlockStep: 16,
+      title: '分子层', subtitle: 'MOLECULAR SCALE', summary: '把相邻原子组织成可重复关系的第四层结构。',
+      detail: '分子的关键不是体积，而是连接拥有了可保存的次序。相同原子可以形成不同结构，因此“拥有多少”之外，宇宙第一次需要记录“怎样连接”。',
+    },
+    {
+      id: 'molecular-rhyme', discoveryId: 'molecular-rhyme', category: '发现', unlockStep: 16,
+      title: '分子押韵', subtitle: 'MOLECULAR RHYME', summary: '两条隔离原子链独立选择同一折叠次序。',
+      detail: '它们没有交换信息，只落入同一个更容易稳定的结构。观测核把这种重复称为押韵：内容不同，成立的节奏相同。',
+    },
+    {
+      id: 'solvent-memory', discoveryId: 'solvent-memory', category: '发现', unlockStep: 16,
+      title: '溶剂记忆', subtitle: 'SOLVENT MEMORY', summary: '结构消失后仍留在环境中的形成路径。',
+      detail: '后来的分子并未继承前一组物质，却更快抵达同一构型。环境开始保存历史，意味着记忆在生命出现前就已有非常简陋的前身。',
+    },
+    {
+      id: 'cell-tier', category: '物质', unlockStep: 17,
+      title: '细胞层', subtitle: 'CELLULAR SCALE', summary: '能维护内部循环与外部环境差异的第五层结构。',
+      detail: '边界让资源第一次对某个结构具有“内部用途”。细胞并不自动拥有意志，但它会修补自身、选择通道并把环境变化转成内部状态。',
+    },
+    {
+      id: 'inside-outside', discoveryId: 'inside-outside', category: '发现', unlockStep: 17,
+      title: '边界的第一人称', subtitle: 'BOUNDARY FIRST PERSON', summary: '完全对称的膜两侧被结构持续区别对待。',
+      detail: '观测核看见几何对称，细胞过程却持续维护其中一侧。这里没有语言意义上的“我”，但已经出现一种只从内部成立的优先级。',
+    },
+    {
+      id: 'borrowed-metabolism', discoveryId: 'borrowed-metabolism', category: '发现', unlockStep: 17,
+      title: '借来的代谢', subtitle: 'BORROWED METABOLISM', summary: '利用核心余像相位差维持边界的细胞循环。',
+      detail: '敌对结构留下的规律没有固定道德属性。被资源链重新组织后，同一种相位差可以截流，也可以帮助细胞维持内外差异。',
+    },
+    {
+      id: 'complexity-ethics', category: '记录', unlockStep: 18,
+      title: '复杂性伦理', subtitle: 'COMPLEXITY ETHIC', summary: '观测核对自持结构采用的中层照料原则。',
+      detail: '它位于第一法则与文明提案之间：第一法则强化宇宙如何运行，复杂性伦理记录观测核如何对待已经能维护自身的结构。后者不能覆盖前者，只能与其共同成为文明的历史。',
+    },
+    {
+      id: 'life-tier', category: '物质', unlockStep: 19,
+      title: '生命层', subtitle: 'LIVING SCALE', summary: '能够跨代复制差异并形成谱系的第六层结构。',
+      detail: '生命不等于单个细胞数量。它表示差异能够被保留、筛选并在后续结构中重新出现；本轮资源压力和决策会因此成为谱系环境的一部分。',
+    },
+    {
+      id: 'lineage-dream', discoveryId: 'lineage-dream', category: '发现', unlockStep: 19,
+      title: '谱系之梦', subtitle: 'LINEAGE DREAM', summary: '在环境平静时复现的祖先应激模式。',
+      detail: '它不是有意识的梦，而是一种被谱系保留下来的准备方式。生命开始对已经不在场的过去作出反应，时间因此进入了资源链。',
+    },
+    {
+      id: 'two-pulse-clock', discoveryId: 'two-pulse-clock', category: '发现', unlockStep: 20,
+      title: '两只指针的钟', subtitle: 'TWO-PULSE CLOCK', summary: '由两组互不整除周期构成的文明前信号。',
+      detail: '单独观察任一周期都像自然噪声；只有把两组节拍叠加，才会反复出现相同的相位标记。背面结构似乎在等待正面生命学会同时听见两种时间。',
+    },
+    {
+      id: 'answer-before-question', discoveryId: 'answer-before-question', category: '发现', unlockStep: 21,
+      title: '早于问题的答案', subtitle: 'PRECEDING ANSWER', summary: '在正面生命提出询问之前抵达的完整回应结构。',
+      detail: '观测核拒绝替文明翻译尚未拥有的词。它只保存语序和相位，等待未来行动者判断这是预言、误会，还是背面也经历过同一个问题。',
+    },
+    {
+      id: 'shared-horizon-name', discoveryId: 'shared-horizon-name', category: '发现', unlockStep: 21,
+      title: '视界的另一个名字', subtitle: 'ANOTHER NAME FOR HORIZON', summary: '背面信号对双方边界的最早语义候选。',
+      detail: '“被共同遗漏之处”暗示对方并不认为视界是一堵属于正面或背面的墙。文明后来会据此争论：边界究竟分开了双方，还是由双方共同制造。',
+    },
+    {
+      id: 'civilization-tier', category: '文明', unlockStep: 23,
+      title: '文明层', subtitle: 'CIVILIZATION SCALE', summary: '能够回读本轮历史、提出集体工程并回应观测核的第七层结构。',
+      detail: '文明不是观测核的升级，也不是玩家的替身。它拥有内部派别与自己的解释；观测核可以影响资源、焦点与关键确认，却不能替文明完成所有局部生活。',
+    },
+    {
+      id: 'civilization-proposals', category: '文明', unlockStep: 23,
+      title: '文明提案', subtitle: 'CIVILIZATION PROPOSALS', summary: '由整轮决策履历生成的主工程方向与备选方向。',
+      detail: '局部法则、接触记录和复杂性伦理先形成路线信号；文明再把最高信号解释为主提案，把第二信号解释为备选提案。它们不是阵营锁定，后续校准仍能改变最终工程。',
+    },
   ];
 
   var CHAPTERS = [
@@ -163,6 +248,18 @@
     {
       id: 'first-contact', unlockStep: 15, title: '档案 03 / 第一份接触记录',
       text: '双方第一次确认：损失会在另一侧获得形状，处理损失的方法也会被另一侧记住。这不是战争的胜负，只是关系的开端。',
+    },
+    {
+      id: 'complexity', unlockStep: 17, title: '档案 04 / 里面与外面',
+      text: '分子保存连接，细胞保存边界。宇宙开始拥有只从内部成立的状态；观测核也第一次需要决定，自己将怎样照料能够维护自身的结构。',
+    },
+    {
+      id: 'lineages', unlockStep: 20, title: '档案 05 / 两种时间',
+      text: '生命把过去写入谱系，背面信号把未来写成两组节拍。正反两侧还没有共同语言，却已经开始等待同一个能够互相询问的时刻。',
+    },
+    {
+      id: 'civilization', unlockStep: 23, title: '档案 06 / 那个总盯着仓库看的天体',
+      text: '文明诞生后回读了观测核留下的每条选择。它们没有把那些记录当作命令，而是据此提出两种未来，并第一次给长久悬在资源链上方的观察者起了一个并不十分庄严的名字。',
     },
   ];
 

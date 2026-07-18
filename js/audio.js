@@ -33,12 +33,13 @@
     afterimage: 0.25,
   };
   var players = {};
-  var muted = false;
+  var muted = true;
 
   try {
-    muted = window.localStorage.getItem(STORAGE_KEY) === '1';
+    var storedPreference = window.localStorage.getItem(STORAGE_KEY);
+    muted = storedPreference === null ? true : storedPreference !== '0';
   } catch (error) {
-    muted = false;
+    muted = true;
   }
 
   function category(id) {

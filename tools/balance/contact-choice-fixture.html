@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>Contact Choice Fixture</title></head>
+<body>
+  <p>Preparing a contact choice fixture…</p>
+  <script src="../../js/constants.js"></script>
+  <script src="../../js/state.js"></script>
+  <script>
+    (function () {
+      var GS = window.GameState;
+      var state = GS.init({ firstContact: true });
+      var slice = state.slice;
+      state.tiers[0].count = 62; state.tiers[0].totalEver = 140; state.tiers[0].producers = 4;
+      state.tiers[1].count = 31; state.tiers[1].totalEver = 70; state.tiers[1].producers = 3;
+      state.tiers[2].count = 22; state.tiers[2].totalEver = 36; state.tiers[2].producers = 3; state.tiers[2].researched = true;
+      state.researchPoints = 20; state.totalQuarksEver = 140;
+      slice.elapsedSeconds = 632; slice.missionStep = 13; slice.missionStartedAt = 632;
+      slice.focusTier = 1; slice.reserveTier = 1; slice.law = 'observer';
+      slice.preparation = { id: 'buffer', progress: 30, completed: true, bonusApplied: false };
+      slice.enemy.status = 'active'; slice.enemy.siphoned = 0.6;
+      slice.flags.atomResearched = true; slice.flags.researchExplained = true; slice.flags.reserveConfigured = true;
+      slice.tendencies.inquiry = 2; slice.tendencies.sustain = 1;
+      slice.decisions = [
+        { time: 540, kind: 'law', level: '局部法则', id: 'observer', route: 'inquiry', label: '观测者效应', score: 2 },
+        { time: 590, kind: 'preparation', level: '接触准备', id: 'buffer', route: 'sustain', label: '库存缓冲', score: 1 }
+      ];
+      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      location.replace('../../index.html?fixture=contact-choice');
+    })();
+  </script>
+</body>
+</html>
