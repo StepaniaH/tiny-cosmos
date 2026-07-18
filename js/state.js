@@ -36,7 +36,7 @@
   function createSliceState(enabled) {
     return {
       enabled: !!enabled,
-      version: 5,
+      version: 6,
       elapsedSeconds: 0,
       missionStep: 0,
       missionStartedAt: 0,
@@ -91,6 +91,14 @@
         lifeSignalProgress: 0,
         proposalRead: false,
       },
+      reverse: {
+        pressure: 0,
+        objects: {
+          lattice: { status: 'hidden', choice: null, mirroredRoute: null },
+          choir: { status: 'hidden', choice: null, mirroredRoute: null },
+          seed: { status: 'hidden', choice: null, mirroredRoute: null },
+        },
+      },
       enemy: {
         status: 'hidden',
         warningRemaining: 0,
@@ -107,8 +115,10 @@
         researchWaitSeconds: 0,
         missionStep: 0,
         missionWaitSeconds: 0,
+        seed: Math.floor(Math.random() * 2147483646) + 1,
         triggered: [],
         acknowledged: [],
+        resolved: {},
       },
       archive: {
         read: [],
@@ -228,9 +238,13 @@
 
   function getSynthCost(tierId) {
     var t = state.tiers[tierId];
-    if (t.baseCost === 0) return 0;
+    var baseCost = t.baseCost;
+    if (state && state.slice && state.slice.enabled && GC.FIRST_CONTACT.synthBaseCosts[tierId] !== undefined) {
+      baseCost = GC.FIRST_CONTACT.synthBaseCosts[tierId];
+    }
+    if (baseCost === 0) return 0;
 
-    var rawCost = t.baseCost * Math.pow(GC.COST_GROWTH, t.synthCount);
+    var rawCost = baseCost * Math.pow(GC.COST_GROWTH, t.synthCount);
 
     // Apply strong force constant
     var sf = state.constants.strongForce;
@@ -410,6 +424,7 @@
       var sliceDefaults = createSliceState(parsed.slice && parsed.slice.enabled);
       if (!parsed.slice) parsed.slice = sliceDefaults;
       else {
+        var savedSliceVersion = parsed.slice.version || 0;
         if (parsed.slice.missionStartedAt === undefined) parsed.slice.missionStartedAt = parsed.slice.elapsedSeconds || 0;
         parsed.slice.guide = Object.assign({}, sliceDefaults.guide, parsed.slice.guide || {});
         parsed.slice.stability = Object.assign({}, sliceDefaults.stability, parsed.slice.stability || {});
@@ -418,8 +433,20 @@
         parsed.slice.stats = Object.assign({}, sliceDefaults.stats, parsed.slice.stats || {});
         parsed.slice.flags = Object.assign({}, sliceDefaults.flags, parsed.slice.flags || {});
         parsed.slice.civilization = Object.assign({}, sliceDefaults.civilization, parsed.slice.civilization || {});
+        parsed.slice.reverse = Object.assign({}, sliceDefaults.reverse, parsed.slice.reverse || {});
+        var savedReverseObjects = parsed.slice.reverse.objects || {};
+        parsed.slice.reverse.objects = {};
+        Object.keys(sliceDefaults.reverse.objects).forEach(function (id) {
+          parsed.slice.reverse.objects[id] = Object.assign({}, sliceDefaults.reverse.objects[id], savedReverseObjects[id] || {});
+        });
         parsed.slice.enemy = Object.assign({}, sliceDefaults.enemy, parsed.slice.enemy || {});
         parsed.slice.discoveries = Object.assign({}, sliceDefaults.discoveries, parsed.slice.discoveries || {});
+        if (!parsed.slice.discoveries.resolved || typeof parsed.slice.discoveries.resolved !== 'object') parsed.slice.discoveries.resolved = {};
+        if (savedSliceVersion < 6) {
+          if (parsed.slice.missionStep > 16) parsed.slice.reverse.objects.lattice = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
+          if (parsed.slice.missionStep > 17) parsed.slice.reverse.objects.choir = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
+          if (parsed.slice.missionStep > 19) parsed.slice.reverse.objects.seed = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
+        }
         parsed.slice.archive = Object.assign({}, sliceDefaults.archive, parsed.slice.archive || {});
         if (!Array.isArray(parsed.slice.discoveries.triggered)) parsed.slice.discoveries.triggered = [];
         if (!Array.isArray(parsed.slice.discoveries.acknowledged)) parsed.slice.discoveries.acknowledged = [];

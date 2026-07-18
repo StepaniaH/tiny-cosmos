@@ -130,12 +130,14 @@
     var maxRes = GS.getMaxResearchedTier();
 
     drawTacticalGrid(cx, cy, maxR);
+    if (maxRes >= 4) drawCellularInterior(cx, cy, minR + 4 * gap, s);
 
     // Draw rings outer→inner
     for (var i = GC.TIERS.length - 1; i >= 0; i--) {
       drawRing(i, cx, cy, minR + i * gap, maxRes, dt, s);
     }
 
+    drawReverseSignatures(cx, cy, minR, gap, s);
     drawAnomalyContact(cx, cy, minR + 2 * gap, s, dt);
 
     // Draw center
@@ -312,6 +314,97 @@
     ctx.textAlign = 'left';
     ctx.fillText('R+' + Math.round(maxR), cx + maxR + 7, cy - 5);
     ctx.fillText('φ 0.000', cx + 7, cy - maxR - 8);
+    ctx.restore();
+  }
+
+  function drawCellularInterior(cx, cy, r, s) {
+    var time = s.slice && s.slice.elapsedSeconds ? s.slice.elapsedSeconds : 0;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (var i = 0; i < 3; i += 1) {
+      var wobble = Math.sin(time * (0.16 + i * 0.03) + i * 2.1) * (4 + i * 2);
+      ctx.beginPath();
+      ctx.ellipse(cx + Math.cos(time * 0.08 + i) * 5, cy + Math.sin(time * 0.07 + i) * 4, r * (0.34 + i * 0.12) + wobble, r * (0.25 + i * 0.09) - wobble * 0.35, time * 0.025 + i * 0.4, 0, Math.PI * 2);
+      ctx.strokeStyle = i === 2 ? 'rgba(77,171,247,0.16)' : 'rgba(105,219,124,0.11)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2 + i * 2, 8 + i * 3]);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    for (var j = 0; j < 7; j += 1) {
+      var angle = time * 0.035 + j / 7 * Math.PI * 2;
+      var inner = r * 0.38;
+      var outer = r * 0.76;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner * 0.72);
+      ctx.quadraticCurveTo(cx + Math.cos(angle + 0.35) * r * 0.62, cy + Math.sin(angle - 0.22) * r * 0.54, cx + Math.cos(angle + 0.12) * outer, cy + Math.sin(angle + 0.12) * outer * 0.82);
+      ctx.strokeStyle = 'rgba(77,171,247,0.08)';
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawReverseSignatures(cx, cy, minR, gap, s) {
+    if (!s.slice || !s.slice.reverse) return;
+    var objects = s.slice.reverse.objects;
+    var time = s.slice.elapsedSeconds || 0;
+    var pressure = Slice && Slice.getReversePressure ? Slice.getReversePressure() : s.slice.reverse.pressure;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+
+    if (objects.lattice.status !== 'hidden') {
+      var lr = minR + 3 * gap;
+      var lx = cx - lr * 0.68;
+      var ly = cy - lr * 0.48;
+      ctx.beginPath();
+      for (var i = 0; i < 6; i += 1) {
+        var la = time * 0.03 + i / 6 * Math.PI * 2;
+        var rr = i % 2 ? 7 : 13;
+        var px = lx + Math.cos(la) * rr;
+        var py = ly + Math.sin(la) * rr;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = objects.lattice.status === 'pending' ? '#ff6577' : 'rgba(197,148,255,0.62)';
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.shadowBlur = objects.lattice.status === 'pending' ? 14 : 6;
+      ctx.stroke();
+    }
+
+    if (objects.choir.status !== 'hidden') {
+      var cr = minR + 4 * gap;
+      ctx.shadowBlur = 0;
+      for (var j = 0; j < 5; j += 1) {
+        var start = time * (0.035 + j * 0.004) + j * 1.18;
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr + 9 + j * 2, start, start + 0.38);
+        ctx.strokeStyle = objects.choir.status === 'pending' ? 'rgba(255,101,119,0.85)' : 'rgba(77,171,247,0.48)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    }
+
+    if (objects.seed.status !== 'hidden') {
+      var sr = minR + 5 * gap;
+      var sa = time * 0.045;
+      var sx = cx + Math.cos(sa) * sr;
+      var sy = cy + Math.sin(sa) * sr;
+      ctx.beginPath();
+      ctx.ellipse(sx - 4, sy, 5, 9, sa, 0, Math.PI * 2);
+      ctx.ellipse(sx + 4, sy, 5, 9, -sa, 0, Math.PI * 2);
+      ctx.strokeStyle = objects.seed.status === 'pending' ? '#ff6577' : 'rgba(204,93,232,0.62)';
+      ctx.stroke();
+    }
+
+    if (pressure > 25) {
+      ctx.globalAlpha = Math.min(0.38, pressure / 220);
+      ctx.strokeStyle = '#ff6577';
+      ctx.setLineDash([1, 12]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, minR + 5.55 * gap + Math.sin(time * 0.2) * 3, time * 0.08, time * 0.08 + Math.PI * 1.45);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
     ctx.restore();
   }
 

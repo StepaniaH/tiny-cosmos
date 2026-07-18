@@ -9,12 +9,21 @@
 
   var intervalId = null;
   var onTickCallback = null; // called after every tick for UI refresh
+  var timeScale = 1;
 
   // ── Tick ────────────────────────────────────────────────────────
 
   function tick() {
     var st = GS.getState();
     if (!st) return;
+
+    for (var simulationStep = 0; simulationStep < timeScale; simulationStep += 1) simulateStep(st);
+
+    // Notify UI once per real tick, even when the test clock is accelerated.
+    if (onTickCallback) onTickCallback();
+  }
+
+  function simulateStep(st) {
 
     st.tickCount += 1;
 
@@ -32,8 +41,6 @@
       window.GameSlice.tick(1 / GC.TICKS_PER_SEC);
     }
 
-    // 5. Notify UI
-    if (onTickCallback) onTickCallback();
   }
 
   // ── Production ──────────────────────────────────────────────────
@@ -76,7 +83,10 @@
       var higherTier = st.tiers[i + 1];
       if (!higherTier.researched || higherTier.count === 0) continue;
 
-      var demand = higherTier.count * demandMult;
+      var reverseDemandMult = window.GameSlice && window.GameSlice.isEnabled() && window.GameSlice.getDemandMultiplier
+        ? window.GameSlice.getDemandMultiplier(i)
+        : 1;
+      var demand = higherTier.count * demandMult * reverseDemandMult;
       // Don't go negative — floor at 0
       var lowerTier = st.tiers[i];
       var reserveFloor = 0;
@@ -180,6 +190,15 @@
     onTickCallback = fn;
   }
 
+  function setTimeScale(value) {
+    timeScale = value === 100 ? 100 : 1;
+    return timeScale;
+  }
+
+  function getTimeScale() {
+    return timeScale;
+  }
+
   // ── Export ──────────────────────────────────────────────────────
   window.GameEngine = {
     start: start,
@@ -187,6 +206,8 @@
     isRunning: isRunning,
     tick: tick,
     onTick: onTick,
+    setTimeScale: setTimeScale,
+    getTimeScale: getTimeScale,
 
     synthesize: synthesize,
     buyProducer: buyProducer,

@@ -7,10 +7,10 @@
   var GS = window.GameState;
 
   var ROUTES = {
-    advance: { name: '推进', ending: '越过视界', color: '#ffb84d' },
-    sustain: { name: '维持', ending: '无尽花园', color: '#61e6a7' },
-    inquiry: { name: '求证', ending: '最后观测者', color: '#56d8ff' },
-    rewrite: { name: '改写', ending: '双生大坍缩', color: '#c594ff' },
+    advance: { name: '推进', ending: '越过视界', goal: '在下一次大坍缩前完成边界航行工程', question: '边界究竟是牢笼，还是尚未打开的门？', color: '#ffb84d' },
+    sustain: { name: '维持', ending: '无尽花园', goal: '让物质与谱系循环跨越大坍缩继续生长', question: '永续是否值得放弃一次不可逆的远行？', color: '#61e6a7' },
+    inquiry: { name: '求证', ending: '最后观测者', goal: '保留一位能验证宇宙全部历史的观察者', question: '最后一束光必须被谁看见，才算存在过？', color: '#56d8ff' },
+    rewrite: { name: '改写', ending: '双生大坍缩', goal: '让正反宇宙共同改写下一轮初始条件', question: '如果敌我共享一次终结，重生还属于任何一侧吗？', color: '#c594ff' },
   };
 
   var DECISION_LEVELS = {
@@ -19,6 +19,8 @@
     enemy: '接触策略',
     core: '余像处置',
     complexity: '复杂性伦理',
+    reverse: '反宇宙回应',
+    phenomenon: '偶发现象',
   };
 
   var MISSIONS = [
@@ -162,18 +164,18 @@
     },
     {
       code: 'MOLECULE-01', title: '让结构学会组合',
-      brief: '研究分子层，累计获得 8 枚分子，并建立 1 个分子生产单元。',
-      hint: '接触余像提高了复杂结构的可描述性。研究、合成和生产可以并行准备。',
-      world: '原子能够长期存在，却仍各自孤立。分子把“相邻”变成一种可重复的关系，背面宇宙也开始复制这种连接方式。',
-      action: '积累 90 RP 研究分子；用原子合成 8 枚分子，并投入 2 枚建立第一个生产单元。',
+      brief: '处理反相晶簇，研究分子层，累计获得 12 枚分子并建立 1 个生产单元。',
+      hint: '反侧客体会读取当前主路线。沿用主路线强化终局信号，却也会提高反侧压力。',
+      world: '原子能够长期存在，却仍各自孤立。分子把“相邻”变成可重复关系；反宇宙则送来一块只在未发生的化学键上结晶的客体。',
+      action: '先在决策队列回应反相晶簇；随后积累 150 RP 研究分子，合成 12 枚分子并建立生产单元。',
       restSeconds: 7,
     },
     {
       code: 'CELL-01', title: '建立自持边界',
-      brief: '研究细胞层，累计获得 5 枚细胞，并建立 1 个细胞生产单元。',
-      hint: '细胞不是生命本身，而是能把内部循环与外部环境分开的第一道边界。',
-      world: '分子网络越过一个临界点：一部分结构开始维护自身边界。宇宙第一次出现了“里面”和“外面”。',
-      action: '积累 160 RP 研究细胞；用分子合成 5 枚细胞，并建立第一个细胞生产单元。',
+      brief: '回应静默合唱体，研究细胞层，累计获得 10 枚细胞并建立 2 个生产单元。',
+      hint: '从细胞开始，结构会维护内部、积累生态记忆并承受反侧影响；生产与消耗不再只是直线升级。',
+      world: '分子网络越过临界点：结构开始主动修补“里面”。静默合唱体同时包围外侧，试图让所有边界共享同一个节拍。',
+      action: '先决定如何回应静默合唱体；积累 360 RP 研究细胞，合成 10 枚细胞并建立 2 个生产单元。',
       restSeconds: 7,
     },
     {
@@ -186,34 +188,34 @@
     },
     {
       code: 'LIFE-01', title: '让选择成为谱系',
-      brief: '研究生命层，累计获得 3 份生命，并建立 1 个生命生产单元。',
-      hint: '生命会把环境与此前决策写进谱系；此时路线仍可改变，并未锁定。',
-      world: '自持结构开始跨代复制差异。观测核不再只记录物质发生了什么，也开始记录某些结构偏好怎样继续发生。',
-      action: '积累 280 RP 研究生命；用细胞合成 3 份生命，并建立第一个生命生产单元。',
+      brief: '回应镜像胚种，研究生命层，累计获得 6 份生命并建立 2 个生产单元。',
+      hint: '生命会把环境、路线和反侧压力写进谱系；此时路线仍可改变，但代价已经可以被后代继承。',
+      world: '自持结构开始跨代复制差异。反侧送来一枚没有祖先却拥有记忆的胚种，逼迫观测核决定何种历史可以进入谱系。',
+      action: '先回应镜像胚种；积累 900 RP 研究生命，合成 6 份生命并建立 2 个生产单元。',
       restSeconds: 7,
     },
     {
       code: 'SIGNAL-01', title: '辨认背面的第二种声音',
-      brief: '保持至少 2 份生命与非负细胞流量，连续记录 36 秒。',
+      brief: '保持至少 4 份生命与非负细胞流量，连续记录 75 秒。',
       hint: '这不是敌人倒计时。条件失效时记录缓慢回退，可随时返回主界面调度。',
       world: '生命出现后，背面噪声不再只是重复资源变化。某种结构正在按固定间隔回应，像是在确认这里是否也有观察者。',
-      action: '保留至少 2 份生命，并让细胞净流量不为负。连续记录完成后，文明研究将开放。',
+      action: '保留至少 4 份生命，并让细胞净流量不为负。连续记录完成后，文明研究将开放。',
       restSeconds: 7,
     },
     {
       code: 'CIV-01', title: '译出共同问题',
-      brief: '积累 480 RP，研究文明层。',
+      brief: '积累 1800 RP，研究文明层。',
       hint: '文明不是更大的库存，而是资源链中第一次能够理解路线记录并提出自身方案的行动者。',
       world: '正面生命与背面信号同时指向同一个问题：这个宇宙应该继续扩张、维持循环、理解观察，还是共同改写坍缩？',
-      action: '继续经营各层库存以提高研究速率。达到 480 RP 后研究文明层。',
+      action: '继续经营各层库存并权衡反侧影响。达到 1800 RP 后研究文明层。',
       restSeconds: 7,
     },
     {
       code: 'CIV-02', title: '点燃第一座文明',
-      brief: '用 8 份生命合成 1 份文明。',
+      brief: '用 12 份生命合成 1 份文明。',
       hint: '文明没有自动生产单元。它是本轮资源、研究与决策历史共同达到的第一轮大循环终点。',
       world: '观测核已经能描述文明，但描述不会替代诞生。必须由仍在运行的生命谱系支付最后一次组合成本。',
-      action: '保留或继续合成生命；达到成本后执行“生命 → 文明”。',
+      action: '保留或继续合成生命；达到 12 份生命后执行“生命 → 文明”。',
     },
     {
       code: 'CIV-REPORT', title: '第一轮大循环完成',
@@ -317,6 +319,45 @@
     },
   ];
 
+  var REVERSE_OBJECTS = [
+    {
+      id: 'lattice', triggerStep: 16, iconTier: 3, symbol: 'RL', pressure: 14,
+      title: '反相晶簇', stage: '分子阶段',
+      summary: '它只在尚未成立的化学键上结晶，并把一部分合成概率折向反宇宙。',
+      question: '你要让已有路线被它看得更清楚，还是用一次转向打乱它的预测？',
+      options: [
+        { id: 'fracture', route: 'advance', title: '震碎并催化', tag: '推进 · 高产高压', desc: '让碎晶成为分子催化核。分子生产 +25%，原子生产 -10%。', benefit: '分子生产 ×1.25', cost: '原子生产 ×0.90' },
+        { id: 'sheath', route: 'sustain', title: '封入惰性晶壳', tag: '维持 · 降低代谢', desc: '让晶簇承担连接界面。分子对原子的持续消耗降低 28%。', benefit: '原子代谢 ×0.72', cost: '不提高分子产出' },
+        { id: 'map', route: 'inquiry', title: '绘制缺失键图谱', tag: '求证 · 研究偏置', desc: '把未成立的键当作负空间样本。研究通道 +15%，分子生产 -8%。', benefit: '研究速率 ×1.15', cost: '分子生产 ×0.92' },
+        { id: 'fold', route: 'rewrite', title: '保留双侧晶面', tag: '改写 · 双向增益', desc: '让正反晶面同时参与组合。原子与分子生产各 +8%，但更容易被反侧模仿。', benefit: '原子、分子生产 ×1.08', cost: '同路线时压力额外上升' },
+      ],
+    },
+    {
+      id: 'choir', triggerStep: 17, iconTier: 4, symbol: 'SC', pressure: 17,
+      title: '静默合唱体', stage: '细胞阶段',
+      summary: '一群没有声源的薄膜围住细胞边界；每当内部维持稳定，它们就在外侧复制同一节拍。',
+      question: '边界应当抵抗外侧，利用外侧，还是先理解为何两边都想成为“内部”？',
+      options: [
+        { id: 'sever', route: 'advance', title: '切断外侧节拍', tag: '推进 · 快速分化', desc: '用不对称脉冲打散合唱。细胞生产 +28%，分子生产 -14%。', benefit: '细胞生产 ×1.28', cost: '分子生产 ×0.86' },
+        { id: 'harbor', route: 'sustain', title: '划出共栖外膜', tag: '维持 · 生态缓冲', desc: '允许一层薄膜留在外侧。细胞对分子的持续消耗降低 30%，细胞生产 -8%。', benefit: '分子代谢 ×0.70', cost: '细胞生产 ×0.92' },
+        { id: 'listen', route: 'inquiry', title: '记录无声和声', tag: '求证 · 因果样本', desc: '把每次内外同步写入研究通道。研究 +18%，细胞生产 -10%。', benefit: '研究速率 ×1.18', cost: '细胞生产 ×0.90' },
+        { id: 'duet', route: 'rewrite', title: '允许双侧对唱', tag: '改写 · 相位共生', desc: '保留两套不完全一致的边界节拍。分子与细胞生产各 +10%。', benefit: '分子、细胞生产 ×1.10', cost: '同路线时压力额外上升' },
+      ],
+    },
+    {
+      id: 'seed', triggerStep: 19, iconTier: 5, symbol: 'MS', pressure: 20,
+      title: '镜像胚种', stage: '生命阶段',
+      summary: '它没有祖先，却携带一段与你本轮选择高度相似的应激记忆；反宇宙正在尝试提前长出你的答案。',
+      question: '你要加速自己的谱系、保护多样性、拆解这段记忆，还是承认两侧可能共享祖先？',
+      options: [
+        { id: 'awaken', route: 'advance', title: '唤醒竞争谱系', tag: '推进 · 生命加速', desc: '让胚种参与竞争。生命生产 +30%，细胞代谢压力 +22%。', benefit: '生命生产 ×1.30', cost: '细胞代谢 ×1.22' },
+        { id: 'cocoon', route: 'sustain', title: '封入多样性茧房', tag: '维持 · 长期保留', desc: '隔离胚种但保存其差异。细胞代谢降低 30%，生命生产 -12%。', benefit: '细胞代谢 ×0.70', cost: '生命生产 ×0.88' },
+        { id: 'witness', route: 'inquiry', title: '拆解祖先记忆', tag: '求证 · 高研究', desc: '逐段验证记忆来源。研究 +20%，生命生产 -12%。', benefit: '研究速率 ×1.20', cost: '生命生产 ×0.88' },
+        { id: 'twin', route: 'rewrite', title: '承认双侧谱系', tag: '改写 · 共同祖先', desc: '让胚种成为正反两侧共享的谱系节点。细胞与生命生产各 +12%。', benefit: '细胞、生命生产 ×1.12', cost: '同路线时压力额外上升' },
+      ],
+    },
+  ];
+
   var RESEARCH_DISCOVERIES = [
     {
       id: 'quark-echo', at: 10, code: 'SERENDIPITY / Q-17',
@@ -402,6 +443,74 @@
       copy: '背面信号把视界编码成“被共同遗漏之处”。这不是翻译错误：对方似乎从一开始就不认为边界属于任何一侧。',
       note: '无玩法加成 · 镜像文明的最早语义候选',
     },
+    {
+      id: 'negative-bond', steps: [16], at: 36, jitter: 42, code: 'PHENOMENON / M-44',
+      title: '现象：反写化学键',
+      copy: '一条分子键先在背面断裂，正面对应的两枚原子才靠近。观测核无法判断这是预言、诱导，还是两侧共享同一段因果。',
+      note: '选择会提供小额资源并写入 1 点路线信号',
+      choices: [
+        { id: 'accelerate', route: 'advance', title: '沿断裂方向加速组合', desc: '获得 24 原子', rewardTier: 2, reward: 24 },
+        { id: 'stabilize', route: 'sustain', title: '保留未断裂的对照组', desc: '获得 4 分子', rewardTier: 3, reward: 4 },
+        { id: 'sequence', route: 'inquiry', title: '逐帧测序因果次序', desc: '获得 90 RP', rp: 90 },
+      ],
+    },
+    {
+      id: 'garden-without-outside', steps: [16], at: 105, jitter: 55, code: 'TERMINAL FRAGMENT / G-01',
+      title: '终局碎片：没有外面的花园',
+      copy: '一段未来记录声称，最后的花园没有围墙，因为它已经把所有“外面”改造成循环的一部分。记录没有说明谁被允许留在里面。',
+      note: '终局线索 · 无尽花园并不等于静止不变',
+    },
+    {
+      id: 'ownerless-boundary', steps: [17], at: 44, jitter: 48, code: 'PHENOMENON / C-31',
+      title: '现象：无主边界',
+      copy: '一层细胞膜持续修补自己，却没有任何内部结构使用它。边界似乎先于“居民”决定了什么值得保护。',
+      note: '选择会提供小额资源并写入 1 点路线信号',
+      choices: [
+        { id: 'occupy', route: 'advance', title: '投入高增长谱系占据边界', desc: '获得 3 细胞', rewardTier: 4, reward: 3 },
+        { id: 'preserve', route: 'sustain', title: '维持一块无主保留区', desc: '获得 14 分子', rewardTier: 3, reward: 14 },
+        { id: 'observe', route: 'inquiry', title: '等待边界自行选择用途', desc: '获得 130 RP', rp: 130 },
+      ],
+    },
+    {
+      id: 'last-eye', steps: [17], at: 132, jitter: 58, code: 'TERMINAL FRAGMENT / O-00',
+      title: '终局碎片：最后一只眼睛',
+      copy: '档案里出现一句无法验证的陈述：“最后的观察者不是幸存者，而是宇宙为自己保留的证人。”它没有解释证人是否可以拒绝。',
+      note: '终局线索 · 最后观测者需要承担不可转交的证明',
+    },
+    {
+      id: 'reverse-lineage', steps: [19], at: 52, jitter: 64, code: 'PHENOMENON / L-28',
+      title: '现象：逆生谱系',
+      copy: '一份生命样本先表现出后代才会拥有的适应，随后才在当前环境中找到原因。谱系的箭头在两侧可能并不朝向同一时间。',
+      note: '选择会提供小额资源并写入 1 点路线信号',
+      choices: [
+        { id: 'breed', route: 'advance', title: '让适应结果反向筛选祖先', desc: '获得 2 生命', rewardTier: 5, reward: 2 },
+        { id: 'shelter', route: 'sustain', title: '保护未表现预适应的谱系', desc: '获得 10 细胞', rewardTier: 4, reward: 10 },
+        { id: 'archive', route: 'inquiry', title: '封存时间箭头差异', desc: '获得 220 RP', rp: 220 },
+      ],
+    },
+    {
+      id: 'traveler-will', steps: [19], at: 168, jitter: 72, code: 'TERMINAL FRAGMENT / H-17',
+      title: '终局碎片：越界者的遗书',
+      copy: '尚未建造的航行器留下了一份遗书：越过视界不是逃离宇宙，而是放弃让旧宇宙继续替你解释方向。',
+      note: '终局线索 · 越过视界要求接受不可回收的远行',
+    },
+    {
+      id: 'double-crunch-sketch', steps: [20], at: 24, jitter: 38, code: 'PHENOMENON / Ω-02',
+      title: '现象：双坍缩草图',
+      copy: '生命信号拼出两条互相穿过的坍缩曲线。任何一侧单独执行都会失败；两侧同时执行时，失败位置反而成为新的初始条件。',
+      note: '选择不会锁定结局，但会改变文明收到的路线信号',
+      choices: [
+        { id: 'synchronize', route: 'rewrite', title: '保留双侧同步条件', desc: '获得 180 RP', rp: 180 },
+        { id: 'verify', route: 'inquiry', title: '先验证其中一条曲线', desc: '获得 160 RP', rp: 160 },
+        { id: 'buffer', route: 'sustain', title: '为失败位置保留物质', desc: '获得 8 细胞', rewardTier: 4, reward: 8 },
+      ],
+    },
+    {
+      id: 'mutually-exclusive-maps', steps: [21], at: 58, jitter: 55, code: 'TERMINAL FRAGMENT / V-12',
+      title: '终局碎片：四份互斥星图',
+      copy: '文明研究同时生成四份星图：一份画出门，一份画出花园，一份只保留最后一颗眼睛，第四份则让纸张本身从中间折回。',
+      note: '终局线索 · 路线信号决定文明先相信哪一份地图',
+    },
   ];
 
   function slice() {
@@ -413,11 +522,145 @@
     return !!(s && s.enabled);
   }
 
+  function getReverseObjectDefinition(id) {
+    return REVERSE_OBJECTS.find(function (object) { return object.id === id; }) || null;
+  }
+
+  function getReverseChoiceDefinition(objectId, choiceId) {
+    var object = getReverseObjectDefinition(objectId);
+    return object ? object.options.find(function (option) { return option.id === choiceId; }) || null : null;
+  }
+
+  function activateReverseObject(id) {
+    var s = slice();
+    var definition = getReverseObjectDefinition(id);
+    var object = s && s.reverse && s.reverse.objects[id];
+    if (!s || !definition || !object || object.status !== 'hidden') return false;
+    var ranking = getRouteRanking();
+    object.status = 'pending';
+    object.mirroredRoute = ranking[0] ? ranking[0].id : null;
+    s.reverse.pressure = Math.min(100, s.reverse.pressure + definition.pressure);
+    addLog('REVERSE', definition.title + '进入' + definition.stage + '。它正在模仿' + (object.mirroredRoute ? ROUTES[object.mirroredRoute].name : '尚未成形') + '路线。');
+    return true;
+  }
+
+  function getPendingReverseObject() {
+    var s = slice();
+    if (!s || !s.reverse) return null;
+    for (var i = 0; i < REVERSE_OBJECTS.length; i += 1) {
+      var definition = REVERSE_OBJECTS[i];
+      var object = s.reverse.objects[definition.id];
+      if (object && object.status === 'pending') return Object.assign({}, definition, { state: object });
+    }
+    return null;
+  }
+
+  function chooseReverseObject(objectId, choiceId) {
+    var s = slice();
+    var object = s && s.reverse && s.reverse.objects[objectId];
+    var definition = getReverseObjectDefinition(objectId);
+    var choice = getReverseChoiceDefinition(objectId, choiceId);
+    if (!s || !object || object.status !== 'pending' || !definition || !choice) return false;
+    var repeatsMirroredRoute = !!object.mirroredRoute && choice.route === object.mirroredRoute;
+    object.status = 'resolved';
+    object.choice = choice.id;
+    s.reverse.pressure = Math.max(0, Math.min(100, s.reverse.pressure + (repeatsMirroredRoute ? 12 : -5)));
+    recordDecision('reverse', objectId + ':' + choiceId, choice.route, definition.title + '：' + choice.title, repeatsMirroredRoute ? 2 : 1);
+    addLog('REVERSE', definition.title + '回应已记录：' + choice.title + '。' + (repeatsMirroredRoute ? '反侧准确模仿了主路线，压力上升。' : '路线转向打乱了反侧预测，压力下降。'));
+    evaluateMission();
+    return true;
+  }
+
+  function getReversePressure() {
+    var s = slice();
+    return s && s.reverse ? s.reverse.pressure : 0;
+  }
+
+  function getReversePressureMultiplier(tierId) {
+    if (tierId < 2) return 1;
+    return 1 - Math.min(0.16, getReversePressure() * 0.0016);
+  }
+
+  function getReverseProductionModifier(tierId) {
+    var s = slice();
+    if (!s || !s.reverse) return 1;
+    var mult = 1;
+    var lattice = s.reverse.objects.lattice.choice;
+    var choir = s.reverse.objects.choir.choice;
+    var seed = s.reverse.objects.seed.choice;
+    if (lattice === 'fracture' && tierId === 3) mult *= 1.25;
+    if (lattice === 'fracture' && tierId === 2) mult *= 0.9;
+    if (lattice === 'map' && tierId === 3) mult *= 0.92;
+    if (lattice === 'fold' && (tierId === 2 || tierId === 3)) mult *= 1.08;
+    if (choir === 'sever' && tierId === 4) mult *= 1.28;
+    if (choir === 'sever' && tierId === 3) mult *= 0.86;
+    if (choir === 'harbor' && tierId === 4) mult *= 0.92;
+    if (choir === 'listen' && tierId === 4) mult *= 0.9;
+    if (choir === 'duet' && (tierId === 3 || tierId === 4)) mult *= 1.1;
+    if (seed === 'awaken' && tierId === 5) mult *= 1.3;
+    if ((seed === 'cocoon' || seed === 'witness') && tierId === 5) mult *= 0.88;
+    if (seed === 'twin' && (tierId === 4 || tierId === 5)) mult *= 1.12;
+    return mult;
+  }
+
+  function getDemandMultiplier(tierId) {
+    var s = slice();
+    if (!s || !s.reverse) return 1;
+    var mult = 1;
+    if (s.reverse.objects.lattice.choice === 'sheath' && tierId === 2) mult *= 0.72;
+    if (s.reverse.objects.choir.choice === 'harbor' && tierId === 3) mult *= 0.7;
+    if (s.reverse.objects.seed.choice === 'cocoon' && tierId === 4) mult *= 0.7;
+    if (s.reverse.objects.seed.choice === 'awaken' && tierId === 4) mult *= 1.22;
+    return mult;
+  }
+
+  function getReverseInfluences(tierId) {
+    var s = slice();
+    if (!s || !s.reverse || tierId < 2) return [];
+    var items = [];
+    if (getReversePressure() > 0) items.push({ tone: 'pressure', label: '反侧压力 ×' + getReversePressureMultiplier(tierId).toFixed(2) });
+    var lattice = s.reverse.objects.lattice.choice;
+    var choir = s.reverse.objects.choir.choice;
+    var seed = s.reverse.objects.seed.choice;
+    if (lattice === 'fracture' && tierId === 2) items.push({ tone: 'cost', label: '碎晶剪切 ×0.90' });
+    if (lattice === 'fracture' && tierId === 3) items.push({ tone: 'gain', label: '碎晶催化 ×1.25' });
+    if (lattice === 'sheath' && tierId === 2) items.push({ tone: 'gain', label: '晶壳代谢 ×0.72' });
+    if (lattice === 'map' && tierId === 3) items.push({ tone: 'cost', label: '负键采样 ×0.92' });
+    if (lattice === 'fold' && (tierId === 2 || tierId === 3)) items.push({ tone: 'gain', label: '双侧晶面 ×1.08' });
+    if (choir === 'sever' && tierId === 3) items.push({ tone: 'cost', label: '断拍损耗 ×0.86' });
+    if (choir === 'sever' && tierId === 4) items.push({ tone: 'gain', label: '边界分化 ×1.28' });
+    if (choir === 'harbor' && tierId === 3) items.push({ tone: 'gain', label: '共栖代谢 ×0.70' });
+    if ((choir === 'harbor' || choir === 'listen') && tierId === 4) items.push({ tone: 'cost', label: '外膜占用 ×' + (choir === 'harbor' ? '0.92' : '0.90') });
+    if (choir === 'duet' && (tierId === 3 || tierId === 4)) items.push({ tone: 'gain', label: '双侧对唱 ×1.10' });
+    if (seed === 'awaken' && tierId === 4) items.push({ tone: 'cost', label: '竞争代谢 ×1.22' });
+    if (seed === 'awaken' && tierId === 5) items.push({ tone: 'gain', label: '预适应谱系 ×1.30' });
+    if (seed === 'cocoon' && tierId === 4) items.push({ tone: 'gain', label: '茧房代谢 ×0.70' });
+    if ((seed === 'cocoon' || seed === 'witness') && tierId === 5) items.push({ tone: 'cost', label: '谱系隔离 ×0.88' });
+    if (seed === 'twin' && (tierId === 4 || tierId === 5)) items.push({ tone: 'gain', label: '双侧谱系 ×1.12' });
+    return items;
+  }
+
+  function getReverseAtlas() {
+    var s = slice();
+    return REVERSE_OBJECTS.map(function (definition) {
+      var object = s && s.reverse ? s.reverse.objects[definition.id] : null;
+      return Object.assign({}, definition, {
+        state: object,
+        selected: object && object.choice ? getReverseChoiceDefinition(definition.id, object.choice) : null,
+      });
+    });
+  }
+
   function init() {
     var s = slice();
     if (!s || !s.enabled) return;
     if (s.missionStep >= MISSIONS.length) s.missionStep = MISSIONS.length - 1;
     if (s.missionStartedAt === undefined || s.missionStartedAt > s.elapsedSeconds) s.missionStartedAt = s.elapsedSeconds;
+    REVERSE_OBJECTS.forEach(function (definition) {
+      var object = s.reverse.objects[definition.id];
+      if (s.missionStep === definition.triggerStep && object.status === 'hidden') activateReverseObject(definition.id);
+      if (s.missionStep > definition.triggerStep && object.status === 'hidden') s.reverse.objects[definition.id] = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
+    });
     evaluateMission();
   }
 
@@ -478,6 +721,9 @@
     if (s.missionStep === 15) {
       addLog('SYS', '第一次接触观测窗口完成。路线信号已写入本轮档案。');
     }
+    REVERSE_OBJECTS.forEach(function (definition) {
+      if (s.missionStep === definition.triggerStep) activateReverseObject(definition.id);
+    });
     if (s.missionStep === 18) s.flags.complexityDecisionOpen = true;
     if (s.missionStep === 23) {
       s.flags.civilizationComplete = true;
@@ -493,7 +739,7 @@
       if (higher && higher.researched) {
         var demandMultiplier = GC.DEMAND_PER_UNIT * GC.TICKS_PER_SEC;
         if (GS.hasMilestone(7)) demandMultiplier *= 0.7;
-        demand = higher.count * demandMultiplier;
+        demand = higher.count * demandMultiplier * getDemandMultiplier(tierId);
       }
     }
     return production - demand;
@@ -516,7 +762,7 @@
       { id: 'nucleon-net', label: '核子每秒有盈余', met: getTierNetRate(1) > 0, value: (getTierNetRate(1) >= 0 ? '+' : '') + getTierNetRate(1).toFixed(2) + '/s', fix: '聚焦核子或增加核子生产单元。' },
     ];
     if (missionStep === 20) return [
-      { id: 'life-stock', label: '生命库存至少 2', met: GS.getTier(5).count >= 2, value: Math.floor(GS.getTier(5).count) + ' / 2', fix: '继续合成生命，并暂缓消耗生命库存。' },
+      { id: 'life-stock', label: '生命库存至少 4', met: GS.getTier(5).count >= 4, value: Math.floor(GS.getTier(5).count) + ' / 4', fix: '继续合成生命，并暂缓消耗生命库存。' },
       { id: 'cell-net', label: '细胞流量不为负', met: getTierNetRate(4) >= 0, value: (getTierNetRate(4) >= 0 ? '+' : '') + getTierNetRate(4).toFixed(3) + '/s', fix: '聚焦细胞层、增加细胞生产单元，或暂缓合成生命。' },
     ];
     return [];
@@ -533,10 +779,18 @@
     s.discoveries.missionWaitSeconds += dt;
     RESEARCH_DISCOVERIES.forEach(function (discovery) {
       var steps = discovery.steps || [6];
-      if (steps.indexOf(s.missionStep) === -1 || s.discoveries.missionWaitSeconds < discovery.at || s.discoveries.triggered.indexOf(discovery.id) !== -1) return;
+      var triggerAt = getDiscoveryTriggerAt(discovery, s.discoveries.seed);
+      if (steps.indexOf(s.missionStep) === -1 || s.discoveries.missionWaitSeconds < triggerAt || s.discoveries.triggered.indexOf(discovery.id) !== -1) return;
       s.discoveries.triggered.push(discovery.id);
       addLog('DISCOVERY', discovery.title.replace('发现：', '') + '：' + discovery.copy);
     });
+  }
+
+  function getDiscoveryTriggerAt(discovery, seed) {
+    if (!discovery.jitter) return discovery.at;
+    var hash = seed || 1;
+    for (var i = 0; i < discovery.id.length; i += 1) hash = (hash * 33 + discovery.id.charCodeAt(i)) % 2147483647;
+    return discovery.at + hash % (discovery.jitter + 1);
   }
 
   function getActiveDiscovery() {
@@ -554,6 +808,20 @@
     var s = slice();
     if (!s || s.discoveries.triggered.indexOf(id) === -1) return false;
     if (s.discoveries.acknowledged.indexOf(id) === -1) s.discoveries.acknowledged.push(id);
+    return true;
+  }
+
+  function resolveDiscoveryChoice(discoveryId, choiceId) {
+    var s = slice();
+    var discovery = RESEARCH_DISCOVERIES.find(function (item) { return item.id === discoveryId; });
+    var choice = discovery && discovery.choices ? discovery.choices.find(function (item) { return item.id === choiceId; }) : null;
+    if (!s || !discovery || !choice || s.discoveries.triggered.indexOf(discoveryId) === -1 || s.discoveries.resolved[discoveryId]) return false;
+    if (choice.rewardTier !== undefined && choice.reward) GS.addResource(choice.rewardTier, choice.reward);
+    if (choice.rp) GS.addRP(choice.rp);
+    s.discoveries.resolved[discoveryId] = choiceId;
+    recordDecision('phenomenon', discoveryId + ':' + choiceId, choice.route, discovery.title.replace('现象：', '') + '：' + choice.title, 1);
+    acknowledgeDiscovery(discoveryId);
+    addLog('PHENOM', discovery.title.replace('现象：', '') + '回应：' + choice.title + '。路线信号 +' + ROUTES[choice.route].name + '。');
     return true;
   }
 
@@ -621,7 +889,7 @@
   function updateLifeSignal(dt) {
     var s = slice();
     if (!s || s.missionStep !== 20) return;
-    var conditionsMet = GS.getTier(5).count >= 2 && getTierNetRate(4) >= 0;
+    var conditionsMet = GS.getTier(5).count >= 4 && getTierNetRate(4) >= 0;
     s.civilization.lifeSignalProgress = Math.max(0, Math.min(
       GC.FIRST_CONTACT.lifeSignalSeconds,
       s.civilization.lifeSignalProgress + (conditionsMet ? dt : -dt * 0.5)
@@ -653,10 +921,10 @@
       else if (step === 13) complete = s.enemy.status === 'resolved';
       else if (step === 14) complete = s.flags.demoComplete;
       else if (step === 15) complete = s.flags.reportAcknowledged || s.elapsedSeconds - s.missionStartedAt >= 8;
-      else if (step === 16) complete = GS.getTier(3).researched && GS.getTier(3).totalEver >= 8 && GS.getTier(3).producers >= 1;
-      else if (step === 17) complete = GS.getTier(4).researched && GS.getTier(4).totalEver >= 5 && GS.getTier(4).producers >= 1;
+      else if (step === 16) complete = s.reverse.objects.lattice.status === 'resolved' && GS.getTier(3).researched && GS.getTier(3).totalEver >= 12 && GS.getTier(3).producers >= 1;
+      else if (step === 17) complete = s.reverse.objects.choir.status === 'resolved' && GS.getTier(4).researched && GS.getTier(4).totalEver >= 10 && GS.getTier(4).producers >= 2;
       else if (step === 18) complete = !!s.complexity;
-      else if (step === 19) complete = GS.getTier(5).researched && GS.getTier(5).totalEver >= 3 && GS.getTier(5).producers >= 1;
+      else if (step === 19) complete = s.reverse.objects.seed.status === 'resolved' && GS.getTier(5).researched && GS.getTier(5).totalEver >= 6 && GS.getTier(5).producers >= 2;
       else if (step === 20) complete = s.civilization.lifeSignalProgress >= GC.FIRST_CONTACT.lifeSignalSeconds;
       else if (step === 21) complete = GS.getTier(6).researched;
       else if (step === 22) complete = GS.getTier(6).count >= 1;
@@ -706,6 +974,8 @@
     if (s.law === 'expansion' && s.focusTier === tierId) mult += GC.FIRST_CONTACT.focusLawBonus;
     if (s.law === 'conservation' && s.reserveTier === tierId) mult *= 1.2;
     if (s.flags.demoComplete) mult *= GC.FIRST_CONTACT.evolutionProductionMultiplier[tierId] || 1;
+    mult *= getReversePressureMultiplier(tierId);
+    mult *= getReverseProductionModifier(tierId);
     return mult;
   }
 
@@ -714,6 +984,9 @@
     if (!s || !s.enabled) return 1;
     var mult = s.law === 'observer' ? 1.25 : 1;
     if (s.flags.demoComplete) mult *= GC.FIRST_CONTACT.evolutionResearchMultiplier;
+    if (s.reverse.objects.lattice.choice === 'map') mult *= 1.15;
+    if (s.reverse.objects.choir.choice === 'listen') mult *= 1.18;
+    if (s.reverse.objects.seed.choice === 'witness') mult *= 1.2;
     return mult;
   }
 
@@ -794,6 +1067,10 @@
       s.flags.atomResearched = true;
       addLog('MAT', '原子层已揭示。结构可以被长期描述。');
     }
+    if (type === 'research' && data.tierId === 3) addLog('MAT', '分子层已揭示。连接次序开始参与资源历史。');
+    if (type === 'research' && data.tierId === 4) addLog('LIFE', '细胞层已揭示。资源链出现了会主动维护的“内部”。');
+    if (type === 'research' && data.tierId === 5) addLog('LIFE', '生命层已揭示。环境压力与选择开始跨代保留。');
+    if (type === 'research' && data.tierId === 6) addLog('CIV', '文明层已译出。路线信号成为可公开辩论的工程提案。');
     evaluateMission();
   }
 
@@ -1006,6 +1283,7 @@
     if (id === 'archive') GS.addRP(8);
     s.flags.coreDecisionOpen = false;
     s.flags.demoComplete = true;
+    s.reverse.pressure = Math.max(10, s.reverse.pressure);
     addLog('ARCHIVE', '核心处置：' + option.title + '。本轮路线信号已更新。');
     evaluateMission();
     return true;
@@ -1052,6 +1330,8 @@
         route: route.id,
         title: route.meta.ending,
         score: route.score,
+        goal: route.meta.goal,
+        question: route.meta.question,
         reason: slice().decisions.filter(function (decision) { return decision.route === route.id; }).map(function (decision) { return decision.label; }),
       };
     });
@@ -1147,33 +1427,42 @@
       label = s.flags.reportAcknowledged ? '继续演化已确认' : Math.ceil(max - value) + ' 秒后继续复杂物质演化';
     } else if (step === 16) {
       var molecule = GS.getTier(3);
-      if (!molecule.researched) {
+      if (s.reverse.objects.lattice.status !== 'resolved') {
+        value = 0; max = 1;
+        label = '反相晶簇等待回应 · 它正在模仿' + (s.reverse.objects.lattice.mirroredRoute ? ROUTES[s.reverse.objects.lattice.mirroredRoute].name : '当前') + '路线';
+      } else if (!molecule.researched) {
         max = GS.getResearchCost(3); value = Math.min(max, GS.getRP());
         label = '分子研究 ' + Math.floor(value) + ' / ' + max + ' RP';
       } else {
-        max = 16; value = Math.min(8, molecule.totalEver) + Math.min(1, molecule.producers) * 8;
-        label = '累计分子 ' + Math.floor(Math.min(8, molecule.totalEver)) + ' / 8 · 生产单元 ' + Math.min(1, molecule.producers) + ' / 1';
+        max = 24; value = Math.min(12, molecule.totalEver) + Math.min(1, molecule.producers) * 12;
+        label = '累计分子 ' + Math.floor(Math.min(12, molecule.totalEver)) + ' / 12 · 生产单元 ' + Math.min(1, molecule.producers) + ' / 1';
       }
     } else if (step === 17) {
       var cell = GS.getTier(4);
-      if (!cell.researched) {
+      if (s.reverse.objects.choir.status !== 'resolved') {
+        value = 0; max = 1;
+        label = '静默合唱体等待回应 · 边界节拍正在被复制';
+      } else if (!cell.researched) {
         max = GS.getResearchCost(4); value = Math.min(max, GS.getRP());
         label = '细胞研究 ' + Math.floor(value) + ' / ' + max + ' RP';
       } else {
-        max = 10; value = Math.min(5, cell.totalEver) + Math.min(1, cell.producers) * 5;
-        label = '累计细胞 ' + Math.floor(Math.min(5, cell.totalEver)) + ' / 5 · 生产单元 ' + Math.min(1, cell.producers) + ' / 1';
+        max = 30; value = Math.min(10, cell.totalEver) + Math.min(2, cell.producers) * 10;
+        label = '累计细胞 ' + Math.floor(Math.min(10, cell.totalEver)) + ' / 10 · 生产单元 ' + Math.min(2, cell.producers) + ' / 2';
       }
     } else if (step === 18) {
       value = s.complexity ? 1 : 0;
       label = s.complexity ? '复杂性伦理已记录' : '等待发展阶段决策';
     } else if (step === 19) {
       var life = GS.getTier(5);
-      if (!life.researched) {
+      if (s.reverse.objects.seed.status !== 'resolved') {
+        value = 0; max = 1;
+        label = '镜像胚种等待回应 · 它携带了本轮主路线的记忆';
+      } else if (!life.researched) {
         max = GS.getResearchCost(5); value = Math.min(max, GS.getRP());
         label = '生命研究 ' + Math.floor(value) + ' / ' + max + ' RP';
       } else {
-        max = 6; value = Math.min(3, life.totalEver) + Math.min(1, life.producers) * 3;
-        label = '累计生命 ' + Math.floor(Math.min(3, life.totalEver)) + ' / 3 · 生产单元 ' + Math.min(1, life.producers) + ' / 1';
+        max = 18; value = Math.min(6, life.totalEver) + Math.min(2, life.producers) * 6;
+        label = '累计生命 ' + Math.floor(Math.min(6, life.totalEver)) + ' / 6 · 生产单元 ' + Math.min(2, life.producers) + ' / 2';
       }
     } else if (step === 20) {
       max = GC.FIRST_CONTACT.lifeSignalSeconds;
@@ -1221,6 +1510,12 @@
     getActiveDiscovery: getActiveDiscovery,
     getResearchDiscoveries: function () { return RESEARCH_DISCOVERIES.slice(); },
     acknowledgeDiscovery: acknowledgeDiscovery,
+    resolveDiscoveryChoice: resolveDiscoveryChoice,
+    getPendingReverseObject: getPendingReverseObject,
+    getReverseAtlas: getReverseAtlas,
+    getReversePressure: getReversePressure,
+    getReverseInfluences: getReverseInfluences,
+    getTierNetRate: getTierNetRate,
     getEnemyMethods: getEnemyMethods,
     getCoreOptions: function () { return CORE_OPTIONS; },
     getComplexityOptions: function () { return COMPLEXITY_OPTIONS; },
@@ -1228,6 +1523,7 @@
     getRouteRanking: getRouteRanking,
     getCivilizationProposals: getCivilizationProposals,
     getProductionMultiplier: getProductionMultiplier,
+    getDemandMultiplier: getDemandMultiplier,
     getResearchMultiplier: getResearchMultiplier,
     getReserveFloor: getReserveFloor,
     getBaseEnemyLossCap: getBaseEnemyLossCap,
@@ -1253,6 +1549,7 @@
     chooseCoreDisposition: chooseCoreDisposition,
     continueEvolution: continueEvolution,
     chooseComplexity: chooseComplexity,
+    chooseReverseObject: chooseReverseObject,
     formatElapsed: formatElapsed,
   };
 })();

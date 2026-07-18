@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>Midgame Reverse Fixture</title></head>
+<body>
+  <p>Preparing the midgame reverse-object fixture…</p>
+  <script src="../../js/constants.js"></script>
+  <script src="../../js/state.js"></script>
+  <script>
+    (function () {
+      var GS = window.GameState;
+      var state = GS.init({ firstContact: true });
+      var slice = state.slice;
+      var counts = [94, 48, 42, 22, 7, 0, 0];
+      var producers = [4, 4, 3, 2, 1, 0, 0];
+      state.tiers.forEach(function (tier, index) {
+        tier.researched = index <= 4; tier.count = counts[index]; tier.totalEver = counts[index] * 2; tier.producers = producers[index];
+      });
+      state.researchPoints = 248; state.totalQuarksEver = 520;
+      slice.elapsedSeconds = 896; slice.missionStep = 17; slice.missionStartedAt = 860;
+      slice.focusTier = 4; slice.reserveTier = 1; slice.law = 'observer';
+      slice.preparation = { id: 'buffer', progress: 30, completed: true, bonusApplied: false };
+      slice.enemy = { status: 'resolved', warningRemaining: 0, method: 'observe', methodStartSiphoned: 0.4, observeLossLimit: 4.4, progress: 100, siphoned: 4.4, isolationActive: false, overloadPulses: 0, resolution: 'observe' };
+      slice.flags.atomResearched = true; slice.flags.researchExplained = true; slice.flags.reserveConfigured = true; slice.flags.demoComplete = true; slice.flags.reportAcknowledged = true;
+      slice.reverse.pressure = 43;
+      slice.reverse.objects.lattice = { status: 'resolved', choice: 'map', mirroredRoute: 'inquiry' };
+      slice.reverse.objects.choir = { status: 'pending', choice: null, mirroredRoute: 'inquiry' };
+      slice.reverse.objects.seed = { status: 'hidden', choice: null, mirroredRoute: null };
+      slice.tendencies = { advance: 2, sustain: 1, inquiry: 6, rewrite: 2 };
+      slice.discoveries.triggered = ['ownerless-boundary'];
+      slice.decisions = [
+        { time: 520, kind: 'law', level: '局部法则', id: 'observer', route: 'inquiry', label: '观测者效应', score: 2 },
+        { time: 590, kind: 'preparation', level: '接触准备', id: 'buffer', route: 'sustain', label: '库存缓冲', score: 1 },
+        { time: 650, kind: 'enemy', level: '接触策略', id: 'observe', route: 'inquiry', label: '观测', score: 2 },
+        { time: 680, kind: 'core', level: '余像处置', id: 'fuel', route: 'advance', label: '压入边界燃料', score: 2 },
+        { time: 780, kind: 'reverse', level: '反宇宙回应', id: 'lattice:map', route: 'inquiry', label: '反相晶簇：绘制缺失键图谱', score: 2 }
+      ];
+      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      location.replace('../../index.html?fixture=midgame-reverse');
+    })();
+  </script>
+</body>
+</html>
