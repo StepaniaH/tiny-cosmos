@@ -5,6 +5,7 @@
 
   var GC = window.GC;
   var GS = window.GameState;
+  var Slice = window.GameSlice;
 
   var canvas, ctx, animId, cssW, cssH, dpr, bgGrad;
   var particles = [];       // orbiting particles per tier
@@ -49,8 +50,9 @@
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
     bgGrad = ctx.createRadialGradient(cssW/2, cssH/2, 0, cssW/2, cssH/2, Math.max(cssW,cssH)*0.6);
-    bgGrad.addColorStop(0, '#10101c');
-    bgGrad.addColorStop(1, '#080812');
+    bgGrad.addColorStop(0, '#09191e');
+    bgGrad.addColorStop(0.45, '#041014');
+    bgGrad.addColorStop(1, '#010507');
   }
 
   // ── Click → Quark ──
@@ -60,6 +62,7 @@
     var my = e.clientY - rect.top;
     // +1 click (engine will process in batch via tick)
     clickCount += 1;
+    if (Slice && Slice.isEnabled()) Slice.onCanvasClick();
     spawnBurst(mx, my, '#ff6b6b');
   }
 
@@ -126,16 +129,17 @@
     var s = GS.getState();
     var maxRes = GS.getMaxResearchedTier();
 
+    drawTacticalGrid(cx, cy, maxR);
+
     // Draw rings outer→inner
     for (var i = GC.TIERS.length - 1; i >= 0; i--) {
       drawRing(i, cx, cy, minR + i * gap, maxRes, dt, s);
     }
 
+    drawAnomalyContact(cx, cy, minR + 2 * gap, s, dt);
+
     // Draw center
     drawCenter(cx, cy, s);
-
-    // Draw legend (right side, unlocked tiers only)
-    drawLegend(cx, cy, maxR, s);
 
     // Draw burst particles
     drawBursts(dt);
@@ -145,7 +149,9 @@
     var tpl = GC.TIERS[tierId];
     var t = s.tiers[tierId];
     var unlocked = t.researched;
-    var alpha = unlocked ? 1 : 0.08;
+    var alpha = unlocked ? 1 : 0.055;
+    var focused = !!(s.slice && s.slice.enabled && s.slice.focusTier === tierId);
+    var reserved = !!(s.slice && s.slice.enabled && s.slice.reserveTier === tierId);
 
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -154,19 +160,29 @@
       // Glow ring
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI*2);
-      ctx.strokeStyle = tpl.glow;
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = focused ? 'rgba(114,229,245,0.72)' : tpl.glow;
+      ctx.lineWidth = focused ? 3 : 1.5;
       ctx.shadowColor = tpl.glow;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = focused ? 16 : 7;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
       // Inner ring
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI*2);
-      ctx.strokeStyle = tpl.color;
+      ctx.strokeStyle = focused ? '#72e5f5' : tpl.color;
       ctx.lineWidth = 1;
       ctx.stroke();
+
+      if (reserved) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 5, -Math.PI * 0.12, Math.PI * 0.42);
+        ctx.strokeStyle = '#61e6a7';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
       // Label at rightmost point of ring
       var lx = cx + r + 8;
@@ -176,7 +192,7 @@
       ctx.fillStyle = tpl.color;
       ctx.fillText(tpl.symbol, lx, cy - 4);
       ctx.font = '9px ' + getMono();
-      ctx.fillStyle = '#aaa';
+      ctx.fillStyle = '#759096';
       ctx.fillText(fmt(t.count), lx, cy + 6);
     } else {
       // Dashed ring
@@ -236,91 +252,17 @@
 
     // Total quarks ever
     ctx.font = 'bold 13px ' + getMono();
-    ctx.fillStyle = '#ffd43b';
+    ctx.fillStyle = '#dffbff';
     ctx.fillText(formatShort(tq), cx, cy - 4);
 
     ctx.font = '9px ' + getMono();
-    ctx.fillStyle = '#6a6a82';
-    ctx.fillText('总夸克', cx, cy + 12);
+    ctx.fillStyle = '#55747a';
+    ctx.fillText('OBSERVED q', cx, cy + 12);
 
     if (prestiges > 0) {
       ctx.font = '9px ' + getMono();
       ctx.fillStyle = '#cc5de8';
-      ctx.fillText('🌌 ×' + prestiges, cx, cy + 26);
-    }
-    ctx.restore();
-  }
-
-  // ── Legend panel (right side, unlocked tiers) ──────────────────
-
-  function drawLegend(cx, cy, maxR, s) {
-    var lx = cx + maxR + 16;
-    if (lx + 100 > cssW) lx = cssW - 108; // clamp if too close to edge
-    var rowH = 15, rows = [];
-
-    for (var i = 0; i < GC.TIERS.length; i++) {
-      var t = s.tiers[i];
-      if (!t.researched) continue;
-      var tpl = GC.TIERS[i];
-      // Net rate
-      var prod = GS.getProducerOutput(i) * GS.getSpeedMultiplier() * GS.getGravityMultiplier(i);
-      var demand = 0;
-      if (i < GC.TIERS.length - 1) {
-        var ht = GS.getTier(i + 1);
-        if (ht && ht.researched) {
-          var dm = GC.DEMAND_PER_UNIT * GC.TICKS_PER_SEC;
-          if (GS.hasMilestone(7)) dm *= 0.7;
-          demand = ht.count * dm;
-        }
-      }
-      var net = prod - demand;
-      rows.push({ sym: tpl.symbol, color: tpl.color, count: t.count, net: net, netStr: (net>=0?'+':'')+net.toFixed(2) });
-    }
-
-    if (rows.length === 0) return;
-    var panelH = rows.length * rowH + 12;
-    var py = cy - rowH * 3; // anchor near top of rings
-
-    ctx.save();
-    // Semi-transparent background
-    ctx.fillStyle = 'rgba(4,4,12,0.7)';
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-    ctx.lineWidth = 1;
-    roundRect(lx - 4, py - 4, 104, panelH, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    for (var r = 0; r < rows.length; r++) {
-      var row = rows[r];
-      var ry = py + 2 + r * rowH;
-
-      // Dot
-      ctx.beginPath();
-      ctx.arc(lx + 6, ry + rowH/2, 3.5, 0, Math.PI*2);
-      ctx.fillStyle = row.color;
-      ctx.shadowColor = row.color;
-      ctx.shadowBlur = 4;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Symbol
-      ctx.font = 'bold 9px ' + getMono();
-      ctx.fillStyle = row.color;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(row.sym, lx + 14, ry + rowH/2);
-
-      // Count
-      ctx.font = '9px ' + getMono();
-      ctx.fillStyle = '#ddd';
-      ctx.textAlign = 'right';
-      ctx.fillText(fmt(row.count), lx + 98, ry + rowH/2);
-
-      // Net rate (small, colored)
-      ctx.font = '7px ' + getMono();
-      ctx.fillStyle = row.net >= 0 ? '#6f6' : '#f66';
-      ctx.textAlign = 'right';
-      ctx.fillText(row.netStr, lx + 60, ry + rowH/2);
+      ctx.fillText('CYCLE ×' + prestiges, cx, cy + 26);
     }
     ctx.restore();
   }
@@ -348,21 +290,64 @@
     }
   }
 
-  function getMono() { return "'SF Mono','Cascadia Code','Fira Code',monospace"; }
+  function drawTacticalGrid(cx, cy, maxR) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(96,190,205,0.055)';
+    ctx.lineWidth = 1;
+    var step = 32;
+    for (var x = cx % step; x < cssW; x += step) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cssH); ctx.stroke();
+    }
+    for (var y = cy % step; y < cssH; y += step) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(114,229,245,0.15)';
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath(); ctx.moveTo(cx - maxR - 36, cy); ctx.lineTo(cx + maxR + 36, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy - maxR - 28); ctx.lineTo(cx, cy + maxR + 28); ctx.stroke();
+    ctx.setLineDash([]);
 
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
+    ctx.font = '8px ' + getMono();
+    ctx.fillStyle = 'rgba(114,229,245,0.28)';
+    ctx.textAlign = 'left';
+    ctx.fillText('R+' + Math.round(maxR), cx + maxR + 7, cy - 5);
+    ctx.fillText('φ 0.000', cx + 7, cy - maxR - 8);
+    ctx.restore();
   }
+
+  function drawAnomalyContact(cx, cy, r, s, dt) {
+    if (!s.slice || !s.slice.enabled) return;
+    var enemy = s.slice.enemy;
+    if (enemy.status === 'hidden' || enemy.status === 'resolved') return;
+    var warningDuration = Slice && Slice.getWarningDuration ? Slice.getWarningDuration() : GC.FIRST_CONTACT.warningSeconds;
+    var intensity = enemy.status === 'warning'
+      ? Math.max(0, Math.min(1, 1 - enemy.warningRemaining / warningDuration))
+      : 1;
+    var time = s.slice.elapsedSeconds || 0;
+    var start = time * 0.18;
+    ctx.save();
+    ctx.globalAlpha = 0.24 + intensity * 0.56;
+    ctx.strokeStyle = '#ff6577';
+    ctx.shadowColor = '#ff6577';
+    ctx.shadowBlur = 12;
+    ctx.lineWidth = 1.5 + intensity * 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 10 + Math.sin(time * 2) * 2, start, start + 0.62 + intensity * 0.5);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    for (var i = 0; i < 5; i++) {
+      var angle = start + i * 0.16;
+      var px = cx + Math.cos(angle) * (r + 10);
+      var py = cy + Math.sin(angle) * (r + 10);
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(cx + Math.cos(angle + 0.23) * (r - 9 - i * 2), cy + Math.sin(angle + 0.23) * (r - 9 - i * 2));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function getMono() { return "'SF Mono','Cascadia Code','Fira Code',monospace"; }
 
   function formatShort(n) {
     if (n >= 1e15) return (n/1e15).toFixed(1)+'P';

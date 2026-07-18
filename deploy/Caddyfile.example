@@ -1,0 +1,8 @@
+# Replace both placeholders before adding this block to the VPS Caddyfile.
+# If Caddy runs in Docker, the web root is the path visible inside the container.
+
+{{TINY_COSMOS_DOMAIN}} {
+    root * {{TINY_COSMOS_WEB_ROOT}}
+    encode zstd gzip
+    file_server
+}

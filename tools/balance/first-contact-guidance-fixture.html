@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>First Contact Guidance Fixture</title></head>
+<body>
+  <p>Preparing a first-contact guidance fixture…</p>
+  <script src="../../js/constants.js"></script>
+  <script src="../../js/state.js"></script>
+  <script src="../../js/slice.js"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var step = Number(params.get('step') || 6);
+      var GS = window.GameState;
+      var state = GS.init({ firstContact: true });
+      var slice = state.slice;
+
+      state.tiers[0].count = 42;
+      state.tiers[0].totalEver = 96;
+      state.tiers[0].producers = 3;
+      state.tiers[1].count = step === 9 ? 6 : 22;
+      state.tiers[1].totalEver = 44;
+      state.tiers[1].producers = 2;
+      state.totalQuarksEver = 96;
+      state.researchPoints = step === 6 ? 14 : 18;
+
+      slice.elapsedSeconds = step === 6 ? 260 : 495;
+      slice.missionStep = step;
+      slice.focusTier = step === 9 ? 2 : 1;
+      slice.stats = { canvasClicks: 5, boughtQuarkProducer: true, nucleonSyntheses: 9, atomSyntheses: 18, focusChanges: 2 };
+      slice.stability.early = window.GC.FIRST_CONTACT.earlyStabilitySeconds;
+      slice.flags.researchExplained = true;
+
+      if (step === 9) {
+        state.tiers[2].researched = true;
+        state.tiers[2].count = 11;
+        state.tiers[2].totalEver = 18;
+        state.tiers[2].producers = 2;
+        slice.flags.atomResearched = true;
+        slice.flags.reserveConfigured = false;
+      }
+
+      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      location.replace('../../index.html?fixture=guidance-' + step);
+    })();
+  </script>
+</body>
+</html>

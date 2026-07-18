@@ -6,6 +6,8 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const GAME_FILES = [
   'js/constants.js',
   'js/state.js',
+  'js/slice.js',
+  'js/lore.js',
   'js/engine.js',
 ];
 

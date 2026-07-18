@@ -1,71 +1,78 @@
-# Current Balance Baseline
+# 当前平衡基线
 
-This baseline captures the deterministic validation run for the current balance system. It records current behavior; it is not yet a strict pass/fail target.
+本文记录当前数值系统在确定性验证中的表现，供后续玩法和数值改动比较。
 
-## Source
+## 来源
 
-- Command: `node tools/balance/run-validation.js --all`
-- Commit: `c55fa89`
-- Generated: 2026-07-07T09:15:45.307Z
-- Local JSON report: `reports/balance/validation-c55fa89-2026-07-07T09-15-45-307Z.json`
+- 命令：`node tools/balance/run-validation.js --all`
+- 提交：`cca1354`
+- 生成时间：`2026-07-07T10:32:10.318Z`
+- 本地 JSON：`reports/balance/validation-cca1354-2026-07-07T10-32-10-318Z.json`
 
-## Scenario Summary
+## 场景结果
 
-## idle-10m
+### `idle-10m`：十分钟纯放置
 
-- Max researched tier: 1
-- Research points: 16.10
-- Total quarks ever: 180.00
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：1
+- 研究点：16.10
+- 历史夸克总量：180.00
+- 可大坍缩：否
+- 最终警告：无
 
-## click-start-10m
+### `click-start-10m`：十分钟点击开局
 
-- Max researched tier: 1
-- Research points: 19.96
-- Total quarks ever: 813.42
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：1
+- 研究点：19.96
+- 历史夸克总量：813.42
+- 可大坍缩：否
+- 最终警告：无
 
-## guided-30m
+### `guided-30m`：三十分钟引导策略
 
-- Max researched tier: 3
-- Research points: 34.96
-- Total quarks ever: 7204.54
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：3
+- 研究点：34.96
+- 历史夸克总量：7204.54
+- 可大坍缩：否
+- 最终警告：无
 
-## guided-60m
+### `guided-60m`：六十分钟引导策略
 
-- Max researched tier: 4
-- Research points: 181.71
-- Total quarks ever: 22444.37
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：4
+- 研究点：181.71
+- 历史夸克总量：22444.37
+- 可大坍缩：否
+- 最终警告：无
 
-## first-prestige
+### `first-prestige`：第一轮大坍缩
 
-- Max researched tier: 6
-- Research points: 174461.51
-- Total quarks ever: 1276029.20
-- Can prestige: false
-- Final warnings: tier-2-depleted-negative-net, tier-4-depleted-negative-net
-- Reached prestige: false
-- Prestige time: not reached
-- Failure reason: civilization-count-below-1
-- Failure tier details:
-  - 0 Quark: count=4798.1711, net=7.3924/s, synthCost=0, producerCost=18953, everReachedOne=true
-  - 1 Nucleon: count=1761.5249, net=4.3200/s, synthCost=19552, producerCost=9476, everReachedOne=true
-  - 2 Atom: count=0.0000, net=-4.4333/s, synthCost=8822, producerCost=803, everReachedOne=true
-  - 3 Molecule: count=1126.6502, net=0.5640/s, synthCost=816, producerCost=1425, everReachedOne=true
-  - 4 Cell: count=0.0000, net=-1.3592/s, synthCost=1335, producerCost=50, everReachedOne=true
-  - 5 Life: count=299.8349, net=0.0980/s, synthCost=38, producerCost=942, everReachedOne=true
-  - 6 Civilization: count=0.0000, net=0.0000/s, synthCost=8, producerCost=n/a, everReachedOne=false
+- 最高研究层级：6
+- 研究点：0.62
+- 历史夸克总量：113224.53
+- 可大坍缩：是
+- 最终警告：无
+- 已抵达大坍缩：是
+- 抵达时间：11496 秒，约 3.2 小时
 
-## post-prestige-10m
+### `post-prestige-10m`：大坍缩后十分钟
 
-- Skipped: first-prestige did not reach Big Crunch within the maximum simulated time
+- 最高研究层级：2
+- 研究点：6.96
+- 历史夸克总量：119643.83
+- 可大坍缩：否
+- 最终警告：无
+- 恒定点分配：强核力 3、光速 3、引力 4
 
-## Interpretation
+## 使用方法
 
-Use this baseline to compare direction and magnitude of future changes. Update it after intentional balance corrections, and keep exploratory generated reports local unless they become reviewed baseline evidence.
+该基线用于比较方向和变化幅度。数值修正通过评审后再更新本文。探索性报告只保留在本地。
+
+## 验收范围
+
+- `idle-10m`：至少到达层级 1，没有警告。
+- `click-start-10m`：至少到达层级 1，没有警告。
+- `guided-30m`：至少到达层级 3，没有警告。
+- `guided-60m`：至少到达层级 4，没有警告。
+- `first-prestige`：24 个模拟小时内抵达大坍缩；当前为 11496 秒。
+- `post-prestige-10m`：必须运行，至少到达层级 2，没有警告，并体现第二轮提速。
+
+完整流程见 `docs/balance/protocol.md`。

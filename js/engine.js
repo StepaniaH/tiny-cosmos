@@ -27,7 +27,12 @@
     // 3. Research point generation
     applyResearch();
 
-    // 4. Notify UI
+    // 4. First-contact scenario systems (browser slice only)
+    if (window.GameSlice && window.GameSlice.isEnabled()) {
+      window.GameSlice.tick(1 / GC.TICKS_PER_SEC);
+    }
+
+    // 5. Notify UI
     if (onTickCallback) onTickCallback();
   }
 
@@ -42,6 +47,7 @@
     var t0 = st.tiers[0];
     if (t0.researched) {
       var qOutput = GS.getProducerOutput(0) * tickMult * GS.getGravityMultiplier(0);
+      if (window.GameSlice && window.GameSlice.isEnabled()) qOutput *= window.GameSlice.getProductionMultiplier(0);
       GS.addResource(0, qOutput);
     }
 
@@ -50,6 +56,7 @@
       var t = st.tiers[i];
       if (!t.researched || t.producers === 0) continue;
       var output = GS.getProducerOutput(i) * tickMult * GS.getGravityMultiplier(i);
+      if (window.GameSlice && window.GameSlice.isEnabled()) output *= window.GameSlice.getProductionMultiplier(i);
       GS.addResource(i, output);
     }
   }
@@ -72,7 +79,9 @@
       var demand = higherTier.count * demandMult;
       // Don't go negative — floor at 0
       var lowerTier = st.tiers[i];
-      var actual = Math.min(lowerTier.count, demand);
+      var reserveFloor = 0;
+      if (window.GameSlice && window.GameSlice.isEnabled()) reserveFloor = window.GameSlice.getReserveFloor(i);
+      var actual = Math.min(Math.max(0, lowerTier.count - reserveFloor), demand);
       lowerTier.count = Math.max(0, lowerTier.count - actual);
     }
   }
@@ -89,6 +98,8 @@
       if (!t.researched || t.count <= 0) continue;
       rpThisTick += Math.sqrt(t.count) * GC.RP_SQRT_COEFF[i];
     }
+    if (st.slice && st.slice.enabled) rpThisTick *= GC.FIRST_CONTACT.researchMultiplier;
+    if (window.GameSlice && window.GameSlice.isEnabled()) rpThisTick *= window.GameSlice.getResearchMultiplier();
     if (rpThisTick > 0) GS.addRP(rpThisTick);
   }
 
@@ -100,6 +111,7 @@
 
     var t = st.tiers[tierId];
     if (!t.researched || tierId === 0) return false;
+    if (window.GameSlice && window.GameSlice.isEnabled() && !window.GameSlice.canSynthesize(tierId)) return false;
 
     var batch = GS.getSynthBatchSize();
     var costEach = GS.getSynthCost(tierId);
@@ -110,12 +122,14 @@
     GS.spendResource(tierId - 1, totalCost);
     GS.addResource(tierId, batch);
     GS.recordSynth(tierId);
+    if (window.GameSlice && window.GameSlice.isEnabled()) window.GameSlice.onAction('synthesize', { tierId: tierId });
     return true;
   }
 
   function buyProducer(tierId) {
     var st = GS.getState();
     if (!st) return false;
+    if (window.GameSlice && window.GameSlice.isEnabled() && !window.GameSlice.canBuyProducer(tierId)) return false;
 
     var t = st.tiers[tierId];
     if (!t.researched) return false;
@@ -126,12 +140,15 @@
 
     GS.spendResource(tierId, cost);
     GS.addProducer(tierId);
+    if (window.GameSlice && window.GameSlice.isEnabled()) window.GameSlice.onAction('buyProducer', { tierId: tierId });
     return true;
   }
 
   function research(tierId) {
     if (!GS.canResearch(tierId)) return false;
-    return GS.doResearch(tierId);
+    var ok = GS.doResearch(tierId);
+    if (ok && window.GameSlice && window.GameSlice.isEnabled()) window.GameSlice.onAction('research', { tierId: tierId });
+    return ok;
   }
 
   function bigCrunch() {

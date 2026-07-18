@@ -1,206 +1,222 @@
-# Tiny Cosmos Development Roadmap
+# Tiny Cosmos 开发路线图
 
-This document is the handoff map for humans and AI agents working on Tiny Cosmos after the balance validation phase.
+本文用于项目维护和交接。玩法讨论、平衡验证和技术方向都从这里进入。
 
-## Current Branch State
+## 分支状态
 
-- Active development branch: `dev`
-- Stable branch: `main`
-- Rule: do not work directly on `main`; merge through GitHub PRs from `dev`.
-- Latest pushed development work includes the deterministic balance validation system and the idle rendering workload fix.
+- 开发分支：`dev`
+- 稳定分支：`main`
+- 开发工作在 `dev` 进行，通过拉取请求合并到 `main`。
 
-## Completed Work
+## 已完成工作
 
-### Repository Hygiene
+### 仓库整理
 
-- Added privacy-focused `.gitignore`.
-- Ignored local agent state, environment files, dependency folders, logs, browser test artifacts, and generated balance reports.
+- 增加隐私和开发文件忽略规则。
+- 忽略本地代理状态、环境文件、依赖、日志、浏览器测试产物和临时平衡报告。
 
-### Balance Validation Foundation
+### 平衡验证基础
 
-- Added Node-based game loader: `tools/balance/load-game.js`
-- Added metric snapshots and warning generation: `tools/balance/metrics.js`
-- Added deterministic scenarios: `tools/balance/scenarios.js`
-- Added validation CLI: `tools/balance/run-validation.js`
-- Added baseline writer: `tools/balance/write-baseline.js`
-- Added validation protocol: `docs/balance/protocol.md`
-- Added current baseline summary: `docs/balance/reports/baseline-current.md`
-- Added ML backlog policy: `docs/balance/ml-backlog.md`
+- Node 游戏加载器：`tools/balance/load-game.js`
+- 指标和警告：`tools/balance/metrics.js`
+- 确定性场景：`tools/balance/scenarios.js`
+- 验证命令：`tools/balance/run-validation.js`
+- 基线写入：`tools/balance/write-baseline.js`
+- 验证协议：`docs/balance/protocol.md`
+- 当前基线：`docs/balance/reports/baseline-current.md`
+- 机器学习待办：`docs/balance/ml-backlog.md`
 
-### First Correctness Fixes
+### 一致性修复
 
-- Aligned UI production-rate display with engine speed multiplier behavior.
-- Implemented the `Fusion Catalysis` milestone effect for atom synthesis cost.
-- Updated stale production comments.
+- 界面产出速度与引擎速度乘数保持一致。
+- “核聚变催化”里程碑已接入原子合成成本。
+- 生产注释已经更新。
 
-### Performance Fix
+### 性能修复
 
-- Reduced canvas rendering from uncapped `requestAnimationFrame` usage to a 30fps target.
-- Cached the canvas background gradient at resize time instead of recreating it every frame.
-- Paused canvas rendering while the page is hidden.
-- Reduced DOM HUD refresh from 20 updates per second to 4 updates per second while keeping simulation ticks at 20 per second.
+- 画布刷新限制为 30 帧。
+- 背景渐变在尺寸变化时重新缓存。
+- 页面隐藏时暂停画布。
+- DOM 信息每秒更新四次，模拟仍保持每秒二十 tick。
 
-### Baseline Refresh
+## 当前平衡基线
 
-- Refreshed `docs/balance/reports/baseline-current.md` after the performance fix.
-- Scenario numbers did not change because the performance fix affects rendering and DOM update cadence, not simulation logic.
-
-## Current Validation Baseline
-
-Run:
+运行：
 
 ```bash
 node tools/balance/run-validation.js --all
 ```
 
-Current baseline summary:
+结果：
 
-- `idle-10m`: reaches tier 1, no warnings.
-- `click-start-10m`: reaches tier 1, no warnings.
-- `guided-30m`: reaches tier 3, no warnings.
-- `guided-60m`: reaches tier 4, no warnings.
-- `first-prestige`: reaches researched tier 6 but does not produce civilization within the 24-hour simulated cap.
-- `post-prestige-10m`: skipped because first prestige is not yet reachable.
+- `idle-10m`：层级 1，无警告。
+- `click-start-10m`：层级 1，无警告。
+- `guided-30m`：层级 3，无警告。
+- `guided-60m`：层级 4，无警告。
+- `first-prestige`：11496 秒抵达大坍缩，约 3.2 小时。
+- `post-prestige-10m`：层级 2，无警告。
 
-Primary current balance problem:
+## 已知排错结论
 
-- The first Big Crunch is not reachable under the deterministic guided strategy within the current `first-prestige` cap.
-- At the end of `first-prestige`, warnings include depleted negative net for tier 2 and tier 4.
+第一轮大坍缩早期失败曾由场景脚本引起。引导策略只合成到层级 5，没有执行层级 6 的文明合成。修正脚本上限后，原有常量即可完成场景。
 
-## Next Phase Goal
+遇到平衡问题时先检查：
 
-Make first Big Crunch reachable through the deterministic guided strategy without destroying early and midgame pacing.
+- 场景是否覆盖全部已解锁层级。
+- 自动策略是否执行了必要操作。
+- 界面、引擎和指标是否使用同一公式。
+- 警告来自持续问题还是短时状态。
 
-This is still a balance-first phase. Do not add new major gameplay decisions until first prestige is reachable and the baseline has been updated.
+## 当前玩法设计包
 
-## Recommended Next Work Order
+中文索引：`docs/game-design/README.md`
 
-### 1. Add Better Failure Detail to Reports
+主要文档：
 
-Before tuning constants, improve report visibility for the failed `first-prestige` scenario.
+- 整体玩法方向：`docs/game-design/gameplay-direction.md`
+- 周目和继承物：`docs/game-design/loop-and-inheritance.md`
+- 小决策与伪随机选项池：`docs/game-design/decision-pool.md`
+- 细枝玩法：`docs/game-design/side-branches.md`
+- 纸面试玩：`docs/game-design/paper-playtest.md`
+- 反宇宙敌人：`docs/game-design/adversarial-system.md`
+- 多结局总览：`docs/game-design/victory-routes.md`
+- 共同世界观和分幕剧本：`docs/game-design/routes/shared-campaign.md`
+- 越过视界：`docs/game-design/routes/across-horizon.md`
+- 无尽花园：`docs/game-design/routes/endless-garden.md`
+- 最后观测者：`docs/game-design/routes/last-observer.md`
+- 双生大坍缩：`docs/game-design/routes/twin-crunch.md`
 
-Recommended additions:
+完整周目、四条终局和继承物仍处于纸面设计阶段。下面的“第一次接触”竖切已经可玩，其时间和数值会继续根据试玩结果调整。
 
-- Last nonzero count per tier.
-- Minimum net rate per tier.
-- Time when each tier first reaches a count of at least `1`.
-- Final synthesis cost for each tier.
-- Final producer cost for each tier.
-- A clear `failureReason` field for scenarios that fail their goal.
+## 当前可玩竖切
 
-Expected files:
+二十分钟“第一次接触”版本已经进入实现：
 
-- `tools/balance/metrics.js`
-- `tools/balance/scenarios.js`
-- `tools/balance/run-validation.js`
-- `docs/balance/reports/baseline-current.md`
+- 融入任务指令的前期教学。
+- 夸克、核子、原子三层资源。
+- 宇宙焦点和单层保护线。
+- 两段读取真实库存与净流量的稳定任务。
+- 三项第一法则。
+- 三种接触准备及其经营条件。
+- 真空水蛭预警、损失上限与三种可执行处理。
+- 第四种同步处理占位。
+- 核心余像选择和四类路线信号。
+- 硬科幻三栏驾驶舱界面。
 
-Validation:
+实现说明见 `docs/game-design/first-contact-vertical-slice.md`。
 
-```bash
-node --check tools/balance/metrics.js
-node --check tools/balance/scenarios.js
-node --check tools/balance/run-validation.js
-node tools/balance/run-validation.js --all
-```
+## 当前技术判断
 
-### 2. Tune First Prestige Reachability
+- 玩法原型继续使用现有网页技术。
+- Blazor WebAssembly 暂不采用，详见 `docs/architecture/blazor-webassembly-evaluation.md`。
+- 网页和 Steam 路线见 `docs/architecture/platform-direction.md`。
+- 完成两个公开结局和数轮继承循环后，再做 Electron 或 Tauri 桌面封装样片。
 
-Use the improved report to tune only the smallest necessary set of constants.
+## 下一阶段顺序
 
-Candidate knobs, in likely order:
+### 阶段一：纸面试玩
 
-- Late-tier synthesis costs: `baseCost` for Cell, Life, and Civilization.
-- Late-tier production: `baseProd` for Cell and Life.
-- Demand pressure: `DEMAND_PER_UNIT`.
-- Producer cost scaling: `PROD_COST_SCALE`.
-- Research pacing only if tier unlock timing is the true blocker.
+- 使用资源卡、焦点、保护线和事件卡演练共同剧本。
+- 验证真空水蛭的四种处理方法。
+- 演练越过视界和无尽花园的终局时间轴。
+- 检查玩家能否指出小决策与终局提案的联系。
 
-Do not tune all knobs at once. Change one small group, run validation, compare, and document the effect.
+### 阶段二：局内控制竖切
 
-Target for the first successful pass:
+- 一个宇宙焦点。
+- 简单储备保护。
+- 一个短项目槽。
+- 三类资源状态：短缺、循环、过载。
 
-- `first-prestige` reaches Big Crunch within 24 simulated hours.
-- `guided-30m` and `guided-60m` do not regress into a slower opening.
-- No runaway-count warnings.
-- Negative net warnings are acceptable only if the affected tier can recover and progression still reaches prestige.
+验收重点：玩家会根据资源链移动焦点，操作频率保持在几十秒到数分钟一次。
 
-### 3. Update Acceptance Ranges
+### 阶段三：小决策与选项池
 
-Once first prestige is reachable, convert the baseline from "current reality" into rough acceptance ranges.
+- 数据驱动的三选一事件。
+- 四类路线倾向。
+- 最近重复惩罚、反向补偿和保底。
+- 固定随机种子，重新载入不能刷新候选。
 
-Suggested first ranges:
+验收重点：连续专精仍然可行，其他方向会获得更多出场机会。
 
-- `guided-30m`: should reach at least tier 3.
-- `guided-60m`: should reach at least tier 4.
-- `first-prestige`: should reach Big Crunch within 24 simulated hours.
-- `post-prestige-10m`: should run instead of skipping and should show visible second-run acceleration.
+### 阶段四：第一次敌人接触
 
-Write ranges in:
+- 真空水蛭预警。
+- 新增产出截流。
+- 过载、断供、观测、同步四种处理。
+- 资源损失上限和离线冻结。
 
-- `docs/balance/protocol.md`
-- `docs/balance/reports/baseline-current.md`
+验收重点：忽略敌人会减慢发展，资源链仍然可以恢复。
 
-### 4. Only Then Add Gameplay Decisions
+### 阶段五：第一个结局与继承物
 
-After the first prestige loop is stable:
+- 优先实现越过视界。
+- 终局提案读取整局小决策。
+- 定向大坍缩生成两件继承物候选。
+- 下一轮装备一件主继承物。
 
-- Add one new gameplay decision at a time.
-- Describe which numbers the mechanic can affect.
-- Run validation before and after the mechanic.
-- Commit mechanic, validation report summary, and docs together.
+验收重点：继承物会改变下一轮前十分钟的事件和操作。
 
-Good first mechanic candidates:
+### 阶段六：第二个公开结局
 
-- Manual batch controls for synthesis.
-- Producer priority toggles.
-- Research branch choice with one conservative branch and one aggressive branch.
-- Constant allocation presets after prestige.
+- 实现无尽花园。
+- 同一敌人和资源链支持另一套解法。
+- 加入混合刻印，例如边疆种舱转为迁徙种荚。
 
-Avoid first:
+验收重点：两条路线使用不同操作顺序，完成时间没有全面失衡。
 
-- Offline progression.
-- Random events.
-- Machine-learning-assisted tuning.
-- Large UI rewrites.
+### 阶段七：观测、自动化和档案
 
-## Machine Learning Position
+- 最后观测者的证据系统。
+- 两个自动化规则槽。
+- 宇宙档案、谱系和回归报告。
 
-Machine learning is potentially useful later but should not drive the next phase.
+### 阶段八：隐藏结局和桌面样片
 
-Use ML only after:
+- 双生大坍缩。
+- 矛盾继承物。
+- Steam 桌面封装技术样片。
 
-- At least 20 useful historical validation reports exist.
-- Scenario rules are stable.
-- Human-readable acceptance ranges exist.
-- Deterministic validation remains the required gate.
+该阶段需要前三个公开结局已经稳定。
 
-Candidate ML uses later:
+## 验收范围
 
-- Anomaly detection across many reports.
-- Parameter search within human-authored ranges.
-- Strategy clustering when multiple deterministic strategies exist.
+现有基础范围见 `docs/balance/protocol.md`。
 
-## Agent Handoff Checklist
+新增玩法还要检查：
 
-Before starting work:
+- 第一处有后果的小决策出现时间。
+- 每条公开路线是否能完成。
+- 不同路线的操作顺序和资源压力是否有差异。
+- 选项池能否避免连续重复。
+- 反向补偿是否保留专精自由。
+- 敌人损失是否有预警和上限。
+- 继承物是否改变下一轮规则。
+- 普通大坍缩是否始终可用。
 
-- Confirm branch: `git status --short --branch`
-- Confirm `dev` is active.
-- Do not modify `main`.
-- Read this file, `docs/balance/protocol.md`, and `docs/balance/reports/baseline-current.md`.
-- Run `node tools/balance/run-validation.js --all` before changing behavior.
+## 机器学习安排
 
-Before committing:
+当前阶段继续使用确定性场景和人工试玩。满足 `docs/balance/ml-backlog.md` 中的报告数量和稳定性条件后，再考虑异常检测和参数搜索。
 
-- Run relevant `node --check` commands.
-- Run `node tools/balance/run-validation.js --all`.
-- If balance behavior intentionally changed, run `node tools/balance/write-baseline.js`.
-- Commit generated baseline summary only if it is an accepted comparison point.
-- Do not commit generated files under `reports/balance/`.
+## 接手检查表
 
-Before pushing:
+开始工作前：
 
-- Confirm `git status --short --branch` is clean.
-- Push only `dev`: `git push -u origin dev`
-- PR should be created manually on GitHub from `dev` into `main`.
+- 运行 `git status --short --branch`。
+- 确认当前分支为 `dev`。
+- 阅读本文件、平衡协议、当前基线和玩法索引。
+- 修改行为前运行全部验证场景。
+
+提交前：
+
+- 检查相关 JavaScript 语法。
+- 运行全部验证场景。
+- 记录有意产生的场景变化。
+- 评审通过后再更新基线。
+- 不提交 `reports/balance/` 下的临时报告。
+
+推送前：
+
+- 检查工作区状态。
+- 推送 `dev` 分支。
+- 从 `dev` 向 `main` 创建拉取请求。

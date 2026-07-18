@@ -1,0 +1,175 @@
+name: CI & Manual Deploy
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: 'Deploy this main commit to the production VPS after verification'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Verify static site
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            index.html
+            css/game.css
+            js/constants.js
+            js/state.js
+            js/slice.js
+            js/lore.js
+            js/engine.js
+            js/render.js
+            js/audio.js
+            js/ui.js
+            js/main.js
+            assets/favicon.svg
+            assets/manifest.json
+            assets/textures/background/screen-noise.webp
+            assets/textures/background/reverse-noise.webp
+          )
+
+          for file in "${required_files[@]}"; do
+            if [[ ! -s "$file" ]]; then
+              echo "::error file=$file::Required public file is missing or empty"
+              exit 1
+            fi
+          done
+
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find js -type f -name '*.js' -print0)
+
+          node tools/validate-static-assets.js
+          node tools/balance/first-contact-smoke.js
+
+      - name: Assemble verified static site
+        if: >-
+          github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' &&
+          inputs.deploy_production == true
+        run: bash deploy/assemble-static-site.sh "${{ runner.temp }}/tiny-cosmos-static-site"
+
+      - name: Upload verified static site
+        if: >-
+          github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' &&
+          inputs.deploy_production == true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tiny-cosmos-static-site-${{ github.sha }}
+          path: ${{ runner.temp }}/tiny-cosmos-static-site
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy-vps:
+    needs: verify
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      inputs.deploy_production == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    environment: production
+    concurrency:
+      group: tiny-cosmos-production-vps-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Download verified static site
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: tiny-cosmos-static-site-${{ github.sha }}
+          path: ${{ runner.temp }}/tiny-cosmos-static-site
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TAILSCALE_AUDIENCE }}
+          tags: tag:ci
+
+      - name: Deploy verified site to VPS
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_WWW: ${{ secrets.VPS_WWW }}
+          VPS_HEALTHCHECK_URL: ${{ secrets.VPS_HEALTHCHECK_URL }}
+        run: |
+          set -euo pipefail
+
+          : "${VPS_SSH_KEY:?Missing VPS_SSH_KEY secret}"
+          : "${VPS_HOST:?Missing VPS_HOST secret}"
+          : "${VPS_USER:?Missing VPS_USER secret}"
+          : "${VPS_PORT:?Missing VPS_PORT secret}"
+          : "${VPS_WWW:?Missing VPS_WWW secret}"
+
+          if [[ ! "$VPS_PORT" =~ ^[0-9]+$ ]] || ((VPS_PORT < 1 || VPS_PORT > 65535)); then
+            echo "::error::VPS_PORT must be an integer between 1 and 65535"
+            exit 1
+          fi
+          if [[ ! "$VPS_HOST" =~ ^[A-Za-z0-9._:-]+$ ]]; then
+            echo "::error::VPS_HOST contains unsupported characters"
+            exit 1
+          fi
+          if [[ ! "$VPS_USER" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "::error::VPS_USER contains unsupported characters"
+            exit 1
+          fi
+          if [[ ! "$VPS_WWW" =~ ^/[A-Za-z0-9._/-]+$ ]] || [[ "$VPS_WWW" == "/" ]]; then
+            echo "::error::VPS_WWW must be a dedicated absolute directory, not /"
+            exit 1
+          fi
+
+          site_root="${{ runner.temp }}/tiny-cosmos-static-site"
+          key_file="${{ runner.temp }}/tiny-cosmos-deploy-key"
+          umask 077
+          printf '%s\n' "$VPS_SSH_KEY" > "$key_file"
+          trap 'rm -f -- "$key_file"' EXIT
+
+          ssh_args=(
+            -i "$key_file"
+            -p "$VPS_PORT"
+            -o StrictHostKeyChecking=accept-new
+            -o ConnectTimeout=15
+            -o LogLevel=ERROR
+          )
+          export RSYNC_RSH="ssh -i $key_file -p $VPS_PORT -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR"
+
+          ssh "${ssh_args[@]}" "$VPS_USER@$VPS_HOST" "mkdir -p -- '$VPS_WWW'"
+          rsync -az --delete --no-motd \
+            "$site_root/" "$VPS_USER@$VPS_HOST:$VPS_WWW/"
+          ssh "${ssh_args[@]}" "$VPS_USER@$VPS_HOST" "test -s '$VPS_WWW/index.html'"
+
+          if [[ -n "$VPS_HEALTHCHECK_URL" ]]; then
+            curl --fail --show-error --silent \
+              --retry 4 --retry-delay 2 --retry-all-errors --max-time 20 \
+              "$VPS_HEALTHCHECK_URL" > /dev/null
+          fi
+
+          echo "::notice::Tiny Cosmos VPS deploy complete"
