@@ -70,7 +70,7 @@
       id: 6, name: 'Civilization', nameZh: '文明',
       color: '#f783ac', glow: 'rgba(247,131,172,0.5)',
       symbol: 'Civ',
-      baseCost: 8,          // 8 life → 1 civilization
+      baseCost: 8,          // long-form baseline; first loop overrides this below
       baseProd: 0,          // no auto-production — achievement tier
       researchCost: 5000,
       producerBaseCost: 0,  // no producers
@@ -136,13 +136,14 @@
   // balance harness calls GameState.init() without slice mode and keeps using
   // the long-form baseline above.
   var FIRST_CONTACT = {
-    targetMinutes: 30,
+    targetMinutes: 45,
     productionMultiplier: [1, 1, 1, 1, 1, 1, 1],
-    evolutionProductionMultiplier: [1.15, 1.2, 1.35, 2.5, 4, 6, 1],
-    producerBaseCosts: [14, 8, 5, 2, 1, 1, 0],
+    evolutionProductionMultiplier: [1.15, 1.2, 1.3, 1.55, 1.75, 2, 1],
+    producerBaseCosts: [14, 8, 5, 3, 2, 2, 0],
+    synthBaseCosts: [0, 3, 2, 4, 3, 5, 12],
     researchMultiplier: 2.6,
-    researchCosts: [0, 0, 45, 90, 160, 280, 480],
-    evolutionResearchMultiplier: 2.2,
+    researchCosts: [0, 0, 45, 150, 360, 900, 1800],
+    evolutionResearchMultiplier: 1.6,
     focusMultiplier: 1.8,
     focusLawBonus: 0.45,
     reserveFloors: [8, 4, 2, 1, 1, 1, 0],
@@ -156,7 +157,7 @@
     earlyStabilitySeconds: 35,
     matterStabilitySeconds: 60,
     preparationSeconds: 30,
-    lifeSignalSeconds: 36,
+    lifeSignalSeconds: 75,
   };
 
   // ── Export ──────────────────────────────────────────────────────

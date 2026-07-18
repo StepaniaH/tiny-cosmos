@@ -109,7 +109,7 @@
       id: 'route-signal', category: '记录', unlockStep: 10,
       title: '路线信号', subtitle: 'ROUTE SIGNAL',
       summary: '对本轮实际行为的归纳：推进、维持、求证与改写。',
-      detail: '路线信号不是阵营、道德分，也不是消费货币。文明阶段会用主信号和备选信号提出不同终局工程；在那之前，玩家仍可通过后续行为改变方向。',
+      detail: '路线信号不是阵营、道德分，也不是消费货币。文明会用主信号和备选信号提出不同终局工程；反宇宙客体也会模仿当前最强信号。反复沿用同一路线能让提案更明确，却会提高反侧预测压力；转向则能降低压力，但会稀释终局收束。',
     },
     {
       id: 'vacuum-leech', category: '异常', unlockStep: 12,
@@ -217,6 +217,66 @@
       detail: '“被共同遗漏之处”暗示对方并不认为视界是一堵属于正面或背面的墙。文明后来会据此争论：边界究竟分开了双方，还是由双方共同制造。',
     },
     {
+      id: 'reverse-pressure', category: '异常', unlockStep: 16,
+      title: '反侧压力', subtitle: 'REVERSE PRESSURE', summary: '背面宇宙根据正面重复行为建立预测模型后形成的生产偏差。',
+      detail: '压力不是传统生命值，也不会直接导致失败。它会轻微压低原子及以上层级的生产，并公开显示在资源卡与流量监视器中。回应客体时重复当前主路线会让提案更明确，同时提高压力；选择其他路线会让反侧暂时失去预测依据。',
+    },
+    {
+      id: 'reverse-lattice', category: '异常', unlockStep: 16,
+      title: '反相晶簇', subtitle: 'REVERSE LATTICE', summary: '在尚未成立的化学键上结晶的反侧客体。',
+      detail: '它不直接夺走原子，而是改变哪些组合更容易成立。震碎、封存、绘图与保留双侧晶面会分别改变分子产出、低层代谢、研究效率与反侧压力。它证明反宇宙可以侵入概率，而不仅是库存。',
+    },
+    {
+      id: 'negative-bond', discoveryId: 'negative-bond', category: '发现', unlockStep: 16,
+      title: '反写化学键', subtitle: 'NEGATIVE BOND', summary: '在背面断裂先于正面形成的一条因果记录。',
+      detail: '玩家对现象的处理会提供小额资源，并作为一条独立行为进入路线信号。现象卡不是纯文本奖励：它们代表观测核在主任务之外如何解释不完整证据。',
+    },
+    {
+      id: 'garden-without-outside', discoveryId: 'garden-without-outside', category: '终局', unlockStep: 16,
+      title: '没有外面的花园', subtitle: 'GARDEN WITHOUT OUTSIDE', summary: '来自无尽花园终局的一段不完整未来记录。',
+      detail: '无尽花园不是冻结一切，而是试图把所有外部扰动纳入可恢复循环。记录故意留下一个问题：当循环覆盖所有空间时，谁有权决定哪些差异值得永远保存？',
+    },
+    {
+      id: 'silent-choir', category: '异常', unlockStep: 17,
+      title: '静默合唱体', subtitle: 'SILENT CHOIR', summary: '在细胞边界外侧复制内部节拍的一群无声薄膜。',
+      detail: '它们让细胞阶段真正改变资源关系：边界可以被切断、共栖、记录或与另一侧对唱。每种回应都会同时提供收益和代价，反侧影响会持续显示在分子、细胞资源卡及流量图中。',
+    },
+    {
+      id: 'ownerless-boundary', discoveryId: 'ownerless-boundary', category: '发现', unlockStep: 17,
+      title: '无主边界', subtitle: 'OWNERLESS BOUNDARY', summary: '在没有内部居民时仍持续自我修补的一层膜。',
+      detail: '它使“保护”第一次脱离具体受益者。让谱系占据、保留空白或等待边界自行选择，会分别强调扩张、维持与求证；文明将把这类小决定视为伦理的早期证据。',
+    },
+    {
+      id: 'last-eye', discoveryId: 'last-eye', category: '终局', unlockStep: 17,
+      title: '最后一只眼睛', subtitle: 'THE LAST EYE', summary: '最后观测者终局留下的一句职责说明。',
+      detail: '最后观测者不是单纯活到最后的人，而是承担验证全部历史的人。这个目标可能保存最多证据，也可能把无法转交的孤独永久固定为宇宙结构。',
+    },
+    {
+      id: 'mirror-seed', category: '异常', unlockStep: 19,
+      title: '镜像胚种', subtitle: 'MIRROR SEED', summary: '没有祖先却携带本轮应激记忆的反侧谱系节点。',
+      detail: '它说明背面宇宙已经不只模仿资源流，也在模仿选择如何进入后代。玩家可以利用其预适应、保存其差异、验证记忆来源，或承认正反两侧可能共享同一祖先。',
+    },
+    {
+      id: 'reverse-lineage', discoveryId: 'reverse-lineage', category: '发现', unlockStep: 19,
+      title: '逆生谱系', subtitle: 'REVERSE LINEAGE', summary: '后代适应先于祖先环境出现的一条生命记录。',
+      detail: '正面谱系把过去写入后代，背面谱系可能把可行未来写回祖先。两侧的时间箭头并非完全相反，而是在生命选择的位置出现局部交叉。',
+    },
+    {
+      id: 'traveler-will', discoveryId: 'traveler-will', category: '终局', unlockStep: 19,
+      title: '越界者的遗书', subtitle: 'TRAVELER WILL', summary: '来自越过视界工程的一份尚未建造的航行记录。',
+      detail: '越过视界不是简单逃生。远行者必须接受旧宇宙无法继续解释方向、资源也无法完整回收；推进路线追求的是一次真正不可逆的选择。',
+    },
+    {
+      id: 'double-crunch-sketch', discoveryId: 'double-crunch-sketch', category: '终局', unlockStep: 20,
+      title: '双坍缩草图', subtitle: 'DOUBLE CRUNCH SKETCH', summary: '只有正反两侧同时执行才成立的坍缩曲线。',
+      detail: '双生大坍缩试图让两侧共享终结，并把各自的失败位置叠成新初始条件。它不是和平选项的代名词：双方都必须交出对下一轮起点的单独所有权。',
+    },
+    {
+      id: 'mutually-exclusive-maps', discoveryId: 'mutually-exclusive-maps', category: '终局', unlockStep: 21,
+      title: '四份互斥星图', subtitle: 'FOUR EXCLUSIVE MAPS', summary: '文明研究同时得到的四套终局空间解释。',
+      detail: '门、花园、眼睛与折回的纸张无法在同一份工程图上完全共存。路线信号的重要性正在于：它不决定文明能否想象其他未来，而决定哪一份未来已经被本轮行为证明值得先做。',
+    },
+    {
       id: 'civilization-tier', category: '文明', unlockStep: 23,
       title: '文明层', subtitle: 'CIVILIZATION SCALE', summary: '能够回读本轮历史、提出集体工程并回应观测核的第七层结构。',
       detail: '文明不是观测核的升级，也不是玩家的替身。它拥有内部派别与自己的解释；观测核可以影响资源、焦点与关键确认，却不能替文明完成所有局部生活。',
@@ -224,7 +284,7 @@
     {
       id: 'civilization-proposals', category: '文明', unlockStep: 23,
       title: '文明提案', subtitle: 'CIVILIZATION PROPOSALS', summary: '由整轮决策履历生成的主工程方向与备选方向。',
-      detail: '局部法则、接触记录和复杂性伦理先形成路线信号；文明再把最高信号解释为主提案，把第二信号解释为备选提案。它们不是阵营锁定，后续校准仍能改变最终工程。',
+      detail: '局部法则、第一次接触、三个反侧客体、偶发现象和复杂性伦理共同形成路线信号；文明再把最高信号解释为主提案，把第二信号解释为备选提案。它们不是阵营锁定，后续校准仍能改变最终工程。',
     },
   ];
 
@@ -251,7 +311,11 @@
     },
     {
       id: 'complexity', unlockStep: 17, title: '档案 04 / 里面与外面',
-      text: '分子保存连接，细胞保存边界。宇宙开始拥有只从内部成立的状态；观测核也第一次需要决定，自己将怎样照料能够维护自身的结构。',
+      text: '分子保存连接，细胞保存边界。宇宙开始拥有只从内部成立的状态；静默合唱体则在外侧复制这种内部节拍。从这里起，资源会留下生态记忆，每次反侧回应也会持续改变后续生产关系。',
+    },
+    {
+      id: 'reverse-objects', unlockStep: 19, title: '档案 04-B / 学会预测你的另一侧',
+      text: '真空水蛭只会截流；反相晶簇、静默合唱体与镜像胚种已经开始读取路线。重复一种答案让文明更确信终局，也让反宇宙更容易提前长出同一种答案。双方的冲突从资源损失变成了彼此预测。',
     },
     {
       id: 'lineages', unlockStep: 20, title: '档案 05 / 两种时间',

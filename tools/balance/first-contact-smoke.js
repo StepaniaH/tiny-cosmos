@@ -229,7 +229,8 @@ function verifyLegacySaveMigration() {
   const target = createGameRuntime();
   assert(target.GS.fromJSON(JSON.stringify(legacy)), 'Failed to migrate a legacy first-contact save');
   const migrated = target.GS.getSlice();
-  assert(migrated.version === 5, 'Legacy save version was not upgraded');
+  assert(migrated.version === 6, 'Legacy save version was not upgraded');
+  assert(migrated.reverse && migrated.reverse.objects.lattice, 'Legacy save did not receive reverse-object defaults');
   assert(migrated.enemy.observeLossLimit === null, 'Legacy enemy defaults were not restored');
   assert(migrated.flags.demoComplete === false, 'Legacy flag defaults were not restored');
   assert(migrated.stats.atomSyntheses === 0, 'Legacy stat defaults were not restored');

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050a0d">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <title>Tiny Cosmos // 第一轮文明</title>
-  <link rel="stylesheet" href="css/game.css?v=22">
+  <link rel="stylesheet" href="css/game.css?v=23">
 </head>
 <body>
   <div class="screen-noise" aria-hidden="true"></div>
@@ -16,7 +16,7 @@
       <div class="brand-mark" aria-hidden="true"><span></span><span></span></div>
       <div>
         <div class="eyebrow">OBSERVER NODE / TC-07</div>
-        <h1>TINY COSMOS <span>微型宇宙</span></h1>
+        <h1><span class="debug-letter">T<button id="debug-speed-up" type="button" tabindex="-1" aria-label="测试时间加速一百倍"></button></span>IN<span class="debug-letter">Y<button id="debug-speed-normal" type="button" tabindex="-1" aria-label="恢复正常测试时间"></button></span> COSMOS <span class="brand-zh">微型宇宙</span></h1>
       </div>
     </div>
 
@@ -154,11 +154,18 @@
           <header><span id="discovery-code">偶发发现 / 01</span><button id="discovery-ack" type="button">记入档案</button></header>
           <strong id="discovery-title"></strong>
           <p id="discovery-copy"></p>
+          <div id="discovery-choices" class="discovery-choices"></div>
           <small id="discovery-note"></small>
         </aside>
         <div id="anomaly-overlay" class="anomaly-overlay" hidden>
           <span>REVERSE-SIDE CONTACT</span><strong>真空水蛭</strong><small id="anomaly-overlay-state">正在形成</small>
         </div>
+        <section id="era-indicator" class="era-indicator" hidden aria-live="polite">
+          <span>PHASE SHIFT / CELLULAR INTERIOR</span>
+          <strong>结构开始保护“内部”</strong>
+          <small>从这一层起，资源会形成生态记忆；反侧客体也会读取你的路线。</small>
+          <div><b id="era-boundary-state">边界未建立</b><b id="era-reverse-state">反侧压力 0%</b><b id="era-route-state">路线未收束</b></div>
+        </section>
       </section>
 
       <section class="research-bar">
@@ -207,10 +214,10 @@
       <section id="route-panel" class="panel route-panel">
         <div class="panel-heading compact">
           <div><span class="panel-index">05</span><h2>路线信号</h2></div>
-          <span class="panel-code">HIDDEN COEFFICIENTS</span>
+          <span class="panel-code">ROUTE PROJECTIONS</span>
         </div>
         <div id="route-signals" class="route-signals"></div>
-        <p class="route-note">界面只显示倾向强弱。结局会读取玩家实际采用的处理方式。</p>
+        <p class="route-note">路线信号会改变反侧客体模仿你的方式，并决定文明优先提出哪项终局工程。</p>
       </section>
 
       <section class="panel log-panel">
@@ -222,11 +229,6 @@
       </section>
     </aside>
   </main>
-
-  <footer class="system-footer">
-    <span>FIRST LOOP VERTICAL SLICE / BUILD 0.7</span>
-    <span>七层资源、第一次接触、发展伦理与文明议案已接入。</span>
-  </footer>
 
   <div id="prestige-panel" hidden><button id="prestige-btn"></button><span id="prestige-gain-text"></span><div id="prestige-detail"><span id="cp-total"></span><span id="cp-used"></span><span id="cp-free"></span><input id="constant-strong" type="range"><input id="constant-light" type="range"><input id="constant-gravity" type="range"><span id="sf-level"></span><span id="sf-effect"></span><span id="ls-level"></span><span id="ls-effect"></span><span id="gv-level"></span><span id="gv-effect"></span></div></div>
   <div id="milestones-bar" hidden></div>
@@ -269,14 +271,14 @@
   <div id="ui-tooltip" class="ui-tooltip" role="tooltip" hidden><strong id="ui-tooltip-title"></strong><p id="ui-tooltip-copy"></p></div>
   <div id="system-toast" class="system-toast" aria-live="polite"></div>
 
-  <script src="js/constants.js?v=21"></script>
-  <script src="js/state.js?v=21"></script>
-  <script src="js/slice.js?v=11"></script>
-  <script src="js/lore.js?v=4"></script>
-  <script src="js/engine.js?v=19"></script>
-  <script src="js/render.js?v=19"></script>
+  <script src="js/constants.js?v=22"></script>
+  <script src="js/state.js?v=22"></script>
+  <script src="js/slice.js?v=12"></script>
+  <script src="js/lore.js?v=5"></script>
+  <script src="js/engine.js?v=20"></script>
+  <script src="js/render.js?v=20"></script>
   <script src="js/audio.js?v=3"></script>
-  <script src="js/ui.js?v=22"></script>
+  <script src="js/ui.js?v=23"></script>
   <script src="js/main.js?v=19"></script>
 </body>
 </html>
