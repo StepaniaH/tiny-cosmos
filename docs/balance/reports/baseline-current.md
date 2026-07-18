@@ -1,83 +1,78 @@
-# Current Balance Baseline
+# 当前平衡基线
 
-This baseline captures the deterministic validation run for the current balance system. It records current behavior; it is not yet a strict pass/fail target.
+本文记录当前数值系统在确定性验证中的表现，供后续玩法和数值改动比较。
 
-## Source
+## 来源
 
-- Command: `node tools/balance/run-validation.js --all`
-- Commit: `cca1354`
-- Generated: 2026-07-07T10:32:10.318Z
-- Local JSON report: `reports/balance/validation-cca1354-2026-07-07T10-32-10-318Z.json`
+- 命令：`node tools/balance/run-validation.js --all`
+- 提交：`cca1354`
+- 生成时间：`2026-07-07T10:32:10.318Z`
+- 本地 JSON：`reports/balance/validation-cca1354-2026-07-07T10-32-10-318Z.json`
 
-## Scenario Summary
+## 场景结果
 
-## idle-10m
+### `idle-10m`：十分钟纯放置
 
-- Max researched tier: 1
-- Research points: 16.10
-- Total quarks ever: 180.00
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：1
+- 研究点：16.10
+- 历史夸克总量：180.00
+- 可大坍缩：否
+- 最终警告：无
 
-## click-start-10m
+### `click-start-10m`：十分钟点击开局
 
-- Max researched tier: 1
-- Research points: 19.96
-- Total quarks ever: 813.42
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：1
+- 研究点：19.96
+- 历史夸克总量：813.42
+- 可大坍缩：否
+- 最终警告：无
 
-## guided-30m
+### `guided-30m`：三十分钟引导策略
 
-- Max researched tier: 3
-- Research points: 34.96
-- Total quarks ever: 7204.54
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：3
+- 研究点：34.96
+- 历史夸克总量：7204.54
+- 可大坍缩：否
+- 最终警告：无
 
-## guided-60m
+### `guided-60m`：六十分钟引导策略
 
-- Max researched tier: 4
-- Research points: 181.71
-- Total quarks ever: 22444.37
-- Can prestige: false
-- Final warnings: none
+- 最高研究层级：4
+- 研究点：181.71
+- 历史夸克总量：22444.37
+- 可大坍缩：否
+- 最终警告：无
 
-## first-prestige
+### `first-prestige`：第一轮大坍缩
 
-- Max researched tier: 6
-- Research points: 0.62
-- Total quarks ever: 113224.53
-- Can prestige: true
-- Final warnings: none
-- Reached prestige: true
-- Prestige time: 11496s
+- 最高研究层级：6
+- 研究点：0.62
+- 历史夸克总量：113224.53
+- 可大坍缩：是
+- 最终警告：无
+- 已抵达大坍缩：是
+- 抵达时间：11496 秒，约 3.2 小时
 
-## post-prestige-10m
+### `post-prestige-10m`：大坍缩后十分钟
 
-- Max researched tier: 2
-- Research points: 6.96
-- Total quarks ever: 119643.83
-- Can prestige: false
-- Final warnings: none
-- Constants: strongForce=3, lightSpeed=3, gravity=4
+- 最高研究层级：2
+- 研究点：6.96
+- 历史夸克总量：119643.83
+- 可大坍缩：否
+- 最终警告：无
+- 恒定点分配：强核力 3、光速 3、引力 4
 
-## Interpretation
+## 使用方法
 
-Use this baseline to compare direction and magnitude of future changes. Update it after intentional balance corrections, and keep exploratory generated reports local unless they become reviewed baseline evidence.
+该基线用于比较方向和变化幅度。数值修正通过评审后再更新本文。探索性报告只保留在本地。
 
-## Acceptance Ranges
+## 验收范围
 
-These are the minimum pass criteria for the deterministic guided strategy. Changes causing scenario
-results to fall outside these ranges should be reviewed and documented:
+- `idle-10m`：至少到达层级 1，没有警告。
+- `click-start-10m`：至少到达层级 1，没有警告。
+- `guided-30m`：至少到达层级 3，没有警告。
+- `guided-60m`：至少到达层级 4，没有警告。
+- `first-prestige`：24 个模拟小时内抵达大坍缩；当前为 11496 秒。
+- `post-prestige-10m`：必须运行，至少到达层级 2，没有警告，并体现第二轮提速。
 
-- `idle-10m`: must reach tier 1 with no warnings.
-- `click-start-10m`: must reach tier 1 with no warnings.
-- `guided-30m`: must reach tier 3 with no warnings.
-- `guided-60m`: must reach tier 4 with no warnings.
-- `first-prestige`: must reach Big Crunch within 24 simulated hours (current actual: 11496s = ~3.2 hours).
-- `post-prestige-10m`: must run (not skip) and must reach at least tier 2 with no warnings, showing visible acceleration over the pre-prestige `guided` scenarios.
-
-These ranges preserve early game pacing while requiring a reachable prestige loop under the
-deterministic guided strategy. See `docs/balance/protocol.md` for how to use these ranges during
-development.
+完整流程见 `docs/balance/protocol.md`。

@@ -1,27 +1,24 @@
-# Machine Learning Backlog
+# 机器学习待办
 
-Machine learning is useful later, but not necessary for phase-one balance validation.
+## 当前判断
 
-## Why Not Now
+项目目前需要稳定的确定性场景、明确指标和可比较基线。历史数据量不足，玩法规则仍在调整，机器学习暂不进入开发计划。
 
-The project currently needs deterministic scenarios, explicit metrics, and stable baselines. ML would add complexity before there is enough historical data to learn from.
+## 后续用途
 
-## Later Candidate Uses
+1. 从历史报告中发现异常增长曲线。
+2. 在人工设定范围内搜索数值参数。
+3. 比较多种确定性策略，寻找全面占优或无法完成的路线。
+4. 为大型数值改动提供回归风险提示。
 
-1. Anomaly detection across historical validation reports.
-2. Parameter search after human-authored target ranges exist.
-3. Strategy clustering after several deterministic or scripted play styles exist.
-4. Regression risk scoring for large balance changes.
+## 启动条件
 
-## Entry Criteria
+- 至少积累 20 份有用的验证报告。
+- 场景规则经过数轮玩法修改后仍然稳定。
+- 各层解锁、第一轮大坍缩和第二轮提速拥有人工验收范围。
+- 推进、维持、求证等策略已经有独立脚本。
+- 确定性验证继续作为提交门槛。
 
-Consider ML only after:
+## 使用限制
 
-- At least 20 committed or archived validation reports exist.
-- Scenario rules have stayed stable for several gameplay changes.
-- Human-readable acceptance ranges exist for tier unlocks, first prestige, and second-run acceleration.
-- Deterministic validation remains the required gate.
-
-## Non-Negotiable Rule
-
-ML can suggest suspicious curves or candidate parameters. It must not replace deterministic validation reports or human design judgment.
+机器学习可以提出可疑曲线和候选参数。最终数值需要通过确定性场景和人工设计评审。

@@ -31,7 +31,8 @@
   // ── Init ──
   function init() {
     // Load or new game
-    if (!loadGame()) GS.init();
+    if (!loadGame()) GS.init({ firstContact: true });
+    if (window.GameSlice) window.GameSlice.init();
 
     // Engine tick: keep simulation at 20/s, but redraw DOM HUD at 4/s.
     GE.onTick(function () {
@@ -58,14 +59,15 @@
     document.getElementById('save-btn').addEventListener('click', function () {
       saveGame();
       var b = document.getElementById('save-btn');
-      b.textContent = '✅'; setTimeout(function () { b.textContent = '💾'; }, 1200);
+      b.textContent = '已保存'; setTimeout(function () { b.textContent = '保存'; }, 1200);
     });
 
     // Reset button
     document.getElementById('reset-btn').addEventListener('click', function () {
-      if (confirm('重置所有进度？此操作不可撤销。')) {
+      if (confirm('重启当前第一次接触宇宙？本竖切存档会被清除。')) {
         GE.stop();
-        GS.init();
+        GS.init({ firstContact: true });
+        if (window.GameSlice) window.GameSlice.init();
         try { localStorage.removeItem(GC.SAVE_KEY); } catch (e) {}
         UI.refreshAll();
         GE.start();
@@ -73,6 +75,16 @@
     });
 
     window.addEventListener('beforeunload', saveGame);
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        Renderer.flushClicks();
+        saveGame();
+        GE.stop();
+      } else {
+        GE.start();
+        UI.refreshAll();
+      }
+    });
   }
 
   if (document.readyState === 'loading') {

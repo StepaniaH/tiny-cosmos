@@ -3,146 +3,278 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>微型宇宙 · Tiny Cosmos</title>
-  <link rel="stylesheet" href="css/game.css?v=10">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <title>Tiny Cosmos // 第一次接触</title>
+  <link rel="stylesheet" href="css/game.css?v=20">
 </head>
 <body>
+  <div class="screen-noise" aria-hidden="true"></div>
 
-<header class="header">
-  <h1 class="title">微型宇宙 <span class="title-en">Tiny Cosmos</span></h1>
-  <div class="header-actions">
-    <button id="save-btn" class="btn btn-ghost">💾</button>
-    <button id="reset-btn" class="btn btn-ghost">🔄</button>
-  </div>
-</header>
-
-<!-- Canvas -->
-<div id="cosmos-stage" class="cosmos-stage" style="height:35vh">
-  <canvas id="cosmos-canvas"></canvas>
-  <div id="click-hint" class="click-hint">👆 点击产生夸克</div>
-</div>
-
-<!-- Research -->
-<div class="research-bar">
-  <div class="rb-left">
-    <span class="rb-label">🔬 研究点数</span>
-    <span class="rb-value" id="rb-rp">0</span>
-    <span class="rb-hint" id="rb-hint">由已解锁最高层自动产出</span>
-  </div>
-  <div class="rb-track"><div id="rb-fill" class="rb-fill"></div></div>
-  <button id="btn-research-global" class="btn btn-blue" disabled>研究下一层</button>
-  <span class="rb-next" id="rb-next-label"></span>
-</div>
-
-<!-- Tier Cards — all 7 persistent -->
-<div class="tier-grid" id="tier-grid">
-  <!-- Tier 0: Quark -->
-  <div id="card-0" class="tier-card">
-    <div class="tc-head"><span class="tc-dot" style="background:#ff6b6b"></span><span class="tc-name">夸克</span><span class="tc-en">Quark</span></div>
-    <div class="tc-count" id="count-0">0</div>
-    <div class="tc-bars" id="bars-0"></div>
-    <div class="tc-net" id="net-0"></div>
-    <button id="btn-prod-0" class="btn btn-tier" disabled>⚙ 生产 (11)</button>
-  </div>
-  <!-- Tier 1: Nucleon -->
-  <div id="card-1" class="tier-card">
-    <div class="tc-head"><span class="tc-dot" style="background:#ffa94d"></span><span class="tc-name">核子</span><span class="tc-en">Nucleon</span></div>
-    <div class="tc-count" id="count-1">0</div>
-    <div class="tc-bars" id="bars-1"></div>
-    <div class="tc-net" id="net-1"></div>
-    <div class="tc-btns">
-      <button id="btn-prod-1" class="btn btn-tier" disabled>⚙ 生产 (5)</button>
-      <button id="btn-synth-1" class="btn btn-tier" disabled>⬆ 合成 (3)</button>
+  <header class="command-header">
+    <div class="brand-lockup">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span></div>
+      <div>
+        <div class="eyebrow">OBSERVER NODE / TC-07</div>
+        <h1>TINY COSMOS <span>微型宇宙</span></h1>
+      </div>
     </div>
-  </div>
-  <!-- Tier 2: Atom -->
-  <div id="card-2" class="tier-card locked">
-    <div class="tc-head"><span class="tc-dot" style="background:#ffd43b"></span><span class="tc-name">原子</span><span class="tc-en">Atom</span></div>
-    <div class="tc-count" id="count-2" style="display:none">0</div>
-    <div class="tc-bars" id="bars-2" style="display:none"></div>
-    <div class="tc-net" id="net-2" style="display:none"></div>
-    <div class="tc-locked">🔒 尚未揭示</div>
-    <button id="btn-prod-2" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
-    <button id="btn-synth-2" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
-    <button id="btn-research-2" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究 (0/50 RP)</button>
-  </div>
-  <!-- Tier 3: Molecule -->
-  <div id="card-3" class="tier-card locked">
-    <div class="tc-head"><span class="tc-dot" style="background:#69db7c"></span><span class="tc-name">分子</span><span class="tc-en">Molecule</span></div>
-    <div class="tc-count" id="count-3" style="display:none">0</div>
-    <div class="tc-bars" id="bars-3" style="display:none"></div>
-    <div class="tc-net" id="net-3" style="display:none"></div>
-    <div class="tc-locked">🔒 尚未揭示</div>
-    <button id="btn-prod-3" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
-    <button id="btn-synth-3" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
-    <button id="btn-research-3" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
-  </div>
-  <!-- Tier 4: Cell -->
-  <div id="card-4" class="tier-card locked">
-    <div class="tc-head"><span class="tc-dot" style="background:#4dabf7"></span><span class="tc-name">细胞</span><span class="tc-en">Cell</span></div>
-    <div class="tc-count" id="count-4" style="display:none">0</div>
-    <div class="tc-bars" id="bars-4" style="display:none"></div>
-    <div class="tc-net" id="net-4" style="display:none"></div>
-    <div class="tc-locked">🔒 尚未揭示</div>
-    <button id="btn-prod-4" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
-    <button id="btn-synth-4" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
-    <button id="btn-research-4" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
-  </div>
-  <!-- Tier 5: Life -->
-  <div id="card-5" class="tier-card locked">
-    <div class="tc-head"><span class="tc-dot" style="background:#cc5de8"></span><span class="tc-name">生命</span><span class="tc-en">Life</span></div>
-    <div class="tc-count" id="count-5" style="display:none">0</div>
-    <div class="tc-bars" id="bars-5" style="display:none"></div>
-    <div class="tc-net" id="net-5" style="display:none"></div>
-    <div class="tc-locked">🔒 尚未揭示</div>
-    <button id="btn-prod-5" class="btn btn-tier" disabled style="display:none">⚙ 生产</button>
-    <button id="btn-synth-5" class="btn btn-tier" disabled style="display:none">⬆ 合成</button>
-    <button id="btn-research-5" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
-  </div>
-  <!-- Tier 6: Civilization -->
-  <div id="card-6" class="tier-card locked">
-    <div class="tc-head"><span class="tc-dot" style="background:#f783ac"></span><span class="tc-name">文明</span><span class="tc-en">Civilization</span></div>
-    <div class="tc-count" id="count-6" style="display:none">0</div>
-    <div class="tc-bars" id="bars-6" style="display:none"></div>
-    <div class="tc-net" id="net-6" style="display:none"></div>
-    <div class="tc-locked">🔒 尚未揭示</div>
-    <button id="btn-research-6" class="btn btn-blue btn-tier" disabled style="display:none">🔬 研究</button>
-  </div>
-</div>
 
-<!-- Prestige -->
-<div id="prestige-panel" class="prestige-panel" style="display:none">
-  <div class="prestige-trigger">
-    <button id="prestige-btn" class="btn btn-prestige">🌌 大坍缩</button>
-    <span id="prestige-gain-text"></span>
-  </div>
-  <div id="prestige-detail" class="prestige-detail" style="display:none">
-    <div class="constant-row">
-      <span>💪 强核力 <span id="sf-level">0</span></span>
-      <input type="range" id="constant-strong" min="0" value="0">
-      <span>÷<span id="sf-effect">1.00</span></span>
+    <div class="header-telemetry">
+      <div class="telemetry-cell">
+        <span>任务时标</span>
+        <strong id="mission-clock">00:00</strong>
+      </div>
+      <div class="telemetry-cell">
+        <span>观测窗口</span>
+        <strong>20 MIN</strong>
+      </div>
+      <div class="telemetry-cell status-online">
+        <span>节点状态</span>
+        <strong><i></i> ONLINE</strong>
+      </div>
     </div>
-    <div class="constant-row">
-      <span>⚡ 光速 <span id="ls-level">0</span></span>
-      <input type="range" id="constant-light" min="0" value="0">
-      <span>×<span id="ls-effect">1.00</span></span>
-    </div>
-    <div class="constant-row">
-      <span>🌍 引力 <span id="gv-level">0</span></span>
-      <input type="range" id="constant-gravity" min="0" value="0">
-      <span>×<span id="gv-effect">1.00</span></span>
-    </div>
-    <div class="cp-info">恒定点: <span id="cp-total">0</span> | 已用: <span id="cp-used">0</span> | 可用: <span id="cp-free">0</span></div>
-  </div>
-</div>
 
-<div id="milestones-bar" class="milestones-bar" style="display:none"></div>
+    <div class="header-actions">
+      <button id="sound-toggle" class="btn btn-quiet audio-toggle" type="button" aria-pressed="false">声音 · 开</button>
+      <button id="archive-btn" class="btn btn-quiet">档案 <span id="archive-count">3</span></button>
+      <button id="save-btn" class="btn btn-quiet">保存</button>
+      <button id="reset-btn" class="btn btn-danger-quiet">重启宇宙</button>
+    </div>
+  </header>
 
-<script src="js/constants.js?v=10"></script>
-<script src="js/state.js?v=10"></script>
-<script src="js/engine.js?v=10"></script>
-<script src="js/render.js?v=10"></script>
-<script src="js/ui.js?v=10"></script>
-<script src="js/main.js?v=10"></script>
+  <main class="command-grid">
+    <aside class="panel resource-panel">
+      <div class="panel-heading">
+        <div><span class="panel-index">01</span><h2>物质层级</h2></div>
+        <span class="panel-code">MATTER STACK</span>
+      </div>
+
+      <div class="tier-grid" id="tier-grid">
+        <article id="card-0" class="tier-card" data-tier="0">
+          <div class="tc-head"><span class="tc-index">T0</span><img class="tc-icon" src="assets/icons/tiers/tier-quark.svg" alt=""><span class="tc-name">夸克</span><span class="tc-en">QUARK</span></div>
+          <div class="tc-readout"><strong id="count-0">0</strong><span id="state-0">循环</span></div>
+          <div class="tc-bars" id="bars-0"></div><div class="tc-net" id="net-0"></div><div class="tc-modifiers" id="modifiers-0"></div>
+          <div class="tc-actions">
+            <button id="btn-prod-0" class="btn btn-tier" disabled>增设生产单元</button>
+            <button id="btn-focus-0" class="btn btn-micro">聚焦</button>
+            <button id="btn-reserve-0" class="btn btn-micro">保护</button>
+          </div>
+        </article>
+
+        <article id="card-1" class="tier-card" data-tier="1">
+          <div class="tc-head"><span class="tc-index">T1</span><img class="tc-icon" src="assets/icons/tiers/tier-nucleon.svg" alt=""><span class="tc-name">核子</span><span class="tc-en">NUCLEON</span></div>
+          <div class="tc-readout"><strong id="count-1">0</strong><span id="state-1">短缺</span></div>
+          <div class="tc-bars" id="bars-1"></div><div class="tc-net" id="net-1"></div><div class="tc-modifiers" id="modifiers-1"></div>
+          <div class="tc-actions">
+            <button id="btn-prod-1" class="btn btn-tier" disabled>增设生产单元</button>
+            <button id="btn-synth-1" class="btn btn-tier" disabled>夸克 → 核子</button>
+            <button id="btn-focus-1" class="btn btn-micro">聚焦</button>
+            <button id="btn-reserve-1" class="btn btn-micro">保护</button>
+          </div>
+        </article>
+
+        <article id="card-2" class="tier-card locked" data-tier="2">
+          <div class="tc-head"><span class="tc-index">T2</span><img class="tc-icon" src="assets/icons/tiers/tier-atom.svg" alt=""><span class="tc-name">原子</span><span class="tc-en">ATOM</span></div>
+          <div class="tc-readout"><strong id="count-2" style="display:none">0</strong><span id="state-2" style="display:none">短缺</span></div>
+          <div class="tc-bars" id="bars-2" style="display:none"></div><div class="tc-net" id="net-2" style="display:none"></div><div class="tc-modifiers" id="modifiers-2" style="display:none"></div>
+          <div class="tc-locked">未揭示 / NO SIGNAL</div>
+          <div class="tc-actions">
+            <button id="btn-prod-2" class="btn btn-tier" disabled style="display:none">增设生产单元</button>
+            <button id="btn-synth-2" class="btn btn-tier" disabled style="display:none">核子 → 原子</button>
+            <button id="btn-research-2" class="btn btn-tier btn-primary" disabled style="display:none">研究原子</button>
+            <button id="btn-focus-2" class="btn btn-micro" style="display:none">聚焦</button>
+            <button id="btn-reserve-2" class="btn btn-micro" style="display:none">保护</button>
+          </div>
+        </article>
+
+        <article id="card-3" class="tier-card locked horizon-card" data-tier="3">
+          <div class="tc-head"><span class="tc-index">T3</span><img class="tc-icon" src="assets/icons/tiers/tier-molecule.svg" alt=""><span class="tc-name">分子</span><span class="tc-en">MOLECULE</span></div>
+          <div id="count-3" style="display:none">0</div><div id="bars-3" style="display:none"></div><div id="net-3" style="display:none"></div>
+          <div class="tc-locked">竖切边界 / NEXT BUILD</div>
+          <button id="btn-prod-3" style="display:none"></button><button id="btn-synth-3" style="display:none"></button><button id="btn-research-3" style="display:none"></button>
+          <button id="btn-focus-3" style="display:none"></button><button id="btn-reserve-3" style="display:none"></button>
+        </article>
+
+        <article id="card-4" class="tier-card locked horizon-card" data-tier="4">
+          <div class="tc-head"><span class="tc-index">T4</span><img class="tc-icon" src="assets/icons/tiers/tier-cell.svg" alt=""><span class="tc-name">细胞</span><span class="tc-en">CELL</span></div>
+          <div id="count-4" style="display:none">0</div><div id="bars-4" style="display:none"></div><div id="net-4" style="display:none"></div>
+          <div class="tc-locked">竖切边界 / NEXT BUILD</div>
+          <button id="btn-prod-4" style="display:none"></button><button id="btn-synth-4" style="display:none"></button><button id="btn-research-4" style="display:none"></button>
+          <button id="btn-focus-4" style="display:none"></button><button id="btn-reserve-4" style="display:none"></button>
+        </article>
+
+        <article id="card-5" class="tier-card locked horizon-card" data-tier="5">
+          <div class="tc-head"><span class="tc-index">T5</span><img class="tc-icon" src="assets/icons/tiers/tier-life.svg" alt=""><span class="tc-name">生命</span><span class="tc-en">LIFE</span></div>
+          <div id="count-5" style="display:none">0</div><div id="bars-5" style="display:none"></div><div id="net-5" style="display:none"></div>
+          <div class="tc-locked">竖切边界 / NEXT BUILD</div>
+          <button id="btn-prod-5" style="display:none"></button><button id="btn-synth-5" style="display:none"></button><button id="btn-research-5" style="display:none"></button>
+          <button id="btn-focus-5" style="display:none"></button><button id="btn-reserve-5" style="display:none"></button>
+        </article>
+
+        <article id="card-6" class="tier-card locked horizon-card" data-tier="6">
+          <div class="tc-head"><span class="tc-index">T6</span><img class="tc-icon" src="assets/icons/tiers/tier-civilization.svg" alt=""><span class="tc-name">文明</span><span class="tc-en">CIVILIZATION</span></div>
+          <div id="count-6" style="display:none">0</div><div id="bars-6" style="display:none"></div><div id="net-6" style="display:none"></div>
+          <div class="tc-locked">终局提案 / FUTURE</div>
+          <button id="btn-research-6" style="display:none"></button><button id="btn-focus-6" style="display:none"></button><button id="btn-reserve-6" style="display:none"></button>
+        </article>
+      </div>
+    </aside>
+
+    <section class="center-stack">
+      <section class="mission-strip">
+        <div class="mission-sequence"><span><img id="mission-icon" src="assets/icons/missions/mission-input.svg" alt=""><b id="mission-index">01 / 16</b></span><div class="mission-track"><i id="mission-progress"></i></div></div>
+        <div class="mission-copy">
+          <div class="mission-copy-head"><span id="mission-code">BOOT-01</span><strong id="mission-title">建立观测响应</strong></div>
+          <div class="mission-action-progress"><div><i id="mission-action-fill"></i></div><span id="mission-action-label">中央光核 0 / 5 次</span></div>
+        </div>
+        <button id="guide-dock" class="mission-state" type="button" aria-label="收起场景引导"><span>场景引导</span><b id="guide-dock-label">已展开</b></button>
+      </section>
+
+      <section id="cosmos-stage" class="cosmos-stage">
+        <canvas id="cosmos-canvas"></canvas>
+        <div class="reverse-noise-overlay" aria-hidden="true"></div>
+        <div class="canvas-corner top-left"><span>LOCAL COSMOS / LIVE</span><b id="canvas-focus-label">FOCUS · 夸克</b></div>
+        <div class="canvas-corner top-right"><span>ENTROPY TRACE</span><b id="entropy-label">NOMINAL</b></div>
+        <div id="click-hint" class="click-hint"><span>操作</span> 点击中央光核 · 获得 1 夸克</div>
+        <section id="flow-monitor" class="flow-monitor collapsed" aria-label="物质流量监视器">
+          <div class="flow-monitor-head">
+            <div><span>MATTER FLOW / Δt</span><strong>物质流量</strong></div>
+            <button id="flow-monitor-toggle" type="button" aria-expanded="false" aria-label="展开物质流量监视器">+</button>
+          </div>
+          <div id="flow-monitor-body" class="flow-monitor-body">
+            <section id="stability-checklist" class="stability-checklist" hidden></section>
+            <div class="flow-legend"><strong>资源平衡</strong><span class="prod">产出</span><span class="demand">消耗</span><span class="net">净变化</span></div>
+            <div id="flow-chart" class="flow-chart"></div>
+            <section id="research-trend" class="research-trend" aria-label="研究速率最近六十秒变化"></section>
+          </div>
+        </section>
+        <aside id="discovery-card" class="discovery-card" hidden aria-live="polite">
+          <header><span id="discovery-code">偶发发现 / 01</span><button id="discovery-ack" type="button">记入档案</button></header>
+          <strong id="discovery-title"></strong>
+          <p id="discovery-copy"></p>
+          <small id="discovery-note"></small>
+        </aside>
+        <div id="anomaly-overlay" class="anomaly-overlay" hidden>
+          <span>REVERSE-SIDE CONTACT</span><strong>真空水蛭</strong><small id="anomaly-overlay-state">正在形成</small>
+        </div>
+      </section>
+
+      <section class="research-bar">
+        <div class="research-label"><span>研究通道 / RP</span><strong id="rb-rp">0</strong><small id="rb-hint">来自已稳定资源</small></div>
+        <div class="research-progress"><div class="rb-track"><i id="rb-fill"></i></div><span id="rb-next-label"></span></div>
+        <div class="research-actions">
+          <button id="research-details-toggle" class="btn btn-quiet" type="button" aria-expanded="false">研究构成</button>
+          <button id="btn-research-global" class="btn btn-primary" disabled>研究原子层</button>
+        </div>
+        <div id="research-breakdown" class="research-breakdown" hidden></div>
+      </section>
+
+      <section id="contact-panel" class="panel contact-panel">
+        <div class="panel-heading compact">
+          <div><span class="panel-index">02</span><h2>反宇宙接触</h2></div>
+          <span id="contact-status" class="status-chip">未发现</span>
+        </div>
+        <div id="contact-content" class="contact-content">
+          <div class="empty-state"><span class="reticle-icon"></span><p>当前视界内没有稳定敌对结构。</p><small>第一次法则确定后，未被选择的可能性会开始积累。</small></div>
+        </div>
+      </section>
+    </section>
+
+    <aside class="right-stack">
+      <section id="directive-panel" class="panel directive-panel">
+        <div class="panel-heading compact">
+          <div><span class="panel-index">03</span><h2>观测指令</h2></div>
+          <span class="panel-code">GUIDANCE</span>
+        </div>
+        <p id="directive-copy" class="directive-copy">点击中央光核五次。每次响应都会记录一枚夸克。</p>
+        <div class="directive-hint"><span>操作说明</span><p id="directive-hint">中央画布既是宇宙视图，也是最初的手动输入。</p></div>
+        <div class="directive-progress"><span>当前进度</span><b id="directive-progress-label">中央光核 0 / 5 次</b><div><i id="directive-progress-fill"></i></div></div>
+      </section>
+
+      <section id="event-panel" class="panel event-panel">
+        <div class="panel-heading compact">
+          <div><span class="panel-index">04</span><h2>决策队列</h2></div>
+          <span id="event-status" class="status-chip muted">空闲</span>
+        </div>
+        <div id="event-content" class="event-content">
+          <div class="empty-state small"><p>没有待处理的重要决策。</p><small>事件会保留，不会在离线时过期。</small></div>
+        </div>
+      </section>
+
+      <section id="route-panel" class="panel route-panel">
+        <div class="panel-heading compact">
+          <div><span class="panel-index">05</span><h2>路线信号</h2></div>
+          <span class="panel-code">HIDDEN COEFFICIENTS</span>
+        </div>
+        <div id="route-signals" class="route-signals"></div>
+        <p class="route-note">界面只显示倾向强弱。结局会读取玩家实际采用的处理方式。</p>
+      </section>
+
+      <section class="panel log-panel">
+        <div class="panel-heading compact">
+          <div><span class="panel-index">06</span><h2>观测日志</h2></div>
+          <span class="live-mark"><i></i> LIVE</span>
+        </div>
+        <div id="observation-log" class="observation-log"></div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="system-footer">
+    <span>FIRST CONTACT VERTICAL SLICE / BUILD 0.6</span>
+    <span>图标与星尘纹理已接入；专用模型和音频继续遵循资产清单接口。</span>
+  </footer>
+
+  <div id="prestige-panel" hidden><button id="prestige-btn"></button><span id="prestige-gain-text"></span><div id="prestige-detail"><span id="cp-total"></span><span id="cp-used"></span><span id="cp-free"></span><input id="constant-strong" type="range"><input id="constant-light" type="range"><input id="constant-gravity" type="range"><span id="sf-level"></span><span id="sf-effect"></span><span id="ls-level"></span><span id="ls-effect"></span><span id="gv-level"></span><span id="gv-effect"></span></div></div>
+  <div id="milestones-bar" hidden></div>
+
+  <div id="guide-layer" class="guide-layer" aria-live="polite">
+    <div class="guide-dim guide-dim-top"></div>
+    <div class="guide-dim guide-dim-right"></div>
+    <div class="guide-dim guide-dim-bottom"></div>
+    <div class="guide-dim guide-dim-left"></div>
+    <div id="guide-target-ring" class="guide-target-ring" aria-hidden="true"></div>
+    <aside id="guide-callout" class="guide-callout">
+      <div class="guide-callout-head"><span id="guide-step-label">引导 01 / 16</span><button id="guide-collapse" type="button">稍后再看</button></div>
+      <strong id="guide-title">建立观测响应</strong>
+      <p id="guide-world">你接管了一台刚从坍缩中恢复的观测核。</p>
+      <div class="guide-action"><span>现在操作</span><p id="guide-action-copy">点击中央光核五次，每次响应都会记录一枚夸克。</p></div>
+      <div class="guide-callout-progress"><div><i id="guide-progress-fill"></i></div><b id="guide-progress-label">0 / 5</b></div>
+      <button id="guide-return" class="guide-return" type="button" hidden>返回主界面继续操作</button>
+    </aside>
+  </div>
+  <div id="lore-layer" class="lore-layer" hidden aria-hidden="true">
+    <button id="lore-backdrop" class="lore-backdrop" type="button" aria-label="关闭观测档案"></button>
+    <aside class="lore-drawer" role="dialog" aria-modal="true" aria-labelledby="lore-title">
+      <header class="lore-drawer-head">
+        <div><span>OBSERVER ARCHIVE / TC-07</span><h2 id="lore-title">观测档案</h2></div>
+        <button id="lore-close" class="btn btn-quiet" type="button">关闭</button>
+      </header>
+      <p class="lore-primer">档案只陈述当前版本已经确定的世界规则。新记录会随观测指令解锁，不要求在操作前读完。</p>
+      <section class="lore-section" aria-labelledby="lore-chapter-title">
+        <div class="lore-section-head"><h3 id="lore-chapter-title">本轮剧情记录</h3><span id="lore-chapter-count"></span></div>
+        <div id="lore-chapters" class="lore-chapters"></div>
+      </section>
+      <section class="lore-section" aria-labelledby="lore-terms-title">
+        <div class="lore-section-head"><h3 id="lore-terms-title">主要名词</h3><span id="lore-term-count"></span></div>
+        <nav id="lore-categories" class="lore-categories" aria-label="档案分类"></nav>
+        <label class="lore-search"><span>筛选档案</span><input id="lore-search" type="search" autocomplete="off" placeholder="输入名词、分类或说明"></label>
+        <div id="lore-entries" class="lore-entries"></div>
+      </section>
+    </aside>
+  </div>
+  <div id="ui-tooltip" class="ui-tooltip" role="tooltip" hidden><strong id="ui-tooltip-title"></strong><p id="ui-tooltip-copy"></p></div>
+  <div id="system-toast" class="system-toast" aria-live="polite"></div>
+
+  <script src="js/constants.js?v=19"></script>
+  <script src="js/state.js?v=19"></script>
+  <script src="js/slice.js?v=9"></script>
+  <script src="js/lore.js?v=2"></script>
+  <script src="js/engine.js?v=19"></script>
+  <script src="js/render.js?v=19"></script>
+  <script src="js/audio.js?v=1"></script>
+  <script src="js/ui.js?v=20"></script>
+  <script src="js/main.js?v=19"></script>
 </body>
 </html>

@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 1,
+  "packName": "tiny-cosmos-asset-pack",
+  "buildFps": 30,
+  "jobs": [
+    {
+      "jobId": "M001",
+      "type": "model",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-M001",
+      "nameZh": "观测核",
+      "outputs": ["assets/models/observation-core.glb", "source-art/blender/observation-core.blend"],
+      "animations": ["idle", "pulse", "research", "unlock", "alert"],
+      "specRef": "asset-production-spec.md#M001-观测核",
+      "promptRef": "asset-prompts.md#M001-观测核",
+      "required": true
+    },
+    {
+      "jobId": "M002",
+      "type": "model",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-M002",
+      "nameZh": "真空水蛭",
+      "outputs": ["assets/models/vacuum-leech.glb", "source-art/blender/vacuum-leech.blend"],
+      "animations": ["form", "attach", "siphon", "overload", "cutoff", "observe", "retreat"],
+      "specRef": "asset-production-spec.md#M002-真空水蛭",
+      "promptRef": "asset-prompts.md#M002-真空水蛭",
+      "required": true
+    },
+    {
+      "jobId": "M003",
+      "type": "model",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-M003",
+      "nameZh": "核心余像",
+      "outputs": ["assets/models/contact-afterimage.glb", "source-art/blender/contact-afterimage.blend"],
+      "animations": ["idle", "condense", "fuel", "return", "archive"],
+      "specRef": "asset-production-spec.md#M003-核心余像",
+      "promptRef": "asset-prompts.md#M003-核心余像",
+      "required": true
+    },
+    {
+      "jobId": "M004",
+      "type": "model",
+      "priority": "P1",
+      "seed": "TC-FC-20260718-M004",
+      "nameZh": "通用生产单元",
+      "outputs": ["assets/models/production-unit.glb", "source-art/blender/production-unit.blend"],
+      "animations": ["idle", "build", "upgrade", "starved"],
+      "specRef": "asset-production-spec.md#M004-通用生产单元",
+      "promptRef": "asset-prompts.md#M004-通用生产单元",
+      "required": false
+    },
+    {
+      "jobId": "M005",
+      "type": "model",
+      "priority": "P1",
+      "seed": "TC-FC-20260718-M005",
+      "nameZh": "焦点透镜",
+      "outputs": ["assets/models/focus-lens.glb", "source-art/blender/focus-lens.blend"],
+      "animations": ["idle", "lock", "release"],
+      "specRef": "asset-production-spec.md#M005-焦点透镜",
+      "promptRef": "asset-prompts.md#M005-焦点透镜",
+      "required": false
+    },
+    {
+      "jobId": "M006",
+      "type": "model",
+      "priority": "P1",
+      "seed": "TC-FC-20260718-M006",
+      "nameZh": "保护信标",
+      "outputs": ["assets/models/reserve-beacon.glb", "source-art/blender/reserve-beacon.blend"],
+      "animations": ["idle", "protect", "warning"],
+      "specRef": "asset-production-spec.md#M006-保护信标",
+      "promptRef": "asset-prompts.md#M006-保护信标",
+      "required": false
+    },
+    {
+      "jobId": "M007",
+      "type": "model",
+      "priority": "P1",
+      "seed": "TC-FC-20260718-M007",
+      "nameZh": "研究探针",
+      "outputs": ["assets/models/research-probe.glb", "source-art/blender/research-probe.blend"],
+      "animations": ["idle", "sample", "threshold", "unlock"],
+      "specRef": "asset-production-spec.md#M007-研究探针",
+      "promptRef": "asset-prompts.md#M007-研究探针",
+      "required": false
+    },
+    {
+      "jobId": "I001",
+      "type": "icon_set",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-I001",
+      "nameZh": "物质层级图标",
+      "outputs": ["assets/icons/tiers/tier-quark.svg", "assets/icons/tiers/tier-nucleon.svg", "assets/icons/tiers/tier-atom.svg", "assets/icons/tiers/tier-molecule.svg", "assets/icons/tiers/tier-cell.svg", "assets/icons/tiers/tier-life.svg", "assets/icons/tiers/tier-civilization.svg"],
+      "specRef": "asset-production-spec.md#I001-物质层级图标",
+      "required": true
+    },
+    {
+      "jobId": "I002",
+      "type": "icon_set",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-I002",
+      "nameZh": "第一法则图标",
+      "outputs": ["assets/icons/laws/law-expansion.svg", "assets/icons/laws/law-conservation.svg", "assets/icons/laws/law-observer.svg"],
+      "specRef": "asset-production-spec.md#I002-第一法则图标",
+      "required": true
+    },
+    {
+      "jobId": "I003",
+      "type": "icon_set",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-I003",
+      "nameZh": "路线图标",
+      "outputs": ["assets/icons/routes/route-advance.svg", "assets/icons/routes/route-sustain.svg", "assets/icons/routes/route-inquiry.svg", "assets/icons/routes/route-rewrite.svg"],
+      "specRef": "asset-production-spec.md#I003-路线图标",
+      "required": true
+    },
+    {
+      "jobId": "I004",
+      "type": "icon_set",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-I004",
+      "nameZh": "敌人处理图标",
+      "outputs": ["assets/icons/enemy-methods/method-overload.svg", "assets/icons/enemy-methods/method-cutoff.svg", "assets/icons/enemy-methods/method-observe.svg", "assets/icons/enemy-methods/method-sync.svg"],
+      "specRef": "asset-production-spec.md#I004-敌人处理图标",
+      "required": true
+    },
+    {
+      "jobId": "I005",
+      "type": "icon_set",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-I005",
+      "nameZh": "接触准备图标",
+      "outputs": ["assets/icons/preparations/preparation-buffer.svg", "assets/icons/preparations/preparation-pulse.svg", "assets/icons/preparations/preparation-sensor.svg"],
+      "specRef": "asset-production-spec.md#I005-接触准备图标",
+      "required": true
+    },
+    {
+      "jobId": "I006",
+      "type": "icon_set",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-I006",
+      "nameZh": "资源状态图标",
+      "outputs": ["assets/icons/resource-states/state-cycle.svg", "assets/icons/resource-states/state-shortage.svg", "assets/icons/resource-states/state-overload.svg"],
+      "specRef": "asset-production-spec.md#I006-资源状态图标",
+      "required": true
+    },
+    {
+      "jobId": "I007",
+      "type": "icon_set",
+      "priority": "P1",
+      "seed": "TC-FC-20260718-I007",
+      "nameZh": "任务类型图标",
+      "outputs": ["assets/icons/missions/mission-input.svg", "assets/icons/missions/mission-production.svg", "assets/icons/missions/mission-flow.svg", "assets/icons/missions/mission-research.svg", "assets/icons/missions/mission-decision.svg", "assets/icons/missions/mission-contact.svg"],
+      "specRef": "asset-production-spec.md#I007I008-扩展-UI-图标",
+      "required": false
+    },
+    {
+      "jobId": "I008",
+      "type": "icon_set",
+      "priority": "P1",
+      "seed": "TC-FC-20260718-I008",
+      "nameZh": "余像处置图标",
+      "outputs": ["assets/icons/afterimage-actions/afterimage-fuel.svg", "assets/icons/afterimage-actions/afterimage-return.svg", "assets/icons/afterimage-actions/afterimage-archive.svg"],
+      "specRef": "asset-production-spec.md#I007I008-扩展-UI-图标",
+      "required": false
+    },
+    {
+      "jobId": "V001",
+      "type": "vfx_atlas",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V001",
+      "nameZh": "观测核响应",
+      "outputs": ["assets/vfx/core-response.png", "assets/vfx/core-response.webp"],
+      "atlas": {"columns": 8, "rows": 8, "frames": 64, "fps": 30, "loop": false},
+      "required": true
+    },
+    {
+      "jobId": "V002",
+      "type": "vfx_atlas",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V002",
+      "nameZh": "资源层解锁",
+      "outputs": ["assets/vfx/tier-unlock.png", "assets/vfx/tier-unlock.webp"],
+      "atlas": {"columns": 8, "rows": 8, "frames": 64, "fps": 30, "loop": false},
+      "required": true
+    },
+    {
+      "jobId": "V003",
+      "type": "texture",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V003",
+      "nameZh": "反宇宙畸变遮罩",
+      "outputs": ["assets/vfx/anomaly-distortion.png", "assets/vfx/anomaly-distortion.webp"],
+      "dimensions": [512, 512],
+      "required": true
+    },
+    {
+      "jobId": "V004",
+      "type": "vfx_atlas",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V004",
+      "nameZh": "截流粒子",
+      "outputs": ["assets/vfx/siphon-stream.png", "assets/vfx/siphon-stream.webp"],
+      "atlas": {"columns": 8, "rows": 4, "frames": 32, "fps": 30, "loop": true},
+      "required": true
+    },
+    {
+      "jobId": "V005",
+      "type": "vfx_atlas",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V005",
+      "nameZh": "过载冲击",
+      "outputs": ["assets/vfx/overload-impact.png", "assets/vfx/overload-impact.webp"],
+      "atlas": {"columns": 8, "rows": 4, "frames": 32, "fps": 30, "loop": false},
+      "required": true
+    },
+    {
+      "jobId": "V006",
+      "type": "vfx_atlas",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V006",
+      "nameZh": "隔离屏障",
+      "outputs": ["assets/vfx/cutoff-barrier.png", "assets/vfx/cutoff-barrier.webp"],
+      "atlas": {"columns": 8, "rows": 4, "frames": 32, "fps": 30, "loop": true},
+      "required": true
+    },
+    {
+      "jobId": "V007",
+      "type": "vfx_atlas",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V007",
+      "nameZh": "观测扫描",
+      "outputs": ["assets/vfx/observe-scan.png", "assets/vfx/observe-scan.webp"],
+      "atlas": {"columns": 8, "rows": 4, "frames": 32, "fps": 30, "loop": true},
+      "required": true
+    },
+    {
+      "jobId": "V008",
+      "type": "vfx_atlas",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-V008",
+      "nameZh": "余像凝结",
+      "outputs": ["assets/vfx/afterimage-condense.png", "assets/vfx/afterimage-condense.webp"],
+      "atlas": {"columns": 8, "rows": 8, "frames": 64, "fps": 30, "loop": false},
+      "required": true
+    },
+    {
+      "jobId": "V009",
+      "type": "vfx_atlas",
+      "priority": "P1",
+      "seed": "TC-FC-20260718-V009",
+      "nameZh": "路线信号写入",
+      "outputs": ["assets/vfx/route-signal.png", "assets/vfx/route-signal.webp"],
+      "atlas": {"columns": 8, "rows": 4, "frames": 32, "fps": 30, "loop": false},
+      "required": false
+    },
+    {
+      "jobId": "T001",
+      "type": "texture",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-T001",
+      "nameZh": "微弱星尘",
+      "outputs": ["assets/textures/background/star-dust.png", "assets/textures/background/star-dust.webp"],
+      "dimensions": [1024, 1024],
+      "seamless": true,
+      "required": true
+    },
+    {
+      "jobId": "T002",
+      "type": "texture",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-T002",
+      "nameZh": "屏幕噪声",
+      "outputs": ["assets/textures/background/screen-noise.png", "assets/textures/background/screen-noise.webp"],
+      "dimensions": [256, 256],
+      "seamless": true,
+      "required": true
+    },
+    {
+      "jobId": "T003",
+      "type": "texture",
+      "priority": "P0",
+      "seed": "TC-FC-20260718-T003",
+      "nameZh": "反宇宙噪声",
+      "outputs": ["assets/textures/background/reverse-noise.png", "assets/textures/background/reverse-noise.webp"],
+      "dimensions": [512, 512],
+      "seamless": true,
+      "required": true
+    },
+    {
+      "jobId": "M101",
+      "type": "model_blockout",
+      "priority": "P2",
+      "seed": "TC-FC-20260718-M101",
+      "nameZh": "越过视界终局灰盒",
+      "outputs": ["assets/models/endings/across-horizon-blockout.glb", "source-art/blender/across-horizon-blockout.blend"],
+      "required": false
+    },
+    {
+      "jobId": "M102",
+      "type": "model_blockout",
+      "priority": "P2",
+      "seed": "TC-FC-20260718-M102",
+      "nameZh": "无尽花园终局灰盒",
+      "outputs": ["assets/models/endings/endless-garden-blockout.glb", "source-art/blender/endless-garden-blockout.blend"],
+      "required": false
+    },
+    {
+      "jobId": "M103",
+      "type": "model_blockout",
+      "priority": "P2",
+      "seed": "TC-FC-20260718-M103",
+      "nameZh": "最后观测者终局灰盒",
+      "outputs": ["assets/models/endings/last-observer-blockout.glb", "source-art/blender/last-observer-blockout.blend"],
+      "required": false
+    },
+    {
+      "jobId": "M104",
+      "type": "model_blockout",
+      "priority": "P2",
+      "seed": "TC-FC-20260718-M104",
+      "nameZh": "双生大坍缩终局灰盒",
+      "outputs": ["assets/models/endings/twin-crunch-blockout.glb", "source-art/blender/twin-crunch-blockout.blend"],
+      "required": false
+    }
+  ]
+}

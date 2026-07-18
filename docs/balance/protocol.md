@@ -1,58 +1,67 @@
-# Balance Validation Protocol
+# 平衡验证协议
 
-Tiny Cosmos uses deterministic validation scenarios before and after gameplay or balance changes.
+Tiny Cosmos 在修改玩法和数值前后运行确定性场景，记录进度变化和异常。
 
-## Required Command
-
-Run:
+## 必跑命令
 
 ```bash
 node tools/balance/run-validation.js --all
 ```
 
-## Required Review
+## 评审内容
 
-For each change, compare the newest report with the committed baseline and record:
+每次改动需要对比最新报告和已提交基线，记录：
 
-- Which scenarios changed.
-- Which tier unlock times moved.
-- Whether any warnings appeared.
-- Whether the change was intended.
-- Whether constants were tuned after understanding the difference.
+- 哪些场景发生变化。
+- 各层解锁时间移动了多少。
+- 是否出现警告。
+- 变化是否符合本次设计目标。
+- 调整数值前是否已经找到变化原因。
 
-## Current Phase
+## 当前阶段
 
-Phase one optimizes for a reachable first Big Crunch while preserving useful checkpoints at 10, 30, and 60 minutes.
+第一轮大坍缩已经可以抵达。现阶段保留 10、30、60 分钟检查点，并逐步加入焦点、储备、选项池、敌人和多结局的策略场景。
 
-## Acceptance Ranges
+## 当前验收范围
 
-These are the minimum pass criteria for the deterministic guided strategy. A scenario result
-outside these ranges should be treated as a balance regression unless the change was intentional
-and documented.
+以下标准适用于现有确定性引导策略。超出范围时先检查场景脚本是否覆盖全部已解锁层级，再判断数值是否需要调整。
 
-- `idle-10m`: reaches at least tier 1 with no warnings.
-- `click-start-10m`: reaches at least tier 1 with no warnings.
-- `guided-30m`: reaches at least tier 3 with no warnings.
-- `guided-60m`: reaches at least tier 4 with no warnings.
-- `first-prestige`: reaches Big Crunch within 24 simulated hours. Current actual: ~3.2 hours
-  (11496s). Warnings during the run are acceptable only if no tier remains permanently depleted
-  at the final snapshot.
-- `post-prestige-10m`: must run (not skip) and should reach at least tier 2 with no warnings,
-  showing visible second-run acceleration relative to the pre-prestige `guided` scenarios at the
-  same elapsed time.
+- `idle-10m`：至少到达层级 1，没有警告。
+- `click-start-10m`：至少到达层级 1，没有警告。
+- `guided-30m`：至少到达层级 3，没有警告。
+- `guided-60m`：至少到达层级 4，没有警告。
+- `first-prestige`：在 24 个模拟小时内抵达大坍缩。当前结果约为 3.2 小时，即 11496 秒。运行期间允许出现临时耗尽警告，最终快照中不能存在持续耗尽层级。
+- `post-prestige-10m`：必须实际运行，至少到达层级 2，没有警告；同等时间下应体现第二轮提速。
 
-If a scenario falls outside its range, check whether the guided strategy in
-`tools/balance/scenarios.js` is actually exercising every unlocked tier before assuming the
-constants in `js/constants.js` need tuning.
+## 新玩法的验证要求
 
-## Machine Learning Policy
+加入小决策和多结局后，需要为各路线维护独立脚本：
 
-Do not use machine learning in phase one. Deterministic simulation and explicit thresholds are more useful until the project has stable historical reports.
+- 推进策略：高吞吐、爆发和敌人压倒。
+- 维持策略：保护库存、恢复赤字和资源交换。
+- 求证策略：受控截流、样本和预测。
+- 改写策略：法则交替和双方同步。
 
-Later, machine learning may be useful for:
+这些脚本用于发现死锁、完成时间失控和某条路线全面占优。人类试玩继续负责判断选择是否清楚、损失是否公平、路线操作是否有差异。
 
-- Detecting anomalous growth curves across many saved reports.
-- Searching parameter ranges after human-authored acceptance targets exist.
-- Clustering possible guided strategies to find dominant or degenerate play patterns.
+## 基线更新
 
-ML output must never replace deterministic scenario reports. It can only suggest where humans or agents should inspect next.
+只有经过评审并准备作为后续比较点的结果才能写入：
+
+```bash
+node tools/balance/write-baseline.js
+```
+
+临时 JSON 和 Markdown 报告保留在 `reports/balance/`，不提交到仓库。
+
+## 机器学习使用范围
+
+当前阶段不使用机器学习调数值。确定性场景、明确阈值和人工试玩已经能够回答主要问题。
+
+积累足够历史报告后，可以考虑：
+
+- 发现异常增长曲线。
+- 在人工设定范围内搜索参数。
+- 比较多种策略的聚类和支配关系。
+
+机器学习输出只提供排查线索，确定性报告仍是验收依据。

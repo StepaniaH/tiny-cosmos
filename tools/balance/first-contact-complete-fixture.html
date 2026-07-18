@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>First Contact Complete Fixture</title></head>
+<body>
+  <p>Preparing the completed first-contact UI fixture…</p>
+  <script src="../../js/constants.js"></script>
+  <script src="../../js/state.js"></script>
+  <script src="../../js/slice.js"></script>
+  <script>
+    (function () {
+      var GS = window.GameState;
+      var state = GS.init({ firstContact: true });
+      var slice = state.slice;
+
+      state.tiers[0].count = 58;
+      state.tiers[0].totalEver = 130;
+      state.tiers[0].producers = 3;
+      state.tiers[1].count = 26;
+      state.tiers[1].totalEver = 48;
+      state.tiers[1].producers = 2;
+      state.tiers[2].count = 17;
+      state.tiers[2].totalEver = 23;
+      state.tiers[2].producers = 3;
+      state.tiers[2].researched = true;
+      state.researchPoints = 21;
+      state.totalQuarksEver = 130;
+
+      slice.elapsedSeconds = 758;
+      slice.missionStep = 15;
+      slice.focusTier = 2;
+      slice.reserveTier = 1;
+      slice.law = 'observer';
+      slice.stability.early = window.GC.FIRST_CONTACT.earlyStabilitySeconds;
+      slice.stability.matter = window.GC.FIRST_CONTACT.matterStabilitySeconds;
+      slice.preparation = { id: 'sensor', progress: 30, completed: true, bonusApplied: false };
+      slice.tendencies = { advance: 0, sustain: 1, inquiry: 7, rewrite: 0 };
+      slice.stats = { canvasClicks: 5, boughtQuarkProducer: true, nucleonSyntheses: 12, atomSyntheses: 23, focusChanges: 3 };
+      slice.flags = {
+        atomResearched: true,
+        researchExplained: true,
+        lawDecisionOpen: false,
+        reserveConfigured: true,
+        coreDecisionOpen: false,
+        preparationOpen: false,
+        demoComplete: true
+      };
+      slice.enemy = {
+        status: 'resolved', warningRemaining: 0, method: 'observe', methodStartSiphoned: 0.6,
+        observeLossLimit: 3.6, progress: 100, siphoned: 3.6, isolationActive: false,
+        overloadPulses: 0, resolution: 'observe'
+      };
+      slice.decisions = [
+        { time: 560, kind: 'law', id: 'observer', route: 'inquiry', label: '观测者效应', score: 2 },
+        { time: 650, kind: 'preparation', id: 'sensor', route: 'inquiry', label: '远距标定', score: 1 },
+        { time: 735, kind: 'enemy', id: 'observe', route: 'inquiry', label: '观测', score: 2 },
+        { time: 758, kind: 'core', id: 'archive', route: 'inquiry', label: '封存行为样本', score: 2 }
+      ];
+      slice.logs = [
+        { time: 0, channel: 'SYS', text: '观测核冷启动。七层结构尚未稳定。' },
+        { time: 560, channel: 'LAW', text: '第一法则确定：观测者效应。' },
+        { time: 735, channel: 'CONTACT', text: '它带走了一部分原子。你带走了它为何需要原子的第一条证据。' },
+        { time: 758, channel: 'ARCHIVE', text: '核心处置：封存行为样本。本轮路线信号已更新。' },
+        { time: 758, channel: 'SYS', text: '第一次接触观测窗口完成。路线信号已写入本轮档案。' }
+      ];
+
+      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      location.replace('../../index.html?fixture=first-contact-complete');
+    })();
+  </script>
+</body>
+</html>
