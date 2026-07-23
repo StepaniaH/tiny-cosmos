@@ -8,14 +8,19 @@
   var Slice = window.GameSlice;
   var Lore = window.GameLore;
   var Sound = window.GameAudio;
+  var I18n = window.GameI18n;
   var lastLogSignature = '';
   var lastMissionStep = null;
   var lastGuideStep = null;
-  var guideCollapsed = false;
+  // The directive card and mission strip carry the default guidance. Detailed
+  // spotlight guidance is opt-in so a new mission never blocks the workspace.
+  var guideCollapsed = true;
   var flowUserToggled = false;
   var flowAutoExpanded = false;
   var toastTimer = null;
   var loreLastFocus = null;
+  var logLastFocus = null;
+  var lastViewedLogCount = 0;
   var loreCategory = '全部';
   var researchHistory = [];
   var lastResearchSample = -1;
@@ -143,15 +148,18 @@
       : mission.hint;
     el('directive-progress-fill').style.width = progress.percent + '%';
     el('directive-progress-label').textContent = progress.label;
+    if (el('loop-window-label')) el('loop-window-label').textContent = s.loopNumber === 2 ? '第二轮' : '第一轮';
     el('canvas-focus-label').textContent = s.focusTier === null
       ? '焦点未建立'
       : '焦点 ×' + Slice.getProductionMultiplier(s.focusTier).toFixed(2) + ' · ' + GC.TIERS[s.focusTier].nameZh;
 
     var missionStrip = document.querySelector('.mission-strip');
-    var timedStep = [4, 9, 11, 12, 13, 15, 20].indexOf(s.missionStep) !== -1;
+    var timedStep = s.loopNumber === 2
+      ? [1, 5].indexOf(s.missionStep) !== -1
+      : [4, 9, 11, 12, 13, 15, 20].indexOf(s.missionStep) !== -1;
     var nearing = timedStep && progress.percent >= 72 && progress.percent < 100;
     var urgent = timedStep && progress.percent >= 90 && progress.percent < 100;
-    if (s.missionStep === 12 && s.enemy.status === 'warning' && s.enemy.warningRemaining <= 10) urgent = true;
+    if (s.loopNumber !== 2 && s.missionStep === 12 && s.enemy.status === 'warning' && s.enemy.warningRemaining <= 10) urgent = true;
     missionStrip.classList.toggle('near-complete', nearing);
     missionStrip.classList.toggle('urgent', urgent);
 
@@ -171,8 +179,13 @@
     }
 
     if (lastMissionStep !== null && lastMissionStep !== s.missionStep) {
+      // A player's "view later" choice only applies to the current directive.
+      // Every newly issued directive gets one automatic, contextual appearance.
       guideCollapsed = false;
       lastGuideStep = null;
+      dock.classList.remove('attention');
+      dockLabel.textContent = '已展开';
+      dock.setAttribute('aria-label', '收起场景引导');
       missionStrip.classList.remove('mission-enter');
       void missionStrip.offsetWidth;
       missionStrip.classList.add('mission-enter');
@@ -187,7 +200,7 @@
       showToast('研究阈值已满足：现在可以揭示' + GC.TIERS[nextResearchTier].nameZh + '层', true);
     }
     lastResearchReady = researchReady;
-    if (s.missionStep >= 3 && !flowUserToggled && !flowAutoExpanded) {
+    if (s.missionStep >= (s.loopNumber === 2 ? 1 : 3) && !flowUserToggled && !flowAutoExpanded) {
       var monitor = el('flow-monitor');
       monitor.classList.remove('collapsed');
       el('flow-monitor-toggle').textContent = '—';
@@ -198,7 +211,13 @@
     lastMissionStep = s.missionStep;
 
     var entropy = el('entropy-label');
-    if (s.enemy.status === 'warning') {
+    if (s.loopNumber === 2 && s.roundTwo.counterexample.status === 'testing') {
+      entropy.textContent = 'PREDICTED';
+      entropy.style.color = 'var(--violet)';
+    } else if (s.loopNumber === 2 && s.roundTwo.counterexample.status === 'resolved') {
+      entropy.textContent = 'COUNTERPROOF';
+      entropy.style.color = 'var(--green)';
+    } else if (s.enemy.status === 'warning') {
       entropy.textContent = 'RISING';
       entropy.style.color = 'var(--amber)';
     } else if (s.enemy.status === 'active') {
@@ -215,7 +234,8 @@
 
   function updateEraIndicator() {
     var indicator = el('era-indicator');
-    var cellularStage = GS.getSlice().missionStep >= 17;
+    var sliceState = GS.getSlice();
+    var cellularStage = sliceState.loopNumber === 2 ? sliceState.missionStep >= 8 : sliceState.missionStep >= 17;
     var cellular = GS.getTier(4).researched;
     indicator.hidden = !cellularStage;
     document.body.classList.toggle('cellular-era', cellular);
@@ -224,8 +244,89 @@
     var ranking = Slice.getRouteRanking();
     var dominant = ranking[0];
     el('era-boundary-state').textContent = cellular ? '内部边界 ' + fmt(cell.count, 1) + ' / 单元 ' + cell.producers : '内部边界正在形成';
-    el('era-reverse-state').textContent = '反侧压力 ' + Math.round(Slice.getReversePressure()) + '%';
-    el('era-route-state').textContent = dominant ? '文明疑问 ' + dominant.meta.ending : '路线未收束';
+    if (sliceState.loopNumber === 2) {
+      el('era-reverse-state').textContent = '反例记录 ' + (sliceState.roundTwo.counterexample.status === 'resolved' ? '已完成' : '仍在检验');
+      el('era-route-state').textContent = sliceState.roundTwo.witnessResponse ? '证词回应 ' + sliceState.roundTwo.witnessResponse : '证词等待后来者';
+    } else {
+      el('era-reverse-state').textContent = '反侧压力 ' + Math.round(Slice.getReversePressure()) + '%';
+      el('era-route-state').textContent = dominant ? '文明疑问 ' + dominant.meta.ending : '路线未收束';
+    }
+  }
+
+  function updateProgressiveDisclosure() {
+    var s = GS.getSlice();
+    var step = s.missionStep;
+    document.body.dataset.missionStep = String(step);
+    document.body.dataset.loopNumber = String(s.loopNumber || 1);
+
+    if (s.loopNumber === 2) {
+      var roundTwoMax = Math.min(GC.TIERS.length - 1, Math.max(2, GS.getMaxResearchedTier() + 1));
+      for (var roundTier = 0; roundTier < GC.TIERS.length; roundTier++) {
+        el('card-' + roundTier).hidden = roundTier > roundTwoMax;
+      }
+      var roundVisible = roundTwoMax + 1;
+      var roundRemaining = GC.TIERS.length - roundVisible;
+      el('tier-visibility-label').textContent = '当前可见 ' + roundVisible + ' / ' + GC.TIERS.length;
+      el('tier-horizon').hidden = roundRemaining <= 0;
+      el('tier-horizon-copy').textContent = roundRemaining > 0 ? '还有 ' + roundRemaining + ' 个结构层等待揭示' : '七层结构已经全部可见';
+      document.querySelector('.research-bar').hidden = false;
+      el('contact-panel').hidden = step < 4;
+      el('event-panel').hidden = false;
+      el('route-panel').hidden = false;
+
+      var roundPhase = step < 3 ? 0 : step < 6 ? 1 : step < 8 ? 2 : step < 10 ? 3 : 4;
+      var roundChapters = ['第一章 · 继承偏差', '第二章 · 路线反例', '第三章 · 碎片证词', '第四章 · 第二文明', '第五章 · 真理裁定'];
+      var roundPhaseLabels = ['校验继承', '承受反例', '保存分歧', '孕育后来者', '裁定真理'];
+      el('campaign-chapter').textContent = roundChapters[roundPhase];
+      el('campaign-chapter-progress').textContent = (roundPhase + 1) + ' / 5';
+      el('campaign-goal-title').textContent = '让上一轮答案承受一次真正的反例';
+      el('campaign-goal-copy').textContent = '带着第一轮真理重建物质，面对会预测旧方法的反侧结构，并让第二座文明决定这条真理应被重复、修正还是反驳。';
+      Array.prototype.forEach.call(el('campaign-phases').children, function (item, index) {
+        item.querySelector('span').textContent = roundPhaseLabels[index];
+        item.classList.toggle('complete', index < roundPhase);
+        item.classList.toggle('current', index === roundPhase);
+      });
+      return;
+    }
+
+    // Show only layers the player can act on, plus the next meaningful horizon.
+    // Atom is deliberately withheld until the Research Channel is introduced;
+    // complex matter is withheld until the First Contact report is complete.
+    var maxResearched = GS.getMaxResearchedTier();
+    var maxVisible = maxResearched + 1;
+    if (step < 5) maxVisible = 1;
+    else if (step < 16) maxVisible = Math.min(maxVisible, 2);
+    maxVisible = Math.min(GC.TIERS.length - 1, maxVisible);
+    for (var tierId = 0; tierId < GC.TIERS.length; tierId++) {
+      el('card-' + tierId).hidden = tierId > maxVisible;
+    }
+    var visibleCount = maxVisible + 1;
+    var remaining = GC.TIERS.length - visibleCount;
+    el('tier-visibility-label').textContent = '当前可见 ' + visibleCount + ' / ' + GC.TIERS.length;
+    el('tier-horizon').hidden = remaining <= 0;
+    el('tier-horizon-copy').textContent = remaining > 0 ? '还有 ' + remaining + ' 个结构层等待揭示' : '七层结构已经全部可见';
+
+    var research = document.querySelector('.research-bar');
+    var contact = el('contact-panel');
+    var eventPanel = el('event-panel');
+    var routePanel = el('route-panel');
+    research.hidden = step < 5;
+    contact.hidden = step < 12;
+    eventPanel.hidden = step < 10 && !(Slice.getPendingReverseObject && Slice.getPendingReverseObject());
+    routePanel.hidden = step < 10;
+
+    var phase = step < 10 ? 0 : step < 12 ? 1 : step < 16 ? 2 : step < 23 ? 3 : 4;
+    var chapterNames = ['第一章 · 唤醒', '第二章 · 法则', '第三章 · 接触', '第四章 · 生命', '第五章 · 文明'];
+    var firstPhaseLabels = ['唤醒物质', '建立法则', '第一次接触', '孕育生命', '点燃文明'];
+    el('campaign-chapter').textContent = chapterNames[phase];
+    el('campaign-chapter-progress').textContent = (phase + 1) + ' / 5';
+    el('campaign-goal-title').textContent = '让宇宙演化出能回应你的文明';
+    el('campaign-goal-copy').textContent = '从夸克开始建立稳定物质，面对视界背面的另一侧，并让文明根据你的真实选择提出未来。';
+    Array.prototype.forEach.call(el('campaign-phases').children, function (item, index) {
+      item.querySelector('span').textContent = firstPhaseLabels[index];
+      item.classList.toggle('complete', index < phase);
+      item.classList.toggle('current', index === phase);
+    });
   }
 
   function updateResearch() {
@@ -242,7 +343,7 @@
 
     var details = el('research-breakdown');
     var detailsButton = el('research-details-toggle');
-    detailsButton.disabled = sliceState.enabled && sliceState.missionStep < 5;
+    detailsButton.disabled = sliceState.enabled && sliceState.loopNumber !== 2 && sliceState.missionStep < 5;
     if (detailsButton.disabled && !details.hidden) {
       details.hidden = true;
       detailsButton.setAttribute('aria-expanded', 'false');
@@ -269,7 +370,8 @@
       var researchPercent = clamp(rp / cost * 100, 0, 100);
       el('rb-fill').style.width = researchPercent + '%';
       button.dataset.tier = next;
-      var gateStep = [0, 0, 6, 16, 17, 19, 21][next] || 0;
+      var gateTable = sliceState.loopNumber === 2 ? [0, 0, 2, 6, 8, 8, 9] : [0, 0, 6, 16, 17, 19, 21];
+      var gateStep = gateTable[next] || 0;
       var gateClosed = sliceState.enabled && sliceState.missionStep < gateStep;
       if (gateClosed) {
         el('rb-next-label').textContent = GC.TIERS[next].nameZh + '信号尚未稳定 / 完成当前阶段后开放';
@@ -299,7 +401,8 @@
     var tpl = GC.TIERS[tierId];
     var card = el('card-' + tierId);
     var unlocked = tier.researched;
-    var researchGateStep = [0, 0, 6, 16, 17, 19, 21][tierId] || 0;
+    var researchGateTable = s.loopNumber === 2 ? [0, 0, 2, 6, 8, 8, 9] : [0, 0, 6, 16, 17, 19, 21];
+    var researchGateStep = researchGateTable[tierId] || 0;
     var nextResearchable = tierId === GS.getMaxResearchedTier() + 1 && (!s.enabled || s.missionStep >= researchGateStep);
 
     card.className = 'tier-card';
@@ -371,9 +474,10 @@
     } else if (synthButton) synthButton.style.display = 'none';
 
     if (focusButton) {
-      focusButton.style.display = s.missionStep >= 3 ? '' : 'none';
+      var focusAvailable = s.loopNumber === 2 || s.missionStep >= 3;
+      focusButton.style.display = focusAvailable ? '' : 'none';
       focusButton.textContent = s.focusTier === tierId ? '焦点已锁定' : '聚焦';
-      focusButton.disabled = s.missionStep < 3 || s.focusTier === tierId;
+      focusButton.disabled = !focusAvailable || s.focusTier === tierId;
       focusButton.classList.toggle('active', s.focusTier === tierId);
       var predictedFocus = GC.FIRST_CONTACT.focusMultiplier;
       if (s.law === 'expansion') predictedFocus += GC.FIRST_CONTACT.focusLawBonus;
@@ -383,9 +487,10 @@
       focusButton.dataset.tooltip = '全宇宙同时只能聚焦一个层级。移动到' + tpl.nameZh + '后，该层当前生产倍率变为 ×' + predictedFocus.toFixed(2) + '；焦点位置也会影响部分敌人处理条件。迁移不消耗资源。';
     }
     if (reserveButton) {
-      reserveButton.style.display = s.missionStep >= 8 ? '' : 'none';
+      var reserveAvailable = s.loopNumber === 2 || s.missionStep >= 8;
+      reserveButton.style.display = reserveAvailable ? '' : 'none';
       reserveButton.textContent = s.reserveTier === tierId ? '保护已建立' : '保护';
-      reserveButton.disabled = s.missionStep < 8;
+      reserveButton.disabled = !reserveAvailable;
       reserveButton.classList.toggle('active', s.reserveTier === tierId);
       reserveButton.dataset.tooltipTitle = '储备保护线';
       reserveButton.dataset.tooltip = '为' + tpl.nameZh + '保留最低库存。高层代谢和部分敌人损失不会突破这条线；当前只能保护一个层级。';
@@ -415,8 +520,8 @@
   function updateBars(tierId, rates) {
     var max = Math.max(rates.production, rates.demand, 0.01);
     el('bars-' + tierId).innerHTML =
-      '<div class="tc-bar-row"><span class="tc-bar-label">产</span><div class="tc-bar-track"><div class="tc-bar-fill prod" style="width:' + rates.production / max * 100 + '%"></div></div><span class="tc-bar-val prod-text">+' + fmt(rates.production, 2) + '/s</span></div>' +
-      '<div class="tc-bar-row"><span class="tc-bar-label">耗</span><div class="tc-bar-track"><div class="tc-bar-fill demand" style="width:' + rates.demand / max * 100 + '%"></div></div><span class="tc-bar-val demand-text">-' + fmt(rates.demand, 2) + '/s</span></div>';
+      '<div class="tc-bar-row"><span class="tc-bar-label">产出</span><div class="tc-bar-track"><div class="tc-bar-fill prod" style="width:' + rates.production / max * 100 + '%"></div></div><span class="tc-bar-val prod-text">+' + fmt(rates.production, 2) + '/s</span></div>' +
+      '<div class="tc-bar-row"><span class="tc-bar-label">消耗</span><div class="tc-bar-track"><div class="tc-bar-fill demand" style="width:' + rates.demand / max * 100 + '%"></div></div><span class="tc-bar-val demand-text">-' + fmt(rates.demand, 2) + '/s</span></div>';
   }
 
   function updateNet(tierId, rates) {
@@ -447,6 +552,20 @@
 
   function updateDecisionHierarchy() {
     var s = GS.getSlice();
+    if (s.loopNumber === 2) {
+      var secondStages = [
+        { at: 0, done: !!s.roundTwo.inheritanceMode, title: 'I · 继承校准', value: s.roundTwo.inheritanceMode || '等待读取坍缩签名' },
+        { at: 3, done: !!s.roundTwo.fragmentChoice, title: 'II · 证词碎片', value: s.roundTwo.fragmentChoice || '等待原子谱线' },
+        { at: 4, done: !!s.roundTwo.counterexample.choice, title: 'III · 路线反例', value: s.roundTwo.counterexample.choice || Slice.getRoundTwoCounterexample().title },
+        { at: 7, done: !!s.roundTwo.witnessResponse, title: 'IV · 后来者异议', value: s.roundTwo.witnessResponse || '等待第二文明前身' },
+        { at: 10, done: !!s.roundTwo.truthVerdict, title: 'V · 真理裁定', value: s.roundTwo.truthVerdict || '等待第二座文明' },
+      ];
+      el('decision-hierarchy').innerHTML = '<header><span>SECOND-LOOP DEPENDENCY</span><b>继承 → 碎片 → 反例 → 异议 → 裁定</b></header><ol>' + secondStages.map(function (stage) {
+        var secondClass = stage.done ? 'complete' : (s.missionStep >= stage.at ? 'current' : 'locked');
+        return '<li class="' + secondClass + '"><i></i><span><b>' + stage.title + '</b><small>' + escapeHTML(stage.value) + '</small></span></li>';
+      }).join('') + '</ol>';
+      return;
+    }
     var law = decisionByKind(s, 'law');
     var contactCount = s.decisions.filter(function (decision) { return ['preparation', 'enemy', 'core'].indexOf(decision.kind) !== -1; }).length;
     var reverseCount = s.decisions.filter(function (decision) { return decision.kind === 'reverse'; }).length;
@@ -465,6 +584,56 @@
     }).join('') + '</ol>';
   }
 
+  function updateRoundTwoEventPanel(s, content, status) {
+    var decision = Slice.getRoundTwoDecision();
+    var signature = s.loopSignature || {};
+    var memory = Slice.getLoopMemorySummary();
+    var primaryRoute = Slice.getRouteMeta()[signature.dominantRoute] || { name: '未定向', ending: '普通大坍缩' };
+    if (decision) {
+      status.textContent = '第二轮决策'; status.className = 'status-chip';
+      var decisionKey = 'round-two:' + decision.kind;
+      if (eventRenderKey === decisionKey) return;
+      eventRenderKey = decisionKey;
+      content.innerHTML = '<div class="choice-context reverse-context"><b>' + decision.title + '</b><p>' + decision.context + '</p></div><div class="choice-list">' + decision.options.map(function (option) {
+        return '<button class="choice-card route-' + option.route + '" data-round-two-kind="' + decision.kind + '" data-round-two-id="' + option.id + '"><span class="choice-heading"><img src="assets/icons/routes/route-' + option.route + '.svg" alt=""><span class="choice-top"><strong>' + option.title + '</strong><span>' + option.tag + '</span></span></span><p>' + option.desc + '</p></button>';
+      }).join('') + '</div>';
+      content.querySelectorAll('[data-round-two-id]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          if (Slice.chooseRoundTwoDecision(button.dataset.roundTwoKind, button.dataset.roundTwoId)) {
+            showActionFeedback(button, button.querySelector('strong').textContent + ' · 已写入第二轮', 'green', true);
+          }
+          refreshAll();
+        });
+      });
+      return;
+    }
+
+    if (s.flags.civilizationComplete) {
+      status.textContent = '第二轮已完成'; status.className = 'status-chip safe';
+      if (eventRenderKey === 'round-two-complete') return;
+      eventRenderKey = 'round-two-complete';
+      var verdictLabels = {
+        repeat: '重复证明',
+        revise: '修正后成立',
+        dispute: '保留未决争议',
+      };
+      var witnessLabels = {
+        accept: '有条件接受祖先证词',
+        challenge: '正式反驳祖先证词',
+        defer: '暂缓采用祖先证词',
+      };
+      content.innerHTML = '<article class="civilization-report round-two-report"><span>CIVILIZATION ASSEMBLY / SECOND LOOP</span><h3>第二座文明完成了真理评议</h3><p>它们没有复刻第一座文明的议案，而是把旧真理、针对性反例与后来者异议放进同一份可复查记录。</p><div class="completion-records"><span>上轮答案<b>' + primaryRoute.ending + '</b></span><span>路线反例<b>' + Slice.getRoundTwoCounterexample().title + '</b></span><span>反例回应<b>' + s.roundTwo.counterexample.choice + '</b></span><span>文明证词<b>' + witnessLabels[s.roundTwo.witnessResponse] + '</b></span><span>真理裁定<b>' + verdictLabels[s.roundTwo.truthVerdict] + '</b></span></div><p class="completion-closing">第二轮的结论与异议已经同时封存。第三轮将不再只有观测核拥有继承物：反侧也会带着自己的历史醒来。</p><button id="open-completion-archive" class="btn btn-primary" type="button">查看两轮完整档案</button></article>';
+      el('open-completion-archive').addEventListener('click', openLoreArchive);
+      return;
+    }
+
+    status.textContent = s.missionStep === 5 ? '反例检验中' : '跨轮记录'; status.className = 'status-chip ' + (s.missionStep === 5 ? 'danger' : 'safe');
+    var idleKey = 'round-two-idle:' + s.missionStep;
+    if (eventRenderKey === idleKey) return;
+    eventRenderKey = idleKey;
+    content.innerHTML = '<article class="loop-difference-card route-' + (signature.dominantRoute || 'advance') + '"><span>THIS LOOP IS DIFFERENT</span><h3>' + primaryRoute.ending + '正在接受反例</h3><div class="completion-records"><span>本轮真理<b>' + memory.truth + '</b></span><span>已装备继承物<b>' + memory.inheritance + '</b></span><span>背面记忆<b>' + Slice.getRoundTwoCounterexample().title + '</b></span><span>上轮债务<b>' + memory.debt + '</b></span></div><p>当前没有必须立即处理的决策。继续完成观测指令；新的碎片与反例会在它们真正影响物质时出现。</p></article>';
+  }
+
   function updateEventPanel() {
     var s = GS.getSlice();
     var content = el('event-content');
@@ -473,6 +642,10 @@
     var kind = '';
     var pendingReverse = Slice.getPendingReverseObject ? Slice.getPendingReverseObject() : null;
     updateDecisionHierarchy();
+    if (s.loopNumber === 2) {
+      updateRoundTwoEventPanel(s, content, status);
+      return;
+    }
 
     if (s.flags.lawDecisionOpen && !s.law) {
       options = Slice.getLawOptions(); kind = 'law';
@@ -524,8 +697,17 @@
         if (eventRenderKey === 'civilization-report') return;
         eventRenderKey = 'civilization-report';
         var civilizationProposals = Slice.getCivilizationProposals();
-        content.innerHTML = '<article class="civilization-report"><span>CIVILIZATION ASSEMBLY / FIRST LOOP</span><h3>文明议案已经形成</h3><p>文明没有把此前选择当作阵营标签，而是把第一次接触、反侧回应与发展伦理整理成两条已经被本轮证明可行的工程方向。</p><div class="proposal-list">' + civilizationProposals.map(function (proposal) { return '<section class="proposal-card route-' + proposal.route + '"><span>' + proposal.role + ' · 信号 ' + proposal.score + '</span><strong>' + proposal.title + '</strong><p>' + proposal.goal + '</p><small>尚未回答：' + proposal.question + '<br>依据：' + (proposal.reason.length ? proposal.reason.join('、') : '当前路线信号') + '</small></section>'; }).join('') + '</div><p class="completion-closing">第一轮夸克 → 文明大循环完成。主提案会决定优先建造的终局工程，备选提案仍会在后续校准中持续施压。</p><button id="open-completion-archive" class="btn btn-primary" type="button">查看本轮完整档案</button></article>';
+        content.innerHTML = '<article class="civilization-report"><span>CIVILIZATION ASSEMBLY / FIRST LOOP</span><h3>文明议案已经形成</h3><p>文明没有把此前选择当作阵营标签，而是把第一次接触、反侧回应与发展伦理整理成两条已经被本轮证明可行的工程方向。</p><div class="proposal-list">' + civilizationProposals.map(function (proposal) { return '<section class="proposal-card route-' + proposal.route + '"><span>' + proposal.role + ' · 信号 ' + proposal.score + '</span><strong>' + proposal.title + '</strong><p>' + proposal.goal + '</p><small>尚未回答：' + proposal.question + '<br>依据：' + (proposal.reason.length ? proposal.reason.join('、') : '当前路线信号') + '</small></section>'; }).join('') + '</div><p class="completion-closing">第一轮夸克 → 文明大循环完成。主提案会决定穿过大坍缩的答案；备选提案将作为第二轮最早的修正方向。</p><div class="report-actions"><button id="begin-directed-rebirth" class="btn btn-primary" type="button">让主提案穿过大坍缩</button><button id="open-completion-archive" class="btn btn-quiet" type="button">查看本轮完整档案</button></div></article>';
         el('open-completion-archive').addEventListener('click', openLoreArchive);
+        el('begin-directed-rebirth').addEventListener('click', function () {
+          var result = GS.beginDirectedRebirth();
+          if (!result) return;
+          eventRenderKey = '';
+          Slice.init();
+          refreshAll();
+          if (window.TinyCosmos && window.TinyCosmos.saveGame) window.TinyCosmos.saveGame();
+          if (window.GamePrologue && window.GamePrologue.openRebirth) window.GamePrologue.openRebirth(result.signature);
+        });
         return;
       }
       status.textContent = s.flags.demoComplete ? '履历已保留' : '空闲';
@@ -617,6 +799,23 @@
     var content = el('contact-content');
     var overlay = el('anomaly-overlay');
     var overlayState = el('anomaly-overlay-state');
+    if (s.loopNumber === 2) {
+      var counterexample = Slice.getRoundTwoCounterexample();
+      var counterState = s.roundTwo.counterexample.status;
+      var activeCounter = s.missionStep >= 4 && s.missionStep <= 5;
+      el('cosmos-stage').classList.toggle('reverse-contact', activeCounter);
+      overlay.hidden = !activeCounter;
+      overlay.querySelector('strong').textContent = counterexample.title;
+      overlayState.textContent = counterState === 'testing'
+        ? '正在预测你的惯用方法'
+        : '等待选择检验框架';
+      status.textContent = counterState === 'resolved' ? '反例已封存' : counterState === 'testing' ? '检验中' : '已识别';
+      status.className = 'status-chip ' + (counterState === 'resolved' ? 'safe' : 'danger');
+      var counterKey = 'round-two-counter:' + counterState + ':' + (s.roundTwo.counterexample.choice || 'none') + ':' + Math.floor(s.roundTwo.proofProgress);
+      setContactContent(counterKey, '<article class="reverse-atlas round-two-counterexample"><header><div><span>ROUTE-SPECIFIC COUNTEREXAMPLE / LOOP 02</span><strong>' + counterexample.title + '</strong></div><b>' + status.textContent + '</b></header><section class="reverse-object-card ' + (counterState === 'resolved' ? 'resolved' : 'pending') + '"><span class="reverse-object-symbol">' + counterexample.symbol + '</span><div><b>它针对的是方法，不是资源</b><small>' + counterexample.premise + '</small><p>' + counterexample.behavior + '</p></div></section><div class="reverse-pressure"><span><b>完整检验 ' + Math.floor(s.roundTwo.proofProgress) + ' / ' + GC.SECOND_LOOP.proofSeconds + ' 秒</b><em>' + (s.roundTwo.counterexample.choice ? '回应：' + s.roundTwo.counterexample.choice : '尚未选择回应') + '</em></span><div><i style="width:' + clamp(s.roundTwo.proofProgress / GC.SECOND_LOOP.proofSeconds * 100, 0, 100) + '%"></i></div><small>检验条件全部公开在物质流量面板；短暂失效只会让进度缓慢回退。</small></div></article>');
+      lastEnemyStatus = 'round-two-' + counterState;
+      return;
+    }
     var pendingReverse = Slice.getPendingReverseObject ? Slice.getPendingReverseObject() : null;
     var atlasVisible = enemy.status === 'resolved' && s.missionStep >= 16;
     var contactVisible = enemy.status === 'warning' || enemy.status === 'active' || !!pendingReverse;
@@ -760,7 +959,10 @@
     var max = Math.max(4, ranking[0] ? ranking[0].score : 0);
     var dominant = ranking[0];
     var pendingReverse = Slice.getPendingReverseObject ? Slice.getPendingReverseObject() : null;
-    var lead = dominant ? '<section class="route-lead route-' + dominant.id + '"><span>当前主路线 / ' + dominant.meta.ending + '</span><strong>' + dominant.meta.goal + '</strong><small>' + (pendingReverse ? pendingReverse.title + '正在模仿这条路线；重复选择会提高反侧压力。' : dominant.meta.question) + '</small></section>' : '';
+    var inheritedRoute = s.loopNumber === 2 && s.loopSignature ? meta[s.loopSignature.dominantRoute] : null;
+    var lead = inheritedRoute
+      ? '<section class="route-lead route-' + s.loopSignature.dominantRoute + '"><span>继承路线 / ' + inheritedRoute.ending + '</span><strong>本轮信号不会自动服从上轮答案</strong><small>' + Slice.getRoundTwoCounterexample().title + '正在检验这条路线；下面的信号只记录第二轮真实选择。</small></section>'
+      : dominant ? '<section class="route-lead route-' + dominant.id + '"><span>当前主路线 / ' + dominant.meta.ending + '</span><strong>' + dominant.meta.goal + '</strong><small>' + (pendingReverse ? pendingReverse.title + '正在模仿这条路线；重复选择会提高反侧压力。' : dominant.meta.question) + '</small></section>' : '';
     el('route-signals').innerHTML = lead + Object.keys(meta).map(function (id) {
       var score = s.tendencies[id] || 0;
       var sources = s.decisions.filter(function (decision) { return decision.route === id; }).length;
@@ -770,16 +972,22 @@
 
     var oldSummary = document.querySelector('.route-summary');
     if (oldSummary) oldSummary.remove();
-    if (s.flags.demoComplete && ranking.length >= 2) {
+    if ((s.flags.demoComplete || (s.loopNumber === 2 && s.flags.civilizationComplete)) && ranking.length >= 2) {
       var summary = document.createElement('div');
       summary.className = 'route-summary';
-      summary.innerHTML = '<span>文明将优先讨论</span><strong>' + ranking[0].meta.ending + ' / 备选 ' + ranking[1].meta.ending + '</strong><small>反宇宙回应与偶发现象也已进入提案依据。</small>';
+      summary.innerHTML = s.loopNumber === 2
+        ? '<span>第二座文明已经比较</span><strong>' + ranking[0].meta.ending + ' / 异议 ' + ranking[1].meta.ending + '</strong><small>这里是本轮选择形成的信号，不会覆盖继承路线。</small>'
+        : '<span>文明将优先讨论</span><strong>' + ranking[0].meta.ending + ' / 备选 ' + ranking[1].meta.ending + '</strong><small>反宇宙回应与偶发现象也已进入提案依据。</small>';
       el('route-signals').after(summary);
     }
   }
 
   function updateLog() {
     var logs = GS.getSlice().logs;
+    var logLayer = el('log-layer');
+    if (el('log-count')) el('log-count').textContent = logs.length;
+    if (logLayer && !logLayer.hidden) lastViewedLogCount = logs.length;
+    if (el('log-btn')) el('log-btn').classList.toggle('has-unread', logs.length > lastViewedLogCount);
     var signature = logs.length + ':' + (logs.length ? logs[logs.length - 1].text : '');
     if (signature === lastLogSignature) return;
     lastLogSignature = signature;
@@ -839,6 +1047,19 @@
 
   function getGuideTarget(s) {
     var step = s.missionStep;
+    if (s.loopNumber === 2) {
+      if ([0, 3, 4, 7, 10, 11].indexOf(step) !== -1) return { selector: '#event-panel' };
+      if (step === 1 || step === 5) return { selector: '#stability-checklist', reveal: '#flow-monitor' };
+      if (step === 2) return { selector: GS.getTier(2).researched ? (GS.getTier(2).totalEver < 10 ? '#btn-synth-2' : '#btn-prod-2') : (GS.canResearch(2) ? '#btn-research-global' : '.research-bar') };
+      if (step === 6) return { selector: GS.getTier(3).researched ? (GS.getTier(3).totalEver < 8 ? '#btn-synth-3' : '#btn-prod-3') : (GS.canResearch(3) ? '#btn-research-global' : '.research-bar') };
+      if (step === 8) {
+        if (!GS.getTier(4).researched) return { selector: GS.canResearch(4) ? '#btn-research-global' : '.research-bar' };
+        if (!GS.getTier(5).researched) return { selector: GS.canResearch(5) ? '#btn-research-global' : '.research-bar' };
+        return { selector: '#btn-synth-5' };
+      }
+      if (step === 9) return { selector: GS.getTier(6).researched ? '#btn-synth-6' : (GS.canResearch(6) ? '#btn-research-global' : '.research-bar') };
+      return { selector: '#route-panel' };
+    }
     if (Slice.getPendingReverseObject && Slice.getPendingReverseObject()) return { selector: '#event-panel' };
     if (step === 0) return { selector: '#cosmos-stage', center: true };
     if (step === 1) return { selector: '#btn-prod-0' };
@@ -891,13 +1112,15 @@
     el('guide-progress-fill').style.width = progress.percent + '%';
     el('guide-progress-label').textContent = progress.label;
     var returnButton = el('guide-return');
-    var workspaceSteps = [4, 9, 11, 16, 17, 19, 20, 21, 22];
+    var workspaceSteps = s.loopNumber === 2 ? [1, 2, 5, 6, 8, 9] : [4, 9, 11, 16, 17, 19, 20, 21, 22];
     var needsWorkspace = workspaceSteps.indexOf(s.missionStep) !== -1 && progress.percent < 100;
-    var researchTierByStep = { 6: 2, 16: 3, 17: 4, 19: 5, 21: 6 };
-    var waitingTier = researchTierByStep[s.missionStep];
+    var researchTierByStep = s.loopNumber === 2 ? { 2: 2, 6: 3, 9: 6 } : { 6: 2, 16: 3, 17: 4, 19: 5, 21: 6 };
+    var waitingTier = s.loopNumber === 2 && s.missionStep === 8
+      ? (!GS.getTier(4).researched ? 4 : (!GS.getTier(5).researched ? 5 : undefined))
+      : researchTierByStep[s.missionStep];
     var needsResearchWait = waitingTier !== undefined && !GS.getTier(waitingTier).researched && !GS.canResearch(waitingTier);
     returnButton.hidden = !(needsWorkspace || needsResearchWait);
-    returnButton.textContent = needsResearchWait ? '明白，返回主界面积累' : (s.missionStep === 11 ? '返回主界面完成接触准备' : '返回主界面调整资源');
+    returnButton.textContent = needsResearchWait ? '明白，返回主界面积累' : (s.loopNumber !== 2 && s.missionStep === 11 ? '返回主界面完成接触准备' : '返回主界面调整资源');
 
     var descriptor = getGuideTarget(s);
     if (descriptor.reveal) {
@@ -1167,6 +1390,7 @@
         renderLoreCategories(unlockedEntries);
       });
     });
+    if (I18n) I18n.apply(el('lore-layer'));
   }
 
   function updateArchiveBadge() {
@@ -1198,6 +1422,26 @@
     if (loreLastFocus && loreLastFocus.focus) loreLastFocus.focus();
   }
 
+  function openObservationLog() {
+    var layer = el('log-layer');
+    logLastFocus = document.activeElement;
+    lastViewedLogCount = GS.getSlice().logs.length;
+    el('log-btn').classList.remove('has-unread');
+    layer.hidden = false;
+    layer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('log-open');
+    el('log-close').focus();
+  }
+
+  function closeObservationLog() {
+    var layer = el('log-layer');
+    if (layer.hidden) return;
+    layer.hidden = true;
+    layer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('log-open');
+    if (logLastFocus && logLastFocus.focus) logLastFocus.focus();
+  }
+
   function refreshAll() {
     if (!GS.getState()) return;
     updateMission();
@@ -1212,7 +1456,9 @@
     updateClickHint();
     updateDiscovery();
     updateArchiveBadge();
+    updateProgressiveDisclosure();
     updateGuide();
+    if (I18n) I18n.apply(document.body);
   }
 
   function bindButtons() {
@@ -1343,6 +1589,7 @@
       showToast('测试时标已恢复 ×1', false);
     });
 
+    el('log-btn').addEventListener('click', openObservationLog);
     el('archive-btn').addEventListener('click', openLoreArchive);
     el('sound-toggle').addEventListener('click', function () {
       if (!Sound) return;
@@ -1352,6 +1599,8 @@
     });
     el('lore-close').addEventListener('click', closeLoreArchive);
     el('lore-backdrop').addEventListener('click', closeLoreArchive);
+    el('log-close').addEventListener('click', closeObservationLog);
+    el('log-backdrop').addEventListener('click', closeObservationLog);
     el('lore-search').addEventListener('input', function () { renderLoreArchive(this.value); });
     el('lore-categories').addEventListener('click', function (event) {
       var button = event.target.closest('[data-category]');
@@ -1380,6 +1629,7 @@
     });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && !el('lore-layer').hidden) closeLoreArchive();
+      if (event.key === 'Escape' && !el('log-layer').hidden) closeObservationLog();
     });
 
     document.addEventListener('pointerover', function (event) {
@@ -1403,6 +1653,12 @@
     bindButtons();
     updateSoundToggle();
     refreshAll();
+    document.addEventListener('tinycosmos:localechange', function () {
+      eventRenderKey = '';
+      contactRenderKey = '';
+      lastLogSignature = '';
+      refreshAll();
+    });
   }
 
   window.GameUI = { init: init, refreshAll: refreshAll };

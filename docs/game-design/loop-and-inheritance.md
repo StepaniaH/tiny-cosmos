@@ -1,7 +1,13 @@
 # 周目循环、结局形成与继承物
 
-状态：设计稿
-更新日期：2026-07-18
+状态：玩法设计稿；`LoopSignature` 与第二轮反例竖切已实现
+更新日期：2026-07-23
+
+> 第二至第四轮的开场剧情、路线反例、反宇宙继承和 `LoopSignature` 数据契约见
+> [`rebirth-rounds-2-4-narrative.md`](rebirth-rounds-2-4-narrative.md)；对应 31 张图片生产规范见
+> [`../art/rebirth-rounds-2-4-storyboard-prompts.md`](../art/rebirth-rounds-2-4-storyboard-prompts.md)。
+> 当前第二轮 12 节点实现、路线反例与验收状态见
+> [`second-loop-playable-slice.md`](second-loop-playable-slice.md)。
 
 ## 本文处理的问题
 

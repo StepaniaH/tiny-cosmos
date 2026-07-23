@@ -5,6 +5,7 @@
 
   var GC = window.GC;
   var GS = window.GameState;
+  var I18n = window.GameI18n;
   var Slice = window.GameSlice;
 
   var canvas, ctx, animId, cssW, cssH, dpr, bgGrad;
@@ -259,12 +260,12 @@
 
     ctx.font = '9px ' + getMono();
     ctx.fillStyle = '#55747a';
-    ctx.fillText('OBSERVED q', cx, cy + 12);
+    ctx.fillText(I18n && I18n.getLocale() === 'zh-CN' ? '已观测 q' : 'OBSERVED q', cx, cy + 12);
 
     if (prestiges > 0) {
       ctx.font = '9px ' + getMono();
       ctx.fillStyle = '#cc5de8';
-      ctx.fillText('CYCLE ×' + prestiges, cx, cy + 26);
+      ctx.fillText((I18n && I18n.getLocale() === 'zh-CN' ? '轮回 ×' : 'CYCLE ×') + prestiges, cx, cy + 26);
     }
     ctx.restore();
   }

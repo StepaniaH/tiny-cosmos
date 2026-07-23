@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050a0d">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <title>Tiny Cosmos // 第一轮文明</title>
-  <link rel="stylesheet" href="css/game.css?v=23">
+  <link rel="stylesheet" href="css/game.css?v=26">
 </head>
 <body>
   <div class="screen-noise" aria-hidden="true"></div>
@@ -15,8 +15,8 @@
     <div class="brand-lockup">
       <div class="brand-mark" aria-hidden="true"><span></span><span></span></div>
       <div>
-        <div class="eyebrow">OBSERVER NODE / TC-07</div>
-        <h1><span class="debug-letter">T<button id="debug-speed-up" type="button" tabindex="-1" aria-label="测试时间加速一百倍"></button></span>IN<span class="debug-letter">Y<button id="debug-speed-normal" type="button" tabindex="-1" aria-label="恢复正常测试时间"></button></span> COSMOS <span class="brand-zh">微型宇宙</span></h1>
+        <div class="eyebrow"><span class="copy-zh">观测节点 / TC-07</span><span class="copy-en">OBSERVER NODE / TC-07</span></div>
+        <h1><span class="brand-en"><span class="debug-letter">T<button id="debug-speed-up" type="button" tabindex="-1" aria-label="测试时间加速一百倍"></button></span>IN<span class="debug-letter">Y<button id="debug-speed-normal" type="button" tabindex="-1" aria-label="恢复正常测试时间"></button></span> COSMOS</span><span class="brand-zh">微型宇宙</span></h1>
       </div>
     </div>
 
@@ -27,18 +27,19 @@
       </div>
       <div class="telemetry-cell">
         <span>观测窗口</span>
-        <strong>FIRST LOOP</strong>
+        <strong id="loop-window-label">第一轮</strong>
       </div>
       <div class="telemetry-cell status-online">
         <span>节点状态</span>
-        <strong><i></i> ONLINE</strong>
+        <strong><i></i> 在线</strong>
       </div>
     </div>
 
     <div class="header-actions">
-      <button id="sound-toggle" class="btn btn-quiet audio-toggle" type="button" aria-pressed="true">声音 · 关</button>
+      <button id="log-btn" class="btn btn-quiet" type="button" aria-haspopup="dialog">日志 <span id="log-count">0</span></button>
       <button id="archive-btn" class="btn btn-quiet">档案 <span id="archive-count">3</span></button>
       <button id="save-btn" class="btn btn-quiet">保存</button>
+      <button id="settings-btn" class="btn btn-quiet settings-trigger" type="button" aria-haspopup="dialog">设置</button>
       <button id="reset-btn" class="btn btn-danger-quiet">重启宇宙</button>
     </div>
   </header>
@@ -47,7 +48,7 @@
     <aside class="panel resource-panel">
       <div class="panel-heading">
         <div><span class="panel-index">01</span><h2>物质层级</h2></div>
-        <span class="panel-code">MATTER STACK</span>
+        <span id="tier-visibility-label" class="panel-code">当前可见 2 / 7</span>
       </div>
 
       <div class="tier-grid" id="tier-grid">
@@ -119,6 +120,7 @@
           <div class="tc-locked">文明议案 / FUTURE</div>
           <div class="tc-actions"><button id="btn-synth-6" class="btn btn-tier" style="display:none"></button><button id="btn-research-6" class="btn btn-tier btn-primary" style="display:none"></button></div>
         </article>
+        <div id="tier-horizon" class="tier-horizon"><span>远方信号</span><strong id="tier-horizon-copy">还有 5 个结构层等待揭示</strong></div>
       </div>
     </aside>
 
@@ -190,6 +192,19 @@
     </section>
 
     <aside class="right-stack">
+      <section id="campaign-goal" class="panel campaign-goal" aria-labelledby="campaign-goal-title">
+        <div class="campaign-goal-kicker"><span id="campaign-chapter">第一章 · 唤醒</span><b id="campaign-chapter-progress">1 / 5</b></div>
+        <h2 id="campaign-goal-title">让宇宙演化出能回应你的文明</h2>
+        <p id="campaign-goal-copy">从夸克开始建立稳定物质，面对视界背面的另一侧，并让文明根据你的真实选择提出未来。</p>
+        <ol id="campaign-phases" class="campaign-phases" aria-label="第一轮目标进度">
+          <li class="current"><i></i><span>唤醒物质</span></li>
+          <li><i></i><span>建立法则</span></li>
+          <li><i></i><span>第一次接触</span></li>
+          <li><i></i><span>孕育生命</span></li>
+          <li><i></i><span>点燃文明</span></li>
+        </ol>
+      </section>
+
       <section id="directive-panel" class="panel directive-panel">
         <div class="panel-heading compact">
           <div><span class="panel-index">03</span><h2>观测指令</h2></div>
@@ -218,14 +233,6 @@
         </div>
         <div id="route-signals" class="route-signals"></div>
         <p class="route-note">路线信号会改变反侧客体模仿你的方式，并决定文明优先提出哪项终局工程。</p>
-      </section>
-
-      <section class="panel log-panel">
-        <div class="panel-heading compact">
-          <div><span class="panel-index">06</span><h2>观测日志</h2></div>
-          <span class="live-mark"><i></i> LIVE</span>
-        </div>
-        <div id="observation-log" class="observation-log"></div>
       </section>
     </aside>
   </main>
@@ -268,17 +275,91 @@
       </section>
     </aside>
   </div>
+  <div id="log-layer" class="lore-layer log-layer" hidden aria-hidden="true">
+    <button id="log-backdrop" class="lore-backdrop" type="button" aria-label="关闭观测日志"></button>
+    <aside class="lore-drawer log-drawer" role="dialog" aria-modal="true" aria-labelledby="log-title">
+      <header class="lore-drawer-head">
+        <div><span>OBSERVATION LOG / LIVE</span><h2 id="log-title">观测日志</h2></div>
+        <button id="log-close" class="btn btn-quiet" type="button">关闭</button>
+      </header>
+      <p class="lore-primer log-primer">这里按时间保存系统变化、任务推进与反侧接触记录。日志不占用主界面空间，也不会影响当前操作。</p>
+      <div id="observation-log" class="observation-log log-drawer-list" aria-live="polite"></div>
+    </aside>
+  </div>
   <div id="ui-tooltip" class="ui-tooltip" role="tooltip" hidden><strong id="ui-tooltip-title"></strong><p id="ui-tooltip-copy"></p></div>
   <div id="system-toast" class="system-toast" aria-live="polite"></div>
 
-  <script src="js/constants.js?v=22"></script>
-  <script src="js/state.js?v=22"></script>
-  <script src="js/slice.js?v=12"></script>
+  <div id="settings-layer" class="modal-layer" hidden aria-hidden="true">
+    <button id="settings-backdrop" class="modal-backdrop" type="button" aria-label="关闭设置"></button>
+    <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <header class="settings-head"><div><span>界面与辅助功能</span><h2 id="settings-title">设置</h2></div><button id="settings-close" class="btn btn-quiet" type="button">关闭</button></header>
+      <div class="settings-group">
+        <div><strong>界面语言</strong><small>所有操作、剧情与档案使用同一种语言。</small></div>
+        <div class="segmented-control" id="language-control" role="group" aria-label="界面语言">
+          <button type="button" data-locale="zh-CN">简体中文</button>
+          <button type="button" data-locale="en">English</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div><strong>文字大小</strong><small>“舒适”已针对普通笔记本屏幕提高可读性。</small></div>
+        <div class="segmented-control" id="text-scale-control" role="group" aria-label="文字大小">
+          <button type="button" data-text-scale="comfortable">舒适</button>
+          <button type="button" data-text-scale="large">更大</button>
+        </div>
+      </div>
+      <div class="settings-group settings-row">
+        <div><strong>事件音效</strong><small>只影响界面与事件反馈，不影响存档。</small></div>
+        <button id="sound-toggle" class="btn btn-quiet audio-toggle" type="button" aria-pressed="true">声音 · 关</button>
+      </div>
+      <div class="settings-group settings-row">
+        <div><strong>序章</strong><small>随时重新观看世界观与本轮目标。</small></div>
+        <button id="replay-prologue" class="btn btn-quiet" type="button">重新观看</button>
+      </div>
+    </section>
+  </div>
+
+  <section id="prologue" class="prologue" hidden aria-hidden="true" aria-label="序章">
+    <div class="prologue-backdrop"></div>
+    <div class="prologue-frame">
+      <div id="prologue-art" class="prologue-art" data-scene="collapse">
+        <img id="prologue-image" src="" alt="">
+        <div class="prologue-fallback" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="prologue-vignette"></div>
+      </div>
+      <div id="prologue-transition" class="prologue-transition" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+      <header class="prologue-head">
+        <span id="prologue-kicker">序章 · 坍缩后的核</span>
+        <div class="prologue-head-actions">
+          <div id="prologue-language" class="prologue-language" role="group" aria-label="Language / 语言" data-no-localize>
+            <button type="button" data-prologue-locale="zh-CN" aria-label="切换为简体中文">中文</button>
+            <button type="button" data-prologue-locale="en" aria-label="Switch to English">EN</button>
+          </div>
+          <button id="prologue-skip" type="button">跳过序章</button>
+        </div>
+      </header>
+      <article class="prologue-copy">
+        <span id="prologue-index">01 / 14</span>
+        <h2 id="prologue-title"></h2>
+        <p id="prologue-body"></p>
+      </article>
+      <footer class="prologue-controls">
+        <div id="prologue-dots" class="prologue-dots" aria-label="序章进度"></div>
+        <div><button id="prologue-prev" type="button">上一幕</button><button id="prologue-next" type="button">下一幕</button></div>
+      </footer>
+    </div>
+  </section>
+
+  <script src="js/i18n.js?v=6"></script>
+  <script src="js/prologue.js?v=5"></script>
+  <script src="js/settings.js?v=1"></script>
+  <script src="js/constants.js?v=23"></script>
+  <script src="js/state.js?v=23"></script>
+  <script src="js/slice.js?v=13"></script>
   <script src="js/lore.js?v=5"></script>
   <script src="js/engine.js?v=20"></script>
   <script src="js/render.js?v=20"></script>
   <script src="js/audio.js?v=3"></script>
-  <script src="js/ui.js?v=23"></script>
-  <script src="js/main.js?v=19"></script>
+  <script src="js/ui.js?v=26"></script>
+  <script src="js/main.js?v=21"></script>
 </body>
 </html>

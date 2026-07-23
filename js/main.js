@@ -7,6 +7,7 @@
   var GE = window.GameEngine;
   var UI = window.GameUI;
   var Renderer = window.CanvasRenderer;
+  var I18n = window.GameI18n;
 
   var autosaveTimer = null;
   var lastUiRefresh = 0;
@@ -28,6 +29,9 @@
     autosaveTimer = setInterval(saveGame, GC.AUTOSAVE_MS);
   }
 
+  window.TinyCosmos = window.TinyCosmos || {};
+  window.TinyCosmos.saveGame = saveGame;
+
   // ── Init ──
   function init() {
     // Load or new game
@@ -44,7 +48,7 @@
       }
     });
 
-    GE.start();
+    if (!document.body.classList.contains('prologue-open')) GE.start();
 
     // Canvas renderer
     Renderer.init('cosmos-canvas');
@@ -60,18 +64,32 @@
       saveGame();
       var b = document.getElementById('save-btn');
       b.textContent = '已保存'; setTimeout(function () { b.textContent = '保存'; }, 1200);
+      if (I18n) I18n.apply(document.body);
     });
 
     // Reset button
     document.getElementById('reset-btn').addEventListener('click', function () {
-      if (confirm('重启当前第一次接触宇宙？本竖切存档会被清除。')) {
+      var resetCopy = I18n
+        ? I18n.text('重启当前第一次接触宇宙？本轮存档会被清除。', 'Restart the current First Contact cosmos? This loop save will be erased.')
+        : '重启当前第一次接触宇宙？本轮存档会被清除。';
+      if (confirm(resetCopy)) {
         GE.stop();
         GS.init({ firstContact: true });
         if (window.GameSlice) window.GameSlice.init();
         try { localStorage.removeItem(GC.SAVE_KEY); } catch (e) {}
         UI.refreshAll();
-        GE.start();
+        if (!document.body.classList.contains('prologue-open')) GE.start();
       }
+    });
+
+    document.addEventListener('tinycosmos:prologueopen', function () {
+      Renderer.flushClicks();
+      GE.stop();
+    });
+    document.addEventListener('tinycosmos:prologueclose', function () {
+      lastUiRefresh = 0;
+      UI.refreshAll();
+      GE.start();
     });
 
     window.addEventListener('beforeunload', saveGame);

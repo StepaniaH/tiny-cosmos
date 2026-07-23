@@ -85,8 +85,11 @@ node tools/balance/run-validation.js --all
 - 无尽花园：`docs/game-design/routes/endless-garden.md`
 - 最后观测者：`docs/game-design/routes/last-observer.md`
 - 双生大坍缩：`docs/game-design/routes/twin-crunch.md`
+- 第二至第四轮重生剧情：`docs/game-design/rebirth-rounds-2-4-narrative.md`
+- 第二轮可玩节奏：`docs/game-design/second-loop-playable-slice.md`
+- 第二至第四轮图片分镜：`docs/art/rebirth-rounds-2-4-storyboard-prompts.md`
 
-完整周目、四条终局和继承物仍处于纸面设计阶段。下面的“第一次接触”竖切已经可玩，其时间和数值会继续根据试玩结果调整。
+四条完整终局工程仍处于纸面设计阶段。第一轮“第一次接触”竖切与第二轮“答案的反例”框架已经可玩，其时间和数值会继续根据试玩结果调整。
 
 ## 当前可玩竖切
 
@@ -104,6 +107,22 @@ node tools/balance/run-validation.js --all
 - 硬科幻三栏驾驶舱界面。
 
 实现说明见 `docs/game-design/first-contact-vertical-slice.md`。
+
+### 第二轮“答案的反例”
+
+第二轮已经形成可保存的 12 节点闭环：
+
+- 第一轮文明结算生成结构化 `LoopSignature`。
+- 定向大坍缩进入第二轮，并播放读取真实签名的七幕重生序列。
+- 以现成夸克—核子生产链开局，不重复手动点击与基础生产教学。
+- 四条上轮主路线分别触发闭界格栅、逆季候、盲区证人和失同步摆。
+- 四段偶发碎片关联上轮法则、文明证词、反侧预测与被放弃的未来。
+- 第二座文明可接受、反驳或暂缓祖先证词。
+- 结算记录真理重复、修正或未决争议。
+- 七幕重生序列的 10 个图片槽位已经完成，路线幕按上轮主路线四选一。
+- `tools/balance/second-loop-smoke.js` 覆盖完整任务图、四种反例路由和存档重载。
+
+实现说明见 `docs/game-design/second-loop-playable-slice.md`。
 
 ## 当前技术判断
 
@@ -154,6 +173,8 @@ node tools/balance/run-validation.js --all
 - 终局提案读取整局小决策。
 - 定向大坍缩生成两件继承物候选。
 - 下一轮装备一件主继承物。
+
+当前进度：`LoopSignature`、单件路线继承物、定向重生与第二轮反例框架已实现；完整越过视界工程和“两件候选再选一件”的收藏界面仍待实现。
 
 验收重点：继承物会改变下一轮前十分钟的事件和操作。
 
