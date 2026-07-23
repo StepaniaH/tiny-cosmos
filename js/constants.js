@@ -160,6 +160,31 @@
     lifeSignalSeconds: 75,
   };
 
+  // ── Second-loop pacing ─────────────────────────────────────────
+  // Round two starts with remembered operations and a biased material seed.
+  // It therefore uses fewer research waits and spends its time on the inherited
+  // truth, the route-specific counterexample, and the second civilization.
+  var SECOND_LOOP = {
+    targetMinutes: 28,
+    researchCosts: [0, 0, 32, 95, 210, 480, 900],
+    biasSeconds: 25,
+    proofSeconds: 40,
+    productionByRoute: {
+      advance: [1, 1, 1.22, 1.08, 1, 1, 1],
+      sustain: [1.16, 1.16, 0.94, 1.06, 1, 1, 1],
+      inquiry: [1, 1, 0.94, 1, 1, 1, 1],
+      rewrite: [1.08, 1.08, 1.08, 1.08, 1, 1, 1],
+      ordinary: [1.08, 1.08, 1, 1, 1, 1, 1],
+    },
+    researchByRoute: {
+      advance: 1,
+      sustain: 1.05,
+      inquiry: 1.28,
+      rewrite: 1.12,
+      ordinary: 1.08,
+    },
+  };
+
   // ── Export ──────────────────────────────────────────────────────
   window.GC = {
     TIERS: TIERS,
@@ -179,5 +204,6 @@
     SAVE_KEY: SAVE_KEY,
     AUTOSAVE_MS: AUTOSAVE_MS,
     FIRST_CONTACT: FIRST_CONTACT,
+    SECOND_LOOP: SECOND_LOOP,
   };
 })();

@@ -1,6 +1,6 @@
 # Tiny Cosmos 资产文档索引
 
-更新日期：2026-07-18
+更新日期：2026-07-23
 适用版本：第一次接触 Build 0.6（页游轻量资产接口）
 
 把整个 `docs/art/` 目录、`assets/manifest.json` 和 `assets/README.md` 交给 Cursor。Cursor 首先读取 [`AI-ASSET-HANDBOOK.md`](./AI-ASSET-HANDBOOK.md)，再按任务清单生成统一的回传包。
@@ -15,6 +15,9 @@
 6. [`asset-prompts.md`](./asset-prompts.md)：可直接交给建模或图像模型的固定提示词。
 7. [`asset-validation-and-delivery.md`](./asset-validation-and-delivery.md)：自动检查、人工验收和回传包结构。
 8. [`asset-jobs.json`](./asset-jobs.json)：供 Cursor 读取的机器任务清单。
+9. [`prologue-storyboard-prompts.md`](./prologue-storyboard-prompts.md)：已完成的第一轮 14 幕序章与 GPT Image 2 提示词。
+10. [`rebirth-rounds-2-4-storyboard-prompts.md`](./rebirth-rounds-2-4-storyboard-prompts.md)：第二至第四轮 31 张重生图片槽位、路线分支与生产门槛。
+11. [`rebirth-production-log.md`](./rebirth-production-log.md)：第二轮 10 个已完成生产槽位、两张 B 版锁定母版、哈希与运行时接入记录。
 
 ## 文件职责
 

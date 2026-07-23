@@ -33,10 +33,16 @@
     };
   }
 
-  function createSliceState(enabled) {
+  function createSliceState(enabled, options) {
+    options = options || {};
+    var loopNumber = options.loopNumber || 1;
+    var signature = options.signature || null;
+    var isSecondLoop = loopNumber === 2;
     return {
       enabled: !!enabled,
-      version: 6,
+      version: 7,
+      loopNumber: loopNumber,
+      loopSignature: signature,
       elapsedSeconds: 0,
       missionStep: 0,
       missionStartedAt: 0,
@@ -123,12 +129,133 @@
       archive: {
         read: [],
       },
+      roundTwo: {
+        inheritanceMode: null,
+        biasProgress: 0,
+        fragmentChoice: null,
+        counterexample: {
+          id: null,
+          status: 'hidden',
+          choice: null,
+        },
+        proofProgress: 0,
+        witnessResponse: null,
+        truthVerdict: null,
+        truthRepeated: false,
+        truthRevised: false,
+      },
       decisions: [],
-      logs: [
-        { time: 0, channel: 'SYS', text: '观测核冷启动。七层结构尚未稳定。' },
-        { time: 0, channel: 'GUIDE', text: '点击中央光核五次，每次响应都会记录一枚夸克。' },
-      ],
+      logs: isSecondLoop ? [
+        { time: 0, channel: 'REBIRTH', text: '坍缩签名已载入。第二轮初始物质带有可测量偏差。' },
+        { time: 0, channel: 'GUIDE', text: '先校验继承物。本轮不会重复基础操作教学。' },
+      ] : [
+          { time: 0, channel: 'SYS', text: '观测核冷启动。七层结构尚未稳定。' },
+          { time: 0, channel: 'GUIDE', text: '点击中央光核五次，每次响应都会记录一枚夸克。' },
+        ],
     };
+  }
+
+  function createLoopMeta() {
+    return {
+      version: 1,
+      number: 1,
+      activeSignature: null,
+      signatures: [],
+    };
+  }
+
+  function routeRankingFromSlice(sliceState) {
+    var tendencies = sliceState && sliceState.tendencies ? sliceState.tendencies : {};
+    var order = ['advance', 'sustain', 'inquiry', 'rewrite'];
+    return order.map(function (id, index) {
+      return { id: id, score: Number(tendencies[id] || 0), order: index };
+    }).sort(function (a, b) {
+      return b.score - a.score || a.order - b.order;
+    });
+  }
+
+  function decisionId(sliceState, kind) {
+    if (!sliceState || !Array.isArray(sliceState.decisions)) return null;
+    for (var i = sliceState.decisions.length - 1; i >= 0; i -= 1) {
+      if (sliceState.decisions[i].kind === kind) return sliceState.decisions[i].id;
+    }
+    return null;
+  }
+
+  function buildLoopSignature(kind) {
+    if (!state) return null;
+    var sliceState = state.slice || createSliceState(false);
+    var ranking = routeRankingFromSlice(sliceState);
+    var dominant = kind === 'ordinary' ? 'ordinary' : ranking[0].id;
+    var secondary = kind === 'ordinary' ? null : ranking[1].id;
+    var truthByRoute = {
+      advance: 'horizon-can-open',
+      sustain: 'closed-cycle-can-endure',
+      inquiry: 'witness-can-outlast-collapse',
+      rewrite: 'contradictions-can-cooperate',
+      ordinary: 'constants-can-be-recovered',
+    };
+    var inheritanceByRoute = {
+      advance: 'ember-aperture',
+      sustain: 'returning-ring',
+      inquiry: 'witness-lens',
+      rewrite: 'phase-braid',
+      ordinary: 'constant-kernel',
+    };
+    var witnessByRoute = {
+      advance: 'carry-a-door-but-name-what-stays',
+      sustain: 'a-garden-must-name-its-winter',
+      inquiry: 'evidence-is-not-its-only-reading',
+      rewrite: 'shared-endings-require-different-clocks',
+      ordinary: 'speed-is-not-yet-a-direction',
+    };
+    var relationByMethod = {
+      overload: 'hostile',
+      cutoff: 'bounded',
+      observe: 'witnessed',
+      sync: 'synchronized',
+    };
+    var priorMethod = decisionId(sliceState, 'enemy');
+    var complexity = decisionId(sliceState, 'complexity');
+    var preservedByComplexity = {
+      bloom: 'fastest-lineage',
+      sanctuary: 'uncompetitive-lineages',
+      witness: 'causal-record',
+      braid: 'dual-side-sample',
+    };
+    return {
+      schemaVersion: 1,
+      loopNumber: (state.loop && state.loop.number ? state.loop.number : 1) + 1,
+      completedEnding: dominant,
+      endingVariant: dominant + '-proposal-v1',
+      truths: [truthByRoute[dominant]],
+      equippedInheritance: inheritanceByRoute[dominant],
+      priorLaw: sliceState.law || null,
+      priorContactMethod: priorMethod,
+      priorAfterimageUse: decisionId(sliceState, 'core'),
+      dominantRoute: dominant,
+      secondaryRoute: secondary,
+      civilizationWitness: witnessByRoute[dominant],
+      preserved: preservedByComplexity[complexity] || 'observable-constants',
+      abandoned: secondary ? 'unbuilt-' + secondary + '-future' : 'unresolved-direction',
+      reverseRelation: relationByMethod[priorMethod] || 'reciprocal',
+      reverseSamples: Object.keys(sliceState.reverse && sliceState.reverse.objects ? sliceState.reverse.objects : {}).filter(function (id) {
+        var object = sliceState.reverse.objects[id];
+        return object && object.choice && object.choice !== 'legacy';
+      }),
+      createdAtSeconds: sliceState.elapsedSeconds || 0,
+    };
+  }
+
+  function applySecondLoopStart() {
+    state.researchPoints = 12;
+    state.tiers[0].count = 18;
+    state.tiers[0].totalEver = 18;
+    state.tiers[0].producers = 2;
+    state.tiers[1].count = 6;
+    state.tiers[1].totalEver = 6;
+    state.tiers[1].producers = 1;
+    state.tiers[1].researched = true;
   }
 
   // ── Init / Reset ────────────────────────────────────────────────
@@ -151,7 +278,8 @@
       prestiges: 0,
       tickCount: 0,
       milestones: [],       // array of milestone.at values unlocked
-      slice: createSliceState(sliceEnabled),
+      loop: createLoopMeta(),
+      slice: createSliceState(sliceEnabled, { loopNumber: 1 }),
     };
     return state;
   }
@@ -177,6 +305,31 @@
     return cpGain;
   }
 
+  /** Directed rebirth: preserve a structured ending and begin the next campaign. */
+  function beginDirectedRebirth() {
+    if (!state || !state.slice || !state.slice.flags.civilizationComplete) return false;
+    if (state.loop && state.loop.number >= 2) return false;
+    var signature = buildLoopSignature('directed');
+    var cpGain = calcCPGain();
+
+    if (!state.loop) state.loop = createLoopMeta();
+    state.loop.signatures.push(signature);
+    state.loop.number = signature.loopNumber;
+    state.loop.activeSignature = signature;
+
+    state.tiers = GC.TIERS.map(createTier);
+    state.researchPoints = 0;
+    state.totalSynthesis = 0;
+    state.tickCount = 0;
+    state.constantPoints += cpGain;
+    state.prestiges += 1;
+    checkMilestones();
+    state.slice = createSliceState(true, { loopNumber: signature.loopNumber, signature: signature });
+    applySecondLoopStart();
+
+    return { cpGain: cpGain, signature: signature };
+  }
+
   // ── Getters ─────────────────────────────────────────────────────
 
   function getState() { return state; }
@@ -188,6 +341,8 @@
   function getMilestones() { return state ? state.milestones : []; }
   function getConstants() { return state ? state.constants : { strongForce: 0, lightSpeed: 0, gravity: 0 }; }
   function getSlice() { return state ? state.slice : null; }
+  function getLoop() { return state ? state.loop : null; }
+  function getActiveSignature() { return state && state.loop ? state.loop.activeSignature : null; }
   function getAllocatedCP() { var c = getConstants(); return c.strongForce + c.lightSpeed + c.gravity; }
   function getUnspentCP() { return getCP() - getAllocatedCP(); }
 
@@ -282,6 +437,9 @@
   // ── Research ────────────────────────────────────────────────────
 
   function getResearchCost(tierId) {
+    if (state && state.slice && state.slice.enabled && state.slice.loopNumber === 2 && GC.SECOND_LOOP.researchCosts[tierId] !== undefined) {
+      return GC.SECOND_LOOP.researchCosts[tierId];
+    }
     if (state && state.slice && state.slice.enabled && GC.FIRST_CONTACT.researchCosts[tierId] !== undefined) {
       return GC.FIRST_CONTACT.researchCosts[tierId];
     }
@@ -295,7 +453,9 @@
     // Must be adjacent to max researched tier
     if (tierId !== getMaxResearchedTier() + 1) return false;
     if (state.slice && state.slice.enabled) {
-      var missionGates = [0, 0, 6, 16, 17, 19, 21];
+      var missionGates = state.slice.loopNumber === 2
+        ? [0, 0, 2, 6, 8, 8, 9]
+        : [0, 0, 6, 16, 17, 19, 21];
       if (state.slice.missionStep < missionGates[tierId]) return false;
     }
     return state.researchPoints >= getResearchCost(tierId);
@@ -421,7 +581,18 @@
         t.producerBaseCost = tpl.producerBaseCost;
         t.descZh = tpl.descZh;
       });
-      var sliceDefaults = createSliceState(parsed.slice && parsed.slice.enabled);
+      var loopDefaults = createLoopMeta();
+      parsed.loop = Object.assign({}, loopDefaults, parsed.loop || {});
+      if (!Array.isArray(parsed.loop.signatures)) parsed.loop.signatures = [];
+      var savedLoopNumber = parsed.loop.number || (parsed.slice && parsed.slice.loopNumber) || 1;
+      parsed.loop.number = savedLoopNumber;
+      if (!parsed.loop.activeSignature && parsed.slice && parsed.slice.loopSignature) {
+        parsed.loop.activeSignature = parsed.slice.loopSignature;
+      }
+      var sliceDefaults = createSliceState(parsed.slice && parsed.slice.enabled, {
+        loopNumber: savedLoopNumber,
+        signature: parsed.loop.activeSignature || (parsed.slice && parsed.slice.loopSignature) || null,
+      });
       if (!parsed.slice) parsed.slice = sliceDefaults;
       else {
         var savedSliceVersion = parsed.slice.version || 0;
@@ -448,12 +619,20 @@
           if (parsed.slice.missionStep > 19) parsed.slice.reverse.objects.seed = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
         }
         parsed.slice.archive = Object.assign({}, sliceDefaults.archive, parsed.slice.archive || {});
+        parsed.slice.roundTwo = Object.assign({}, sliceDefaults.roundTwo, parsed.slice.roundTwo || {});
+        parsed.slice.roundTwo.counterexample = Object.assign(
+          {},
+          sliceDefaults.roundTwo.counterexample,
+          parsed.slice.roundTwo.counterexample || {}
+        );
         if (!Array.isArray(parsed.slice.discoveries.triggered)) parsed.slice.discoveries.triggered = [];
         if (!Array.isArray(parsed.slice.discoveries.acknowledged)) parsed.slice.discoveries.acknowledged = [];
         if (!Array.isArray(parsed.slice.archive.read)) parsed.slice.archive.read = [];
         if (!Array.isArray(parsed.slice.decisions)) parsed.slice.decisions = [];
         if (!Array.isArray(parsed.slice.logs)) parsed.slice.logs = [];
         parsed.slice.version = sliceDefaults.version;
+        parsed.slice.loopNumber = savedLoopNumber;
+        parsed.slice.loopSignature = parsed.loop.activeSignature || parsed.slice.loopSignature || null;
       }
       state = parsed;
       return true;
@@ -466,6 +645,8 @@
   window.GameState = {
     init: init,
     bigCrunchReset: bigCrunchReset,
+    beginDirectedRebirth: beginDirectedRebirth,
+    buildLoopSignature: buildLoopSignature,
 
     // Getters
     getState: getState,
@@ -477,6 +658,8 @@
     getMilestones: getMilestones,
     getConstants: getConstants,
     getSlice: getSlice,
+    getLoop: getLoop,
+    getActiveSignature: getActiveSignature,
     getAllocatedCP: getAllocatedCP,
     getUnspentCP: getUnspentCP,
     getMaxResearchedTier: getMaxResearchedTier,

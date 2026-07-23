@@ -6,6 +6,24 @@
   var GC = window.GC;
   var GS = window.GameState;
 
+  function isSecondLoop() {
+    var current = GS.getSlice();
+    return !!(current && current.loopNumber === 2);
+  }
+
+  function loopSignature() {
+    var current = GS.getSlice();
+    return current && current.loopSignature ? current.loopSignature : {
+      dominantRoute: 'ordinary',
+      secondaryRoute: null,
+      completedEnding: 'ordinary',
+      truths: ['constants-can-be-recovered'],
+      equippedInheritance: 'constant-kernel',
+      civilizationWitness: 'speed-is-not-yet-a-direction',
+      reverseRelation: 'reciprocal',
+    };
+  }
+
   var ROUTES = {
     advance: { name: '推进', ending: '越过视界', goal: '在下一次大坍缩前完成边界航行工程', question: '边界究竟是牢笼，还是尚未打开的门？', color: '#ffb84d' },
     sustain: { name: '维持', ending: '无尽花园', goal: '让物质与谱系循环跨越大坍缩继续生长', question: '永续是否值得放弃一次不可逆的远行？', color: '#61e6a7' },
@@ -21,6 +39,11 @@
     complexity: '复杂性伦理',
     reverse: '反宇宙回应',
     phenomenon: '偶发现象',
+    inheritance: '继承校准',
+    fragment: '历史碎片',
+    counterexample: '路线反例',
+    witness: '文明证词',
+    verdict: '真理裁定',
   };
 
   var MISSIONS = [
@@ -225,6 +248,119 @@
       action: '在决策队列中查看文明提案及其依据；第一轮从夸克到文明的大循环至此完成。',
     },
   ];
+
+  var SECOND_LOOP_MISSIONS = [
+    {
+      code: 'R2-MEM-01', title: '校验坍缩签名',
+      brief: '在决策队列读取上轮真理、继承物、证词与债务，并选择本轮如何校准它。',
+      hint: '第二轮不会重新教学点击与生产。你从已经能自动运行的夸克—核子链开始。',
+      world: '大坍缩没有保留完整历史，却把上轮主提案压缩成一条可运行规则。它既是礼物，也是新宇宙最早的偏见。',
+      action: '打开决策队列，对比“沿用偏差、设置阻尼、公开代价”三种校准方式。',
+      restSeconds: 5,
+      restMessage: '继承物开始接入物质链。观察它先加速了什么，又让什么更难成立。',
+    },
+    {
+      code: 'R2-BIAS-01', title: '测量有方向的初始物质',
+      brief: '保持夸克≥12、核子≥4，且两层净流量不为负，连续记录 25 秒。',
+      hint: '这不是第一次轮的基础教学。目标是确认继承偏差能否在稳定资源流中持续存在。',
+      world: '这一轮的最初物质不再中立。某些组合比上轮更容易发生，而被排除的代价也更早留下轮廓。',
+      action: '用焦点与保护线调整现成的双层生产链；全部条件同时满足时开始连续记录。',
+      restSeconds: 6,
+      restMessage: '偏差已经被测量，而不是被当作理所当然。研究通道正在寻找它最早改变的结构。',
+    },
+    {
+      code: 'R2-ATOM-01', title: '在旧方法之外建立原子',
+      brief: '研究原子层，累计获得 10 枚原子，并建立 1 个原子生产单元。',
+      hint: '已掌握的操作被压缩成一个阶段。新的问题不是“如何合成”，而是上轮答案怎样改变合成。',
+      world: '原子再次出现，但谱线在上轮主路线的方向上产生了轻微偏折。反侧噪声比第一轮更早对这份偏折作出回应。',
+      action: '积累研究点揭示原子；随后合成 10 枚原子并建立 1 个生产单元。',
+      restSeconds: 5,
+      restMessage: '第一组原子谱线与上轮记录重合。一个不属于当前时间的句子混入了校验结果。',
+    },
+    {
+      code: 'R2-FRAG-01', title: '回应一段尚未发生的证词',
+      brief: '在决策队列处理上轮文明证词的残片：接受、复核，或保留矛盾版本。',
+      hint: '碎片不是完整回忆。你的回应会决定第二座文明看到的是遗训、证据，还是争议。',
+      world: '物质尚未形成生命，研究通道却先读出一句文明用语。它来自上一轮，但末尾多出了一段没有被观测核记录过的修订。',
+      action: '比较三种归档方式。选择会留下路线信号，但不会直接判定上轮文明说得对或错。',
+      restSeconds: 6,
+      restMessage: '证词碎片获得了版本号。视界背面的结构不再隐藏它已经认出这条旧答案。',
+    },
+    {
+      code: 'R2-COUNTER-01', title: '面对为你定制的反例',
+      brief: '读取路线专属反侧结构，并决定重复旧方法、用备选路线修正，或建立双侧试验。',
+      hint: '反例不是数值更高的旧敌人。它针对的是你上轮最常用、最成功的那套方法。',
+      world: '另一侧没有继承你的结论，却继承了自己曾如何失去可能性。它把那段损失压缩成一个专门测试上轮真理的结构。',
+      action: '在决策队列阅读反例的行为规则，再选择一种回应框架。',
+      restSeconds: 5,
+      restMessage: '回应框架已经公开。接下来必须用真实资源流证明它，而不是只在档案里声明立场。',
+    },
+    {
+      code: 'R2-PROOF-01', title: '让答案承受一次反证',
+      brief: '满足路线专属条件并连续维持 40 秒，让反例有机会真正推翻你的方法。',
+      hint: '四条路线使用不同条件。进度失效时缓慢回退，不会把一次短暂波动当成失败。',
+      world: '上轮答案曾经成功，但“成功过”不等于“可重复”。反侧结构开始预测你的焦点、保护线与吞吐习惯。',
+      action: '查看稳态判定中的路线专属条件。保持条件成立，直到反例完成一次完整测试。',
+      restSeconds: 7,
+      restMessage: '反例没有消失，它被转化成一份可复查结果。复杂物质将沿这份分歧继续生长。',
+    },
+    {
+      code: 'R2-BRIDGE-01', title: '从反例中长出连接',
+      brief: '研究分子层，累计获得 8 枚分子，并建立 1 个生产单元。',
+      hint: '分子阶段不再重复三次反侧客体教学；本轮只保留一个与上轮答案直接相关的结构后果。',
+      world: '反例测试留下的不是胜负，而是一组新连接条件。某些原子只有在承认旧答案存在盲区时才愿意成键。',
+      action: '研究分子层并建立最小可持续连接。反例处理方式会改变这一阶段的生产倍率。',
+      restSeconds: 6,
+      restMessage: '连接开始保存分歧。第二段文明证词从分子间隙中出现，这次它明确要求后来者回答。',
+    },
+    {
+      code: 'R2-WITNESS-01', title: '决定后来者如何读前人',
+      brief: '选择第二座文明应当接受、反驳，还是暂缓采用上一轮文明证词。',
+      hint: '证词不会跨轮成为命令。它可以提供方向，也必须允许后来者留下异议。',
+      world: '第一座文明无法活着抵达这里，但它留下的结构化证词已经影响了哪些连接更容易出现。后来者有权知道，也有权不同意。',
+      action: '在决策队列为证词设定继承方式。选择会成为第二轮结束时的 witnessResponse。',
+      restSeconds: 5,
+      restMessage: '证词获得了继承权限。生命阶段将同时携带上轮答案与本轮异议。',
+    },
+    {
+      code: 'R2-LIFE-01', title: '把答案与反例编入谱系',
+      brief: '研究细胞与生命层，累计获得 3 份生命。',
+      hint: '第二轮把已掌握的复杂物质操作合并为一次“谱系跃迁”，节奏重点放在继承结果而非重复建厂。',
+      world: '细胞不再只继承环境压力。它们同时继承一条旧真理、一份反例结果，以及是否允许反驳祖先的制度。',
+      action: '先研究并合成细胞，再研究生命层；累计 3 份生命即可译出第二座文明的共同问题。',
+      restSeconds: 7,
+      restMessage: '谱系已经能区分“祖先做过的事”和“后来者必须做的事”。文明研究通道开放。',
+    },
+    {
+      code: 'R2-CIV-01', title: '点燃第二座文明',
+      brief: '研究文明层，并用 8 份生命合成 1 份文明。',
+      hint: '第二座文明会同时回读上轮证词、本轮反例与当前路线，不会复制第一座文明的议案。',
+      world: '这座文明出生在一条已经有祖先的宇宙里。它们的第一个问题不是“未来是什么”，而是“哪些过去有资格约束未来”。',
+      action: '继续经营谱系，达到研究与生命条件后点燃文明。',
+      restSeconds: 6,
+      restMessage: '第二座文明开始比较两轮记录。最终裁定必须由你公开，但它们会留下自己的异议。',
+    },
+    {
+      code: 'R2-VERDICT', title: '裁定第一条真理的地位',
+      brief: '选择重复上轮真理、用本轮备选路线修正，或保留为尚未解决的争议。',
+      hint: '这里记录 truthRepeated 与 truthRevised；没有任何选项被标记为隐藏真结局。',
+      world: '一条真理若不能面对反例，只是一次幸运；若只能原样重复，又可能变成惯性。第二座文明要求你明确它在下一轮档案中的地位。',
+      action: '在决策队列阅读第二座文明的意见，并完成真理裁定。',
+      restSeconds: 5,
+      restMessage: '两轮历史第一次同时拥有结论与异议。观测核正在生成下一份跨轮签名。',
+    },
+    {
+      code: 'R2-REPORT', title: '第二轮：答案的反例完成',
+      brief: '第二座文明已经评价上轮真理，并留下可供第三轮读取的反例记录。',
+      hint: '资源链可以继续运行。第三轮将让反宇宙第一次携带自己的继承物进入开场。',
+      world: '第一轮证明一种未来可以成立；第二轮证明它必须如何面对针对性的质疑。历史不再是一条直线，而是两份能够互相校验的证词。',
+      action: '查看真理裁定、反例回应与文明证词。第二轮可玩叙事闭环至此完成。',
+    },
+  ];
+
+  function activeMissions() {
+    return isSecondLoop() ? SECOND_LOOP_MISSIONS : MISSIONS;
+  }
 
   var LAW_OPTIONS = [
     {
@@ -513,6 +649,100 @@
     },
   ];
 
+  var ROUND_TWO_COUNTEREXAMPLES = {
+    advance: {
+      id: 'closure-lattice', title: '闭界格栅', symbol: 'CL',
+      premise: '你证明边界能够被穿越。另一侧因此学会在高吞吐出现之前关闭门。',
+      behavior: '当原子层获得最高焦点时，格栅预测出口方向；你必须同时保住核子余量，证明远行不是把代价留给未同行者。',
+    },
+    sustain: {
+      id: 'reverse-season', title: '逆季候', symbol: 'RS',
+      premise: '你证明对立可以形成循环。另一侧开始询问：谁一直在承担冬天？',
+      behavior: '正面的连续盈余会被翻译为背面的短缺季；公开保护线与多层盈余，才能证明循环没有隐藏承担者。',
+    },
+    inquiry: {
+      id: 'blind-spot-witness', title: '盲区证人', symbol: 'BW',
+      premise: '你证明观察者可以保留证据。另一侧开始只在没有被聚焦的层级行动。',
+      behavior: '把焦点移出原子层，并在盲区仍保留足够样本，证明证据不是靠持续凝视才成立。',
+    },
+    rewrite: {
+      id: 'desync-pendulum', title: '失同步摆', symbol: 'DP',
+      premise: '你证明矛盾可以共同运行。另一侧则保留了一个永远慢半拍的节奏。',
+      behavior: '在核子与原子间多次迁移焦点，并让两层都保有库存，证明同步允许差异，而不是消除差异。',
+    },
+    ordinary: {
+      id: 'unnamed-noise', title: '未命名噪声', symbol: 'UN',
+      premise: '没有定向答案穿过坍缩，只有更快的常数起点。另一侧暂时无法预测你的路线。',
+      behavior: '保持核子盈余与原子样本，重新形成一个可被检验的方向。',
+    },
+  };
+
+  var LOOP_MEMORY_LABELS = {
+    'horizon-can-open': '视界可以被再次打开',
+    'closed-cycle-can-endure': '闭合循环能够跨越终结',
+    'witness-can-outlast-collapse': '证词能够比坍缩活得更久',
+    'contradictions-can-cooperate': '矛盾规则能够共同运行',
+    'constants-can-be-recovered': '恒定点能够被回收',
+    'ember-aperture': '余烬孔径',
+    'returning-ring': '回返环',
+    'witness-lens': '证人透镜',
+    'phase-braid': '相位编带',
+    'constant-kernel': '恒定核',
+    'carry-a-door-but-name-what-stays': '携带一扇门，也必须说出谁被留在原处',
+    'a-garden-must-name-its-winter': '花园必须公开由谁承担冬天',
+    'evidence-is-not-its-only-reading': '证据并不拥有唯一解释',
+    'shared-endings-require-different-clocks': '共同终结必须允许不同的钟',
+    'speed-is-not-yet-a-direction': '更快的起点仍然不是方向',
+    'unbuilt-advance-future': '未建成的越界未来',
+    'unbuilt-sustain-future': '未建成的花园未来',
+    'unbuilt-inquiry-future': '未建成的证人未来',
+    'unbuilt-rewrite-future': '未建成的共同坍缩',
+    'unresolved-direction': '尚未形成的方向',
+  };
+
+  function loopMemoryLabel(id) {
+    return LOOP_MEMORY_LABELS[id] || id || '未记录';
+  }
+
+  function getLoopMemorySummary() {
+    var signature = loopSignature();
+    return {
+      truth: loopMemoryLabel(signature.truths && signature.truths[0]),
+      inheritance: loopMemoryLabel(signature.equippedInheritance),
+      witness: loopMemoryLabel(signature.civilizationWitness),
+      debt: loopMemoryLabel(signature.abandoned),
+      primaryRoute: routeOrFallback(signature.dominantRoute, 'ordinary'),
+      secondaryRoute: routeOrFallback(signature.secondaryRoute, 'advance'),
+    };
+  }
+
+  var ROUND_TWO_DISCOVERIES = [
+    {
+      id: 'checksum-ghost', steps: [1], at: 8, code: 'INHERITED FRAGMENT / 01',
+      title: '碎片：先于物质的校验和',
+      copy: '一串来自上轮第一法则的校验位，比第一枚新原子更早通过研究通道。它证明被继承的不是物体，而是抵达物体的偏好。',
+      note: '跨轮碎片 · 写入档案，不中断当前稳定计时',
+    },
+    {
+      id: 'unborn-quotation', steps: [2], at: 14, code: 'INHERITED FRAGMENT / 02',
+      title: '碎片：尚未出生者的引文',
+      copy: '原子谱线短暂排列成一种文明标点。句子来自上一轮证词，末尾却多出一个本轮尚无人能够写下的问号。',
+      note: '跨轮碎片 · 上轮证词正在被当前初始条件改写',
+    },
+    {
+      id: 'reverse-rehearsal', steps: [5], at: 11, code: 'REVERSE FRAGMENT / 03',
+      title: '碎片：另一侧的预演',
+      copy: '反例结构提前模拟了下一次焦点迁移。它猜错了具体层级，却准确猜到你会再次使用同一种解决思路。',
+      note: '反侧碎片 · 对方预测的是方法，不是按钮',
+    },
+    {
+      id: 'missing-debt', steps: [8], at: 18, code: 'LINEAGE FRAGMENT / 04',
+      title: '碎片：被继承的空位',
+      copy: '一份生命谱系稳定保留了一个从未使用的代谢接口。那里没有器官，只有上轮未建成未来留下的形状。',
+      note: '谱系碎片 · abandoned 字段第一次成为可见缺口',
+    },
+  ];
+
   function slice() {
     return GS.getSlice ? GS.getSlice() : null;
   }
@@ -520,6 +750,111 @@
   function isEnabled() {
     var s = slice();
     return !!(s && s.enabled);
+  }
+
+  function routeOrFallback(id, fallback) {
+    return ROUTES[id] ? id : fallback;
+  }
+
+  function getRoundTwoCounterexample() {
+    var signature = loopSignature();
+    var route = routeOrFallback(signature.dominantRoute, 'ordinary');
+    return ROUND_TWO_COUNTEREXAMPLES[route];
+  }
+
+  function getRoundTwoDecision() {
+    var s = slice();
+    if (!s || !isSecondLoop()) return null;
+    var signature = loopSignature();
+    var primary = routeOrFallback(signature.dominantRoute, 'advance');
+    var secondary = routeOrFallback(signature.secondaryRoute, primary === 'advance' ? 'sustain' : 'advance');
+    var counterexample = getRoundTwoCounterexample();
+    var memory = getLoopMemorySummary();
+    if (s.missionStep === 0 && !s.roundTwo.inheritanceMode) {
+      return {
+        kind: 'inheritance',
+        title: '继承物校准',
+        context: '上轮真理：' + memory.truth + ' · 继承物：' + memory.inheritance,
+        options: [
+          { id: 'carry', route: primary, title: '沿用偏差', tag: ROUTES[primary].name + ' · 重复检验', desc: '保留继承物的完整加速，也接受反侧更早识别这条方法。' },
+          { id: 'dampen', route: secondary, title: '设置阻尼', tag: ROUTES[secondary].name + ' · 修正检验', desc: '降低主偏差，把一部分初始优势让给上轮备选路线。' },
+          { id: 'expose', route: 'inquiry', title: '公开代价', tag: '求证 · 双版本档案', desc: '保留偏差，同时把它限制了哪些未来写入公开校验记录。' },
+        ],
+      };
+    }
+    if (s.missionStep === 3 && !s.roundTwo.fragmentChoice) {
+      return {
+        kind: 'fragment',
+        title: '未发生证词',
+        context: '上轮文明证词：' + memory.witness,
+        options: [
+          { id: 'accept', route: primary, title: '作为祖先证词接纳', tag: ROUTES[primary].name + ' · 连续性', desc: '保留原句与修订句，并承认它们来自同一历史谱系。' },
+          { id: 'verify', route: 'inquiry', title: '拆开两个版本复核', tag: '求证 · 版本分离', desc: '不先判断哪句更真，把差异作为本轮反例的输入。' },
+          { id: 'coexist', route: 'rewrite', title: '允许矛盾版本并存', tag: '改写 · 双重证词', desc: '让后来者同时看到上轮原句和本轮提前出现的修订。' },
+        ],
+      };
+    }
+    if (s.missionStep === 4 && !s.roundTwo.counterexample.choice) {
+      return {
+        kind: 'counterexample',
+        title: counterexample.title,
+        context: counterexample.premise + ' ' + counterexample.behavior,
+        options: [
+          { id: 'repeat', route: primary, title: '让旧方法接受正面检验', tag: ROUTES[primary].name + ' · truthRepeated 候选', desc: '不回避针对性反例，用公开条件再次执行上轮方法。' },
+          { id: 'revise', route: secondary, title: '用备选路线修正方法', tag: ROUTES[secondary].name + ' · truthRevised 候选', desc: '承认上轮答案存在盲区，用备选提案承担本次测试。' },
+          { id: 'reciprocal', route: 'rewrite', title: '建立双侧共同试验', tag: '改写 · 互为对照', desc: '不把另一侧当作障碍，让它也能记录测试何时成立与失效。' },
+        ],
+      };
+    }
+    if (s.missionStep === 7 && !s.roundTwo.witnessResponse) {
+      return {
+        kind: 'witness',
+        title: '证词继承权限',
+        context: '第一座文明留下方向，第二座文明保留解释权。',
+        options: [
+          { id: 'accept', route: primary, title: '接受，但公开适用条件', tag: '接受证词', desc: '把上轮证词作为可复查先例，不升级为永恒命令。' },
+          { id: 'challenge', route: secondary, title: '正式提出反驳', tag: '反驳证词', desc: '保存祖先原文，同时让后来者的异议拥有同等档案级别。' },
+          { id: 'defer', route: 'inquiry', title: '暂缓采用', tag: '搁置证词', desc: '证据不足时不强迫谱系站队，把问题交给下一轮继续验证。' },
+        ],
+      };
+    }
+    if (s.missionStep === 10 && !s.roundTwo.truthVerdict) {
+      return {
+        kind: 'verdict',
+        title: '第一条真理的地位',
+        context: '反例测试：' + s.roundTwo.counterexample.choice + ' · 文明回应：' + s.roundTwo.witnessResponse,
+        options: [
+          { id: 'repeat', route: primary, title: '真理得到重复证明', tag: 'truthRepeated = true', desc: '上轮答案在针对性反例下仍成立，但保留本轮公开的适用条件。' },
+          { id: 'revise', route: secondary, title: '真理经修正后成立', tag: 'truthRevised = true', desc: '把备选路线与反例结果写入真理定义，不再沿用原始版本。' },
+          { id: 'dispute', route: 'inquiry', title: '保留为未决争议', tag: '异议进入第三轮', desc: '不把一次测试包装成结论，让两轮证词同时进入下一次坍缩。' },
+        ],
+      };
+    }
+    return null;
+  }
+
+  function chooseRoundTwoDecision(kind, id) {
+    var s = slice();
+    var decision = getRoundTwoDecision();
+    if (!s || !decision || decision.kind !== kind) return false;
+    var option = decision.options.find(function (item) { return item.id === id; });
+    if (!option) return false;
+    if (kind === 'inheritance') s.roundTwo.inheritanceMode = id;
+    else if (kind === 'fragment') s.roundTwo.fragmentChoice = id;
+    else if (kind === 'counterexample') {
+      s.roundTwo.counterexample.id = getRoundTwoCounterexample().id;
+      s.roundTwo.counterexample.status = 'testing';
+      s.roundTwo.counterexample.choice = id;
+    } else if (kind === 'witness') s.roundTwo.witnessResponse = id;
+    else if (kind === 'verdict') {
+      s.roundTwo.truthVerdict = id;
+      s.roundTwo.truthRepeated = id === 'repeat';
+      s.roundTwo.truthRevised = id === 'revise';
+    }
+    recordDecision(kind, id, option.route, option.title, kind === 'verdict' ? 2 : 1);
+    addLog(kind === 'counterexample' ? 'REVERSE' : 'HISTORY', decision.title + '：' + option.title + '。');
+    evaluateMission();
+    return true;
   }
 
   function getReverseObjectDefinition(id) {
@@ -617,6 +952,20 @@
   function getReverseInfluences(tierId) {
     var s = slice();
     if (!s || !s.reverse || tierId < 2) return [];
+    if (isSecondLoop()) {
+      var inheritedRoute = routeOrFallback(loopSignature().dominantRoute, 'ordinary');
+      var inheritedMult = (GC.SECOND_LOOP.productionByRoute[inheritedRoute] || [])[tierId] || 1;
+      var roundTwoItems = [];
+      if (Math.abs(inheritedMult - 1) > 0.001) roundTwoItems.push({
+        tone: inheritedMult > 1 ? 'gain' : 'cost',
+        label: '继承偏差 ×' + inheritedMult.toFixed(2),
+      });
+      if (s.roundTwo.counterexample.status === 'testing') roundTwoItems.push({
+        tone: 'pressure',
+        label: getRoundTwoCounterexample().title + '正在检验',
+      });
+      return roundTwoItems;
+    }
     var items = [];
     if (getReversePressure() > 0) items.push({ tone: 'pressure', label: '反侧压力 ×' + getReversePressureMultiplier(tierId).toFixed(2) });
     var lattice = s.reverse.objects.lattice.choice;
@@ -654,8 +1003,14 @@
   function init() {
     var s = slice();
     if (!s || !s.enabled) return;
-    if (s.missionStep >= MISSIONS.length) s.missionStep = MISSIONS.length - 1;
+    var missions = activeMissions();
+    if (s.missionStep >= missions.length) s.missionStep = missions.length - 1;
     if (s.missionStartedAt === undefined || s.missionStartedAt > s.elapsedSeconds) s.missionStartedAt = s.elapsedSeconds;
+    if (isSecondLoop()) {
+      s.roundTwo.counterexample.id = getRoundTwoCounterexample().id;
+      evaluateMission();
+      return;
+    }
     REVERSE_OBJECTS.forEach(function (definition) {
       var object = s.reverse.objects[definition.id];
       if (s.missionStep === definition.triggerStep && object.status === 'hidden') activateReverseObject(definition.id);
@@ -681,12 +1036,13 @@
 
   function startInterlude(completedStep) {
     var s = slice();
-    var mission = MISSIONS[completedStep];
+    var missions = activeMissions();
+    var mission = missions[completedStep];
     var seconds = mission.restSeconds || 0;
     if (!s || seconds <= 0) return false;
     s.guide.interlude = true;
     s.guide.remaining = seconds;
-    s.guide.nextStep = Math.min(completedStep + 1, MISSIONS.length - 1);
+    s.guide.nextStep = Math.min(completedStep + 1, missions.length - 1);
     s.guide.message = mission.restMessage || '观测核正在整理刚才的变化。';
     addLog('FREE', s.guide.message);
     return true;
@@ -706,10 +1062,33 @@
   function enterMission(step) {
     var s = slice();
     if (!s || step <= s.missionStep) return;
-    s.missionStep = Math.min(step, MISSIONS.length - 1);
+    var missions = activeMissions();
+    s.missionStep = Math.min(step, missions.length - 1);
     s.missionStartedAt = s.elapsedSeconds;
-    var mission = MISSIONS[s.missionStep];
+    var mission = missions[s.missionStep];
     addLog('GUIDE', mission.code + ' / ' + mission.title);
+
+    if (isSecondLoop()) {
+      if (s.missionStep === 4) {
+        s.roundTwo.counterexample.status = 'pending';
+        addLog('REVERSE', getRoundTwoCounterexample().title + '已经完成针对性建模。');
+      }
+      if (s.missionStep === 6 && s.roundTwo.counterexample.status !== 'resolved') {
+        s.roundTwo.counterexample.status = 'resolved';
+      }
+      if (s.missionStep === 8) {
+        // The inherited path compresses familiar cell/life setup without making
+        // the player rebuild the entire first-loop factory.
+        GS.addRP(150);
+        GS.addResource(3, 6);
+        addLog('INHERIT', '反例结果被转成 6 分子与 150 RP 的谱系桥接样本。');
+      }
+      if (s.missionStep === 11) {
+        s.flags.civilizationComplete = true;
+        addLog('CIV', '第二座文明完成真理评议。结论与异议已经同时封存。');
+      }
+      return;
+    }
 
     if (s.missionStep === 10) {
       s.flags.lawDecisionOpen = true;
@@ -749,6 +1128,41 @@
     var s = slice();
     var missionStep = step === undefined ? (s ? s.missionStep : -1) : step;
     if (!s) return [];
+    if (isSecondLoop() && missionStep === 1) return [
+      { id: 'r2-quark-stock', label: '夸克库存至少 12', met: GS.getTier(0).count >= 12, value: Math.floor(GS.getTier(0).count) + ' / 12', fix: '等待现有生产链恢复，或暂缓继续合成。' },
+      { id: 'r2-nucleon-stock', label: '核子库存至少 4', met: GS.getTier(1).count >= 4, value: Math.floor(GS.getTier(1).count) + ' / 4', fix: '把焦点移到核子，或等待继承偏差完成校准。' },
+      { id: 'r2-quark-net', label: '夸克流量不为负', met: getTierNetRate(0) >= 0, value: (getTierNetRate(0) >= 0 ? '+' : '') + getTierNetRate(0).toFixed(2) + '/s', fix: '减少低层消耗或增加夸克生产。' },
+      { id: 'r2-nucleon-net', label: '核子流量不为负', met: getTierNetRate(1) >= 0, value: (getTierNetRate(1) >= 0 ? '+' : '') + getTierNetRate(1).toFixed(2) + '/s', fix: '使用焦点或增加核子生产。' },
+    ];
+    if (isSecondLoop() && missionStep === 5) {
+      var route = routeOrFallback(loopSignature().dominantRoute, 'ordinary');
+      if (route === 'advance') return [
+        { id: 'r2-advance-focus', label: '焦点位于原子层', met: s.focusTier === 2, value: s.focusTier === 2 ? '出口方向公开' : '尚未聚焦原子', fix: '把焦点移动到原子层，让闭界格栅能够预测你。' },
+        { id: 'r2-advance-stock', label: '核子库存至少 8', met: GS.getTier(1).count >= 8, value: Math.floor(GS.getTier(1).count) + ' / 8', fix: '补足未同行者仍需依赖的低层库存。' },
+        { id: 'r2-advance-net', label: '核子流量不为负', met: getTierNetRate(1) >= 0, value: (getTierNetRate(1) >= 0 ? '+' : '') + getTierNetRate(1).toFixed(2) + '/s', fix: '增加核子产能，证明远行没有隐藏亏空。' },
+      ];
+      if (route === 'sustain') return [
+        { id: 'r2-sustain-reserve', label: '核子保护线公开', met: s.reserveTier === 1, value: s.reserveTier === 1 ? '承担者已标记' : '未设置', fix: '把保护线放在核子层，公开谁承担缓冲。' },
+        { id: 'r2-sustain-quark', label: '夸克流量有盈余', met: getTierNetRate(0) > 0, value: (getTierNetRate(0) >= 0 ? '+' : '') + getTierNetRate(0).toFixed(2) + '/s', fix: '让最底层也保有可见盈余。' },
+        { id: 'r2-sustain-nucleon', label: '核子流量有盈余', met: getTierNetRate(1) > 0, value: (getTierNetRate(1) >= 0 ? '+' : '') + getTierNetRate(1).toFixed(2) + '/s', fix: '调整焦点或产能，使循环不把冬季外包。' },
+        { id: 'r2-sustain-atom', label: '原子库存至少 6', met: GS.getTier(2).count >= 6, value: Math.floor(GS.getTier(2).count) + ' / 6', fix: '保持一组高层样本参与循环。' },
+      ];
+      if (route === 'inquiry') return [
+        { id: 'r2-inquiry-blind', label: '焦点离开原子层', met: s.focusTier !== 2, value: s.focusTier === 2 ? '仍在直视样本' : '盲区已开放', fix: '把焦点移到夸克或核子，让证据在未被直视时成立。' },
+        { id: 'r2-inquiry-atom', label: '盲区保留 8 原子', met: GS.getTier(2).count >= 8, value: Math.floor(GS.getTier(2).count) + ' / 8', fix: '先积累样本，再把焦点移开。' },
+        { id: 'r2-inquiry-rp', label: '研究记录至少 24 RP', met: GS.getRP() >= 24, value: Math.floor(GS.getRP()) + ' / 24', fix: '保留足够研究记录验证盲区行为。' },
+      ];
+      if (route === 'rewrite') return [
+        { id: 'r2-rewrite-focus', label: '本轮焦点迁移至少 3 次', met: s.stats.focusChanges >= 3, value: s.stats.focusChanges + ' / 3', fix: '在核子与原子之间迁移焦点，公开不同拍点。' },
+        { id: 'r2-rewrite-nucleon', label: '核子库存至少 6', met: GS.getTier(1).count >= 6, value: Math.floor(GS.getTier(1).count) + ' / 6', fix: '为较慢节拍保留核子。' },
+        { id: 'r2-rewrite-atom', label: '原子库存至少 8', met: GS.getTier(2).count >= 8, value: Math.floor(GS.getTier(2).count) + ' / 8', fix: '为较快节拍保留原子。' },
+      ];
+      return [
+        { id: 'r2-ordinary-nucleon', label: '核子流量不为负', met: getTierNetRate(1) >= 0, value: (getTierNetRate(1) >= 0 ? '+' : '') + getTierNetRate(1).toFixed(2) + '/s', fix: '重新建立一个不亏空的方向。' },
+        { id: 'r2-ordinary-atom', label: '原子库存至少 8', met: GS.getTier(2).count >= 8, value: Math.floor(GS.getTier(2).count) + ' / 8', fix: '保留足够原子样本。' },
+      ];
+    }
+    if (isSecondLoop()) return [];
     if (missionStep === 4) return [
       { id: 'focus-nucleon', label: '焦点位于核子层', met: s.focusTier === 1, value: s.focusTier === 1 ? '已聚焦' : '点击核子“聚焦”', fix: '把宇宙焦点移动到核子层。' },
       { id: 'quark-stock', label: '夸克库存至少 12', met: GS.getTier(0).count >= 12, value: Math.floor(GS.getTier(0).count) + ' / 12', fix: '继续点击光核或等待夸克生产。' },
@@ -771,13 +1185,14 @@
   function updateResearchDiscoveries(dt) {
     var s = slice();
     if (!s) return;
-    if (s.missionStep === 6 && !s.flags.atomResearched) s.discoveries.researchWaitSeconds += dt;
+    if (!isSecondLoop() && s.missionStep === 6 && !s.flags.atomResearched) s.discoveries.researchWaitSeconds += dt;
     if (s.discoveries.missionStep !== s.missionStep) {
       s.discoveries.missionStep = s.missionStep;
       s.discoveries.missionWaitSeconds = 0;
     }
     s.discoveries.missionWaitSeconds += dt;
-    RESEARCH_DISCOVERIES.forEach(function (discovery) {
+    var discoveries = isSecondLoop() ? ROUND_TWO_DISCOVERIES : RESEARCH_DISCOVERIES;
+    discoveries.forEach(function (discovery) {
       var steps = discovery.steps || [6];
       var triggerAt = getDiscoveryTriggerAt(discovery, s.discoveries.seed);
       if (steps.indexOf(s.missionStep) === -1 || s.discoveries.missionWaitSeconds < triggerAt || s.discoveries.triggered.indexOf(discovery.id) !== -1) return;
@@ -796,10 +1211,11 @@
   function getActiveDiscovery() {
     var s = slice();
     if (!s) return null;
+    var discoveries = isSecondLoop() ? ROUND_TWO_DISCOVERIES : RESEARCH_DISCOVERIES;
     for (var i = 0; i < s.discoveries.triggered.length; i += 1) {
       var id = s.discoveries.triggered[i];
       if (s.discoveries.acknowledged.indexOf(id) !== -1) continue;
-      return RESEARCH_DISCOVERIES.find(function (item) { return item.id === id; }) || null;
+      return discoveries.find(function (item) { return item.id === id; }) || null;
     }
     return null;
   }
@@ -813,7 +1229,8 @@
 
   function resolveDiscoveryChoice(discoveryId, choiceId) {
     var s = slice();
-    var discovery = RESEARCH_DISCOVERIES.find(function (item) { return item.id === discoveryId; });
+    var discoveries = isSecondLoop() ? ROUND_TWO_DISCOVERIES : RESEARCH_DISCOVERIES;
+    var discovery = discoveries.find(function (item) { return item.id === discoveryId; });
     var choice = discovery && discovery.choices ? discovery.choices.find(function (item) { return item.id === choiceId; }) : null;
     if (!s || !discovery || !choice || s.discoveries.triggered.indexOf(discoveryId) === -1 || s.discoveries.resolved[discoveryId]) return false;
     if (choice.rewardTier !== undefined && choice.reward) GS.addResource(choice.rewardTier, choice.reward);
@@ -896,9 +1313,57 @@
     ));
   }
 
+  function updateRoundTwoProgress(dt) {
+    var s = slice();
+    if (!s || !isSecondLoop()) return;
+    if (s.missionStep === 1) {
+      var biasReady = getStabilityConditionState(1).every(function (condition) { return condition.met; });
+      s.roundTwo.biasProgress = Math.max(0, Math.min(
+        GC.SECOND_LOOP.biasSeconds,
+        s.roundTwo.biasProgress + (biasReady ? dt : -dt * 0.35)
+      ));
+    }
+    if (s.missionStep === 5) {
+      var proofReady = getStabilityConditionState(5).every(function (condition) { return condition.met; });
+      s.roundTwo.proofProgress = Math.max(0, Math.min(
+        GC.SECOND_LOOP.proofSeconds,
+        s.roundTwo.proofProgress + (proofReady ? dt : -dt * 0.35)
+      ));
+    }
+  }
+
+  function evaluateSecondLoopMission() {
+    var s = slice();
+    if (!s || !isSecondLoop() || (s.guide && s.guide.interlude)) return;
+    var guard = 0;
+    while (guard < SECOND_LOOP_MISSIONS.length) {
+      guard += 1;
+      var step = s.missionStep;
+      var complete = false;
+      if (step === 0) complete = !!s.roundTwo.inheritanceMode;
+      else if (step === 1) complete = s.roundTwo.biasProgress >= GC.SECOND_LOOP.biasSeconds;
+      else if (step === 2) complete = GS.getTier(2).researched && GS.getTier(2).totalEver >= 10 && GS.getTier(2).producers >= 1;
+      else if (step === 3) complete = !!s.roundTwo.fragmentChoice;
+      else if (step === 4) complete = !!s.roundTwo.counterexample.choice;
+      else if (step === 5) complete = s.roundTwo.proofProgress >= GC.SECOND_LOOP.proofSeconds;
+      else if (step === 6) complete = GS.getTier(3).researched && GS.getTier(3).totalEver >= 8 && GS.getTier(3).producers >= 1;
+      else if (step === 7) complete = !!s.roundTwo.witnessResponse;
+      else if (step === 8) complete = GS.getTier(4).researched && GS.getTier(5).researched && GS.getTier(5).totalEver >= 3;
+      else if (step === 9) complete = GS.getTier(6).researched && GS.getTier(6).count >= 1;
+      else if (step === 10) complete = !!s.roundTwo.truthVerdict;
+      if (!complete || step >= SECOND_LOOP_MISSIONS.length - 1) break;
+      if (startInterlude(step)) break;
+      enterMission(step + 1);
+    }
+  }
+
   function evaluateMission() {
     var s = slice();
     if (!s || !s.enabled) return;
+    if (isSecondLoop()) {
+      evaluateSecondLoopMission();
+      return;
+    }
     if (s.guide && s.guide.interlude) return;
     var guard = 0;
     while (guard < MISSIONS.length) {
@@ -947,17 +1412,20 @@
     updateResearchDiscoveries(dt);
 
     if (!s.guide.interlude) {
-      updateStability(dt);
-      updatePreparation(dt);
-      updateLifeSignal(dt);
+      if (isSecondLoop()) updateRoundTwoProgress(dt);
+      else {
+        updateStability(dt);
+        updatePreparation(dt);
+        updateLifeSignal(dt);
+      }
     }
 
-    if (s.enemy.status === 'warning') {
+    if (!isSecondLoop() && s.enemy.status === 'warning') {
       s.enemy.warningRemaining = Math.max(0, s.enemy.warningRemaining - dt);
       if (s.enemy.warningRemaining <= 0) beginContact();
     }
 
-    if (s.enemy.status === 'active') {
+    if (!isSecondLoop() && s.enemy.status === 'active') {
       updateEnemyDrain(dt);
       updateEnemyMethod(dt);
     }
@@ -968,6 +1436,19 @@
   function getProductionMultiplier(tierId) {
     var s = slice();
     if (!s || !s.enabled) return 1;
+    if (isSecondLoop()) {
+      var signature = loopSignature();
+      var route = routeOrFallback(signature.dominantRoute, 'ordinary');
+      var routeMultipliers = GC.SECOND_LOOP.productionByRoute[route] || GC.SECOND_LOOP.productionByRoute.ordinary;
+      var inherited = routeMultipliers[tierId] || 1;
+      if (s.roundTwo.inheritanceMode === 'dampen') inherited = 1 + (inherited - 1) * 0.5;
+      var secondMult = s.focusTier === tierId ? GC.FIRST_CONTACT.focusMultiplier : 1;
+      secondMult *= inherited;
+      if (s.roundTwo.inheritanceMode === 'carry' && tierId === 2) secondMult *= 1.05;
+      if (s.roundTwo.counterexample.choice === 'revise' && tierId === 3) secondMult *= 1.12;
+      if (s.roundTwo.counterexample.choice === 'reciprocal' && (tierId === 3 || tierId === 4)) secondMult *= 1.08;
+      return secondMult;
+    }
     if (s.enemy.status === 'active' && s.enemy.method === 'cutoff' && s.enemy.isolationActive && tierId === 2) return 0;
 
     var mult = s.focusTier === tierId ? GC.FIRST_CONTACT.focusMultiplier : 1;
@@ -982,6 +1463,13 @@
   function getResearchMultiplier() {
     var s = slice();
     if (!s || !s.enabled) return 1;
+    if (isSecondLoop()) {
+      var route = routeOrFallback(loopSignature().dominantRoute, 'ordinary');
+      var secondMult = GC.SECOND_LOOP.researchByRoute[route] || 1;
+      if (s.roundTwo.inheritanceMode === 'expose') secondMult *= 1.12;
+      if (s.roundTwo.fragmentChoice === 'verify') secondMult *= 1.08;
+      return secondMult;
+    }
     var mult = s.law === 'observer' ? 1.25 : 1;
     if (s.flags.demoComplete) mult *= GC.FIRST_CONTACT.evolutionResearchMultiplier;
     if (s.reverse.objects.lattice.choice === 'map') mult *= 1.15;
@@ -999,6 +1487,10 @@
   function canSynthesize(tierId) {
     var s = slice();
     if (!s || !s.enabled) return true;
+    if (isSecondLoop()) {
+      var secondGates = [0, 0, 2, 6, 8, 8, 9];
+      return s.missionStep >= secondGates[tierId];
+    }
     if (tierId === 1 && s.missionStep < 2) return false;
     if (tierId === 2 && s.missionStep < 7) return false;
     var synthesisGates = [0, 2, 7, 16, 17, 19, 22];
@@ -1010,6 +1502,10 @@
   function canBuyProducer(tierId) {
     var s = slice();
     if (!s || !s.enabled) return true;
+    if (isSecondLoop()) {
+      var secondGates = [0, 0, 2, 6, 8, 8, 99];
+      return s.missionStep >= secondGates[tierId];
+    }
     if (tierId === 0) return s.missionStep >= 1;
     if (tierId === 1) return s.missionStep >= 3;
     if (tierId === 2) return s.missionStep >= 7;
@@ -1021,7 +1517,7 @@
 
   function explainResearch() {
     var s = slice();
-    if (!s || !s.enabled || s.missionStep < 5) return false;
+    if (!s || !s.enabled || (!isSecondLoop() && s.missionStep < 5)) return false;
     if (!s.flags.researchExplained) {
       s.flags.researchExplained = true;
       addLog('LAB', '研究构成已展开：资源数量通过平方根换算为研究贡献。');
@@ -1076,7 +1572,7 @@
 
   function setFocus(tierId) {
     var s = slice();
-    if (!s || !s.enabled || s.missionStep < 3) return false;
+    if (!s || !s.enabled || (!isSecondLoop() && s.missionStep < 3)) return false;
     if (!GS.getTier(tierId).researched || s.focusTier === tierId) return false;
     s.focusTier = tierId;
     s.stats.focusChanges += 1;
@@ -1087,7 +1583,7 @@
 
   function setReserve(tierId) {
     var s = slice();
-    if (!s || !s.enabled || s.missionStep < 8) return false;
+    if (!s || !s.enabled || (!isSecondLoop() && s.missionStep < 8)) return false;
     if (!GS.getTier(tierId).researched) return false;
     s.reserveTier = s.reserveTier === tierId ? null : tierId;
     s.flags.reserveConfigured = s.reserveTier !== null;
@@ -1339,7 +1835,95 @@
 
   function getMission() {
     var s = slice();
-    return s ? MISSIONS[Math.min(s.missionStep, MISSIONS.length - 1)] : MISSIONS[0];
+    var missions = activeMissions();
+    return s ? missions[Math.min(s.missionStep, missions.length - 1)] : missions[0];
+  }
+
+  function getRoundTwoMissionProgress(s) {
+    var step = s.missionStep;
+    var value = 0;
+    var max = 1;
+    var label = '';
+    if (step === 0) {
+      value = s.roundTwo.inheritanceMode ? 1 : 0;
+      label = value ? '继承物校准已写入' : '等待选择继承物校准';
+    } else if (step === 1) {
+      max = GC.SECOND_LOOP.biasSeconds;
+      value = s.roundTwo.biasProgress;
+      label = '初始偏差 ' + Math.floor(value) + ' / ' + max + ' 秒';
+    } else if (step === 2) {
+      if (!GS.getTier(2).researched) {
+        max = GS.getResearchCost(2);
+        value = Math.min(max, GS.getRP());
+        label = '原子研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else {
+        var atoms = Math.min(10, GS.getTier(2).totalEver);
+        var atomProducer = Math.min(1, GS.getTier(2).producers);
+        max = 20;
+        value = atoms + atomProducer * 10;
+        label = '累计原子 ' + Math.floor(atoms) + ' / 10 · 生产单元 ' + atomProducer + ' / 1';
+      }
+    } else if (step === 3) {
+      value = s.roundTwo.fragmentChoice ? 1 : 0;
+      label = value ? '证词碎片已归档' : '等待处理证词碎片';
+    } else if (step === 4) {
+      value = s.roundTwo.counterexample.choice ? 1 : 0;
+      label = value ? '反例回应框架已确定' : '等待回应' + getRoundTwoCounterexample().title;
+    } else if (step === 5) {
+      max = GC.SECOND_LOOP.proofSeconds;
+      value = s.roundTwo.proofProgress;
+      label = getRoundTwoCounterexample().title + '检验 ' + Math.floor(value) + ' / ' + max + ' 秒';
+    } else if (step === 6) {
+      if (!GS.getTier(3).researched) {
+        max = GS.getResearchCost(3);
+        value = Math.min(max, GS.getRP());
+        label = '分子研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else {
+        var molecules = Math.min(8, GS.getTier(3).totalEver);
+        var moleculeProducer = Math.min(1, GS.getTier(3).producers);
+        max = 16;
+        value = molecules + moleculeProducer * 8;
+        label = '累计分子 ' + Math.floor(molecules) + ' / 8 · 生产单元 ' + moleculeProducer + ' / 1';
+      }
+    } else if (step === 7) {
+      value = s.roundTwo.witnessResponse ? 1 : 0;
+      label = value ? '文明证词权限已确定' : '等待选择证词继承方式';
+    } else if (step === 8) {
+      if (!GS.getTier(4).researched) {
+        max = GS.getResearchCost(4);
+        value = Math.min(max, GS.getRP());
+        label = '细胞研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else if (!GS.getTier(5).researched) {
+        max = GS.getResearchCost(5);
+        value = Math.min(max, GS.getRP());
+        label = '生命研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else {
+        max = 3;
+        value = Math.min(max, GS.getTier(5).totalEver);
+        label = '谱系样本 ' + Math.floor(value) + ' / 3';
+      }
+    } else if (step === 9) {
+      if (!GS.getTier(6).researched) {
+        max = GS.getResearchCost(6);
+        value = Math.min(max, GS.getRP());
+        label = '文明研究 ' + Math.floor(value) + ' / ' + max + ' RP';
+      } else {
+        value = Math.min(1, GS.getTier(6).count);
+        label = value ? '第二座文明已经诞生' : '生命 ' + Math.floor(GS.getTier(5).count) + ' / ' + GS.getSynthCost(6) + ' · 文明 0 / 1';
+      }
+    } else if (step === 10) {
+      value = s.roundTwo.truthVerdict ? 1 : 0;
+      label = value ? '真理裁定已封存' : '等待第二轮真理裁定';
+    } else {
+      value = 1;
+      label = '第二轮答案—反例闭环完成';
+    }
+    return {
+      value: value,
+      max: max,
+      percent: Math.max(0, Math.min(100, max > 0 ? value / max * 100 : 0)),
+      label: label,
+    };
   }
 
   function getMissionProgress() {
@@ -1353,6 +1937,7 @@
         label: '自由观测 · ' + Math.ceil(s.guide.remaining) + ' 秒后接收下一项指令',
       };
     }
+    if (isSecondLoop()) return getRoundTwoMissionProgress(s);
     var step = s.missionStep;
     var value = 0;
     var max = 1;
@@ -1502,13 +2087,19 @@
     getMission: getMission,
     getMissionProgress: getMissionProgress,
     getGuideState: function () { var s = slice(); return s ? s.guide : null; },
-    getMissions: function () { return MISSIONS; },
+    getMissions: function () { return activeMissions(); },
+    isSecondLoop: isSecondLoop,
+    getRoundTwoState: function () { var s = slice(); return s ? s.roundTwo : null; },
+    getRoundTwoDecision: getRoundTwoDecision,
+    chooseRoundTwoDecision: chooseRoundTwoDecision,
+    getRoundTwoCounterexample: getRoundTwoCounterexample,
+    getLoopMemorySummary: getLoopMemorySummary,
     getLawOptions: function () { return LAW_OPTIONS; },
     getPreparationOptions: function () { return PREPARATION_OPTIONS; },
     getPreparationConditionState: getPreparationConditionState,
     getStabilityConditionState: getStabilityConditionState,
     getActiveDiscovery: getActiveDiscovery,
-    getResearchDiscoveries: function () { return RESEARCH_DISCOVERIES.slice(); },
+    getResearchDiscoveries: function () { return (isSecondLoop() ? ROUND_TWO_DISCOVERIES : RESEARCH_DISCOVERIES).slice(); },
     acknowledgeDiscovery: acknowledgeDiscovery,
     resolveDiscoveryChoice: resolveDiscoveryChoice,
     getPendingReverseObject: getPendingReverseObject,
