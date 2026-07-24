@@ -10,6 +10,9 @@
   var intervalId = null;
   var onTickCallback = null; // called after every tick for UI refresh
   var timeScale = 1;
+  var BASE_STEP_SECONDS = 1 / GC.TICKS_PER_SEC;
+  var BACKGROUND_STEP_SECONDS = 0.25;
+  var MAX_BACKGROUND_SECONDS = 12 * 60 * 60;
 
   // ── Tick ────────────────────────────────────────────────────────
 
@@ -17,38 +20,40 @@
     var st = GS.getState();
     if (!st) return;
 
-    for (var simulationStep = 0; simulationStep < timeScale; simulationStep += 1) simulateStep(st);
+    for (var simulationStep = 0; simulationStep < timeScale; simulationStep += 1) {
+      simulateStep(st, BASE_STEP_SECONDS);
+    }
 
     // Notify UI once per real tick, even when the test clock is accelerated.
     if (onTickCallback) onTickCallback();
   }
 
-  function simulateStep(st) {
+  function simulateStep(st, dt) {
 
-    st.tickCount += 1;
+    st.tickCount += dt * GC.TICKS_PER_SEC;
 
     // 1. Production (tier 0-5 producers generate their own tier)
-    applyProduction();
+    applyProduction(dt);
 
     // 2. Metabolic demand (higher tiers consume lower tiers)
-    applyDemand();
+    applyDemand(dt);
 
     // 3. Research point generation
-    applyResearch();
+    applyResearch(dt);
 
     // 4. First-contact scenario systems (browser slice only)
     if (window.GameSlice && window.GameSlice.isEnabled()) {
-      window.GameSlice.tick(1 / GC.TICKS_PER_SEC);
+      window.GameSlice.tick(dt);
     }
 
   }
 
   // ── Production ──────────────────────────────────────────────────
 
-  function applyProduction() {
+  function applyProduction(dt) {
     var st = GS.getState();
     var speedMult = GS.getSpeedMultiplier();
-    var tickMult = speedMult / GC.TICKS_PER_SEC;
+    var tickMult = speedMult * dt;
 
     // Tier 0 (Quarks): producers auto-generate
     var t0 = st.tiers[0];
@@ -70,7 +75,7 @@
 
   // ── Demand ──────────────────────────────────────────────────────
 
-  function applyDemand() {
+  function applyDemand(dt) {
     var st = GS.getState();
     var demandMult = GC.DEMAND_PER_UNIT;
 
@@ -86,7 +91,7 @@
       var reverseDemandMult = window.GameSlice && window.GameSlice.isEnabled() && window.GameSlice.getDemandMultiplier
         ? window.GameSlice.getDemandMultiplier(i)
         : 1;
-      var demand = higherTier.count * demandMult * reverseDemandMult;
+      var demand = higherTier.count * demandMult * GC.TICKS_PER_SEC * dt * reverseDemandMult;
       // Don't go negative — floor at 0
       var lowerTier = st.tiers[i];
       var reserveFloor = 0;
@@ -98,7 +103,7 @@
 
   // ── Research ────────────────────────────────────────────────────
 
-  function applyResearch() {
+  function applyResearch(dt) {
     var st = GS.getState();
     // RP = Σ sqrt(resource count) × tier coefficient
     // sqrt gives diminishing returns → natural late-game slowdown
@@ -110,7 +115,32 @@
     }
     if (st.slice && st.slice.enabled) rpThisTick *= GC.FIRST_CONTACT.researchMultiplier;
     if (window.GameSlice && window.GameSlice.isEnabled()) rpThisTick *= window.GameSlice.getResearchMultiplier();
-    if (rpThisTick > 0) GS.addRP(rpThisTick);
+    if (rpThisTick > 0) GS.addRP(rpThisTick * GC.TICKS_PER_SEC * dt);
+  }
+
+  // ── Background / offline progress ──────────────────────────────
+
+  function advanceTime(seconds) {
+    var st = GS.getState();
+    var requested = Math.max(0, Number(seconds) || 0);
+    if (!st || requested <= 0) {
+      return { requestedSeconds: requested, simulatedSeconds: 0, capped: false };
+    }
+
+    var simulated = Math.min(requested, MAX_BACKGROUND_SECONDS);
+    var remaining = simulated;
+    while (remaining > 0.000001) {
+      var dt = Math.min(BACKGROUND_STEP_SECONDS, remaining);
+      simulateStep(st, dt);
+      remaining -= dt;
+    }
+
+    if (onTickCallback) onTickCallback();
+    return {
+      requestedSeconds: requested,
+      simulatedSeconds: simulated,
+      capped: requested > MAX_BACKGROUND_SECONDS,
+    };
   }
 
   // ── Manual actions ──────────────────────────────────────────────
@@ -205,6 +235,7 @@
     stop: stop,
     isRunning: isRunning,
     tick: tick,
+    advanceTime: advanceTime,
     onTick: onTick,
     setTimeScale: setTimeScale,
     getTimeScale: getTimeScale,

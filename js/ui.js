@@ -12,9 +12,10 @@
   var lastLogSignature = '';
   var lastMissionStep = null;
   var lastGuideStep = null;
-  // The directive card and mission strip carry the default guidance. Detailed
-  // spotlight guidance is opt-in so a new mission never blocks the workspace.
-  var guideCollapsed = true;
+  var lastGuidePhase = null;
+  // Normal play begins with contextual guidance visible. Test fixtures keep it
+  // collapsed so their deterministic controls are not covered by the callout.
+  var guideCollapsed = new URLSearchParams(window.location.search).has('fixture');
   var flowUserToggled = false;
   var flowAutoExpanded = false;
   var toastTimer = null;
@@ -163,6 +164,16 @@
     missionStrip.classList.toggle('near-complete', nearing);
     missionStrip.classList.toggle('urgent', urgent);
 
+    var guidePhase = getGuidePhase(s, guide);
+    var guidePhaseChanged = lastGuidePhase !== null && guidePhase !== lastGuidePhase;
+    if (guidePhaseChanged && !(guide && guide.interlude)) {
+      // "稍后再看" applies to one actionable phase, not the whole mission.
+      guideCollapsed = false;
+      lastGuideStep = null;
+      if (lastMissionStep === s.missionStep) showToast('新的操作阶段已就绪，场景引导已更新', false);
+    }
+    lastGuidePhase = guidePhase;
+
     var dock = el('guide-dock');
     var dockLabel = el('guide-dock-label');
     dock.classList.toggle('resting', !!(guide && guide.interlude));
@@ -237,9 +248,10 @@
     var sliceState = GS.getSlice();
     var cellularStage = sliceState.loopNumber === 2 ? sliceState.missionStep >= 8 : sliceState.missionStep >= 17;
     var cellular = GS.getTier(4).researched;
-    indicator.hidden = !cellularStage;
+    var dismissed = !!(sliceState.guide && sliceState.guide.eraIndicatorDismissed);
+    indicator.hidden = !cellularStage || dismissed;
     document.body.classList.toggle('cellular-era', cellular);
-    if (!cellularStage) return;
+    if (!cellularStage || dismissed) return;
     var cell = GS.getTier(4);
     var ranking = Slice.getRouteRanking();
     var dominant = ranking[0];
@@ -258,6 +270,7 @@
     var step = s.missionStep;
     document.body.dataset.missionStep = String(step);
     document.body.dataset.loopNumber = String(s.loopNumber || 1);
+    document.body.classList.toggle('expanded-matter-stack', s.loopNumber === 2 ? step >= 6 : step >= 16);
 
     if (s.loopNumber === 2) {
       var roundTwoMax = Math.min(GC.TIERS.length - 1, Math.max(2, GS.getMaxResearchedTier() + 1));
@@ -510,7 +523,11 @@
     }
     if (Slice.getReverseInfluences) {
       Slice.getReverseInfluences(tierId).forEach(function (influence) {
-        parts.push('<span class="tc-modifier reverse-' + influence.tone + '">' + influence.label + '</span>');
+        if (influence.tone === 'pressure') {
+          parts.push('<button type="button" class="tc-modifier reverse-pressure" data-lore-target="reverse-pressure" data-tooltip-title="反侧压力" data-tooltip="不是生命值。它表示另一侧对重复方法的预测程度，并轻微压低原子及以上生产。点击查看完整档案。">' + influence.label + ' <i aria-hidden="true">?</i></button>');
+        } else {
+          parts.push('<span class="tc-modifier reverse-' + influence.tone + '">' + influence.label + '</span>');
+        }
       });
     }
     if (TERMINAL_WHISPERS[tierId]) parts.push('<span class="tc-modifier terminal-whisper">' + TERMINAL_WHISPERS[tierId] + '</span>');
@@ -789,7 +806,7 @@
       return '<section class="reverse-object-card ' + stateClass + '"><span class="reverse-object-symbol">' + object.symbol + '</span><div><b>' + object.title + '</b><small>' + statusCopy + '</small><p>' + detail + '</p></div></section>';
     }).join('');
     var key = 'reverse-atlas:' + Math.floor(pressure) + ':' + atlas.map(function (object) { return object.state.status + ':' + (object.state.choice || ''); }).join('|') + ':' + (dominant ? dominant.id : 'none');
-    setContactContent(key, '<article class="reverse-atlas"><header><div><span>REVERSE OBJECT ATLAS / LIVE</span><strong>反宇宙不再只是敌人名录</strong></div><b>' + (pendingReverse ? '需要回应' : '持续观测') + '</b></header><div class="reverse-pressure"><span><b>反侧压力 ' + Math.round(pressure) + '%</b><em>高阶物质生产 −' + pressurePenalty.toFixed(1) + '%</em></span><div><i style="width:' + pressure + '%"></i></div><small>重复当前主路线会让反侧更容易预测你；主动转向会降低压力，但也会稀释终局信号。</small></div><div class="reverse-object-list">' + cards + '</div><footer><span>当前被模仿路线</span><strong>' + (dominant ? dominant.meta.name + ' / ' + dominant.meta.ending : '尚未形成') + '</strong><small>' + (dominant ? dominant.meta.goal : '后续决策会形成路线信号') + '</small></footer></article>');
+    setContactContent(key, '<article class="reverse-atlas"><header><div><span>REVERSE OBJECT ATLAS / LIVE</span><strong>反宇宙不再只是敌人名录</strong></div><b>' + (pendingReverse ? '需要回应' : '持续观测') + '</b></header><div class="reverse-pressure"><span><b>反侧压力 ' + Math.round(pressure) + '%</b><em>高阶物质生产 −' + pressurePenalty.toFixed(1) + '%</em></span><div><i style="width:' + pressure + '%"></i></div><small>这不是生命值，也不会直接导致失败。重复当前主路线会让反侧更容易预测你；主动转向会降低压力，但也会稀释终局信号。</small><button type="button" class="inline-lore-link" data-lore-target="reverse-pressure">档案：反侧压力是什么？</button></div><div class="reverse-object-list">' + cards + '</div><footer><span>当前被模仿路线</span><strong>' + (dominant ? dominant.meta.name + ' / ' + dominant.meta.ending : '尚未形成') + '</strong><small>' + (dominant ? dominant.meta.goal : '后续决策会形成路线信号') + '</small></footer></article>');
   }
 
   function updateContact() {
@@ -1074,7 +1091,13 @@
     if (step === 6) return { selector: GS.canResearch(2) ? '#btn-research-global' : '.research-bar' };
     if (step === 7) return { selector: GS.getTier(2).totalEver < 18 ? '#btn-synth-2' : '#btn-prod-2' };
     if (step === 8) return { selector: '#btn-reserve-1' };
-    if (step === 10 || step === 11 || step === 14) return { selector: '#event-panel' };
+    if (step === 10 || step === 14) return { selector: '#event-panel' };
+    if (step === 11) {
+      if (!s.preparation.id) return { selector: '#event-panel' };
+      if (s.preparation.id === 'buffer') return { selector: '#card-1' };
+      if (s.preparation.id === 'pulse') return { selector: '#card-2' };
+      return { selector: '.research-bar' };
+    }
     if (step === 12 || step === 13) return { selector: '#contact-panel' };
     if (step === 15) return { selector: '#event-panel' };
     if (step === 16) return { selector: GS.getTier(3).researched ? (GS.getTier(3).totalEver < 12 ? '#btn-synth-3' : '#btn-prod-3') : (GS.canResearch(3) ? '#btn-research-global' : '.research-bar') };
@@ -1085,6 +1108,56 @@
     if (step === 22) return { selector: '#btn-synth-6' };
     if (step === 23) return { selector: '#event-panel' };
     return { selector: '#route-panel' };
+  }
+
+  function getGuidePhase(s, guide) {
+    if (!s) return 'no-state';
+    if (guide && guide.interlude) return 'interlude:' + String(guide.nextStep);
+    var descriptor = getGuideTarget(s);
+    var parts = [
+      'loop:' + String(s.loopNumber || 1),
+      'step:' + String(s.missionStep),
+      'target:' + descriptor.selector,
+    ];
+    if (s.missionStep === 11) parts.push('preparation:' + (s.preparation.id || 'unselected'));
+    if (s.missionStep === 13) parts.push('method:' + (s.enemy.method || 'unselected'));
+    if (s.loopNumber === 2 && s.missionStep === 8) {
+      parts.push('cell:' + String(GS.getTier(4).researched), 'life:' + String(GS.getTier(5).researched));
+    }
+    var pending = Slice.getPendingReverseObject ? Slice.getPendingReverseObject() : null;
+    if (pending) parts.push('reverse:' + pending.id + ':' + pending.state.status);
+    return parts.join('|');
+  }
+
+  function getGuideLoreTarget(s) {
+    if (!s) return null;
+    var pending = Slice.getPendingReverseObject ? Slice.getPendingReverseObject() : null;
+    if (pending) {
+      return {
+        lattice: { id: 'reverse-lattice', label: '查看“反相晶簇”档案' },
+        choir: { id: 'silent-choir', label: '查看“静默合唱体”档案' },
+        seed: { id: 'mirror-seed', label: '查看“镜像胚种”档案' },
+      }[pending.id] || null;
+    }
+    if (s.loopNumber === 2) {
+      if (s.missionStep === 0) return { id: 'route-signal', label: '查看“路线信号”档案' };
+      if (s.missionStep === 4 || s.missionStep === 5) return { id: 'reverse-pressure', label: '查看“反侧压力”档案' };
+      if (s.missionStep === 8) return { id: 'life-tier', label: '查看“生命层”档案' };
+      if (s.missionStep >= 9) return { id: 'civilization-tier', label: '查看“文明层”档案' };
+      return null;
+    }
+    var targets = {
+      5: { id: 'research-channel', label: '查看“研究通道”档案' },
+      10: { id: 'first-law', label: '查看“第一法则”档案' },
+      12: { id: 'reverse-side', label: '查看“背面宇宙”档案' },
+      13: { id: 'vacuum-leech', label: '查看“真空水蛭”档案' },
+      15: { id: 'horizon', label: '查看“视界”档案' },
+      16: { id: 'reverse-pressure', label: '查看“反侧压力”档案' },
+      17: { id: 'cell-tier', label: '查看“细胞层”档案' },
+      19: { id: 'life-tier', label: '查看“生命层”档案' },
+      23: { id: 'civilization-tier', label: '查看“文明层”档案' },
+    };
+    return targets[s.missionStep] || null;
   }
 
   function updateGuide() {
@@ -1111,6 +1184,15 @@
     el('guide-action-copy').textContent = mission.action || mission.brief;
     el('guide-progress-fill').style.width = progress.percent + '%';
     el('guide-progress-label').textContent = progress.label;
+    var loreTarget = getGuideLoreTarget(s);
+    var loreButton = el('guide-lore-link');
+    loreButton.hidden = !loreTarget;
+    if (loreTarget) {
+      loreButton.dataset.loreTarget = loreTarget.id;
+      loreButton.textContent = loreTarget.label;
+    } else {
+      loreButton.removeAttribute('data-lore-target');
+    }
     var returnButton = el('guide-return');
     var workspaceSteps = s.loopNumber === 2 ? [1, 2, 5, 6, 8, 9] : [4, 9, 11, 16, 17, 19, 20, 21, 22];
     var needsWorkspace = workspaceSteps.indexOf(s.missionStep) !== -1 && progress.percent < 100;
@@ -1413,6 +1495,25 @@
     el('lore-close').focus();
   }
 
+  function openLoreEntry(entryId) {
+    if (!entryId) {
+      openLoreArchive();
+      return;
+    }
+    openLoreArchive();
+    var details = el('lore-entries').querySelector('[data-entry-id="' + entryId + '"]');
+    if (!details) return;
+    details.open = true;
+    Slice.markArchiveRead(entryId);
+    details.classList.remove('unread');
+    updateArchiveBadge();
+    setTimeout(function () {
+      details.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var summary = details.querySelector('summary');
+      if (summary) summary.focus({ preventScroll: true });
+    }, 0);
+  }
+
   function closeLoreArchive() {
     var layer = el('lore-layer');
     if (layer.hidden) return;
@@ -1608,6 +1709,14 @@
       loreCategory = button.dataset.category;
       renderLoreArchive(el('lore-search').value);
     });
+    document.addEventListener('click', function (event) {
+      var target = event.target.closest ? event.target.closest('[data-lore-target]') : null;
+      if (!target) return;
+      event.preventDefault();
+      event.stopPropagation();
+      hideTooltip();
+      openLoreEntry(target.dataset.loreTarget);
+    });
     el('discovery-ack').addEventListener('click', function () {
       var card = el('discovery-card');
       if (Slice.acknowledgeDiscovery(card.dataset.discoveryId)) {
@@ -1626,6 +1735,12 @@
         updateDiscovery();
         updateArchiveBadge();
       }
+    });
+    el('era-indicator-dismiss').addEventListener('click', function () {
+      if (!Slice.dismissEraIndicator()) return;
+      if (window.TinyCosmos && window.TinyCosmos.saveGame) window.TinyCosmos.saveGame();
+      updateEraIndicator();
+      showToast('细胞阶段提示已收起；反侧压力仍会显示在资源卡与接触面板', false);
     });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && !el('lore-layer').hidden) closeLoreArchive();
@@ -1661,5 +1776,34 @@
     });
   }
 
-  window.GameUI = { init: init, refreshAll: refreshAll };
+  function revealGuide() {
+    guideCollapsed = false;
+    lastGuideStep = null;
+    lastGuidePhase = null;
+  }
+
+  function formatBackgroundDuration(seconds) {
+    var rounded = Math.max(0, Math.floor(seconds || 0));
+    var isEnglish = I18n && I18n.getLocale() === 'en';
+    if (rounded < 60) return rounded + (isEnglish ? ' sec' : ' 秒');
+    if (rounded < 3600) return Math.floor(rounded / 60) + (isEnglish ? ' min ' : ' 分 ') + String(rounded % 60).padStart(2, '0') + (isEnglish ? ' sec' : ' 秒');
+    return Math.floor(rounded / 3600) + (isEnglish ? ' hr ' : ' 小时 ') + Math.floor(rounded % 3600 / 60) + (isEnglish ? ' min' : ' 分');
+  }
+
+  function notifyBackgroundProgress(result) {
+    if (!result || result.simulatedSeconds < 1) return;
+    var text = (I18n ? I18n.text('后台演化已补算 ', 'Background evolution simulated ') : '后台演化已补算 ')
+      + formatBackgroundDuration(result.simulatedSeconds)
+      + (I18n ? I18n.text('；生产、代谢、研究与计时均已同步', '; production, demand, research, and timers are synchronized') : '；生产、代谢、研究与计时均已同步');
+    if (result.capped) text += I18n ? I18n.text('（单次上限 12 小时）', ' (12-hour limit per session)') : '（单次上限 12 小时）';
+    showToast(text, false);
+  }
+
+  window.GameUI = {
+    init: init,
+    refreshAll: refreshAll,
+    revealGuide: revealGuide,
+    notifyBackgroundProgress: notifyBackgroundProgress,
+    openLoreEntry: openLoreEntry,
+  };
 })();

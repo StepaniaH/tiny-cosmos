@@ -188,9 +188,9 @@
     {
       code: 'MOLECULE-01', title: '让结构学会组合',
       brief: '处理反相晶簇，研究分子层，累计获得 12 枚分子并建立 1 个生产单元。',
-      hint: '反侧客体会读取当前主路线。沿用主路线强化终局信号，却也会提高反侧压力。',
+      hint: '反侧压力不是生命值：它表示另一侧对重复方法的预测程度，并轻微压低原子及以上生产。沿用主路线会强化终局信号但提高压力；转向会打乱预测。',
       world: '原子能够长期存在，却仍各自孤立。分子把“相邻”变成可重复关系；反宇宙则送来一块只在未发生的化学键上结晶的客体。',
-      action: '先在决策队列回应反相晶簇；随后积累 150 RP 研究分子，合成 12 枚分子并建立生产单元。',
+      action: '先在决策队列回应反相晶簇；随后查看反侧压力对生产的实际影响，积累 150 RP 研究分子，合成 12 枚分子并建立生产单元。',
       restSeconds: 7,
     },
     {
@@ -1535,6 +1535,13 @@
     return true;
   }
 
+  function dismissEraIndicator() {
+    var s = slice();
+    if (!s || !s.guide) return false;
+    s.guide.eraIndicatorDismissed = true;
+    return true;
+  }
+
   function markArchiveRead(id) {
     var s = slice();
     if (!s || !id) return false;
@@ -2126,6 +2133,7 @@
     canBuyProducer: canBuyProducer,
     explainResearch: explainResearch,
     acknowledgeGuideGoal: acknowledgeGuideGoal,
+    dismissEraIndicator: dismissEraIndicator,
     markArchiveRead: markArchiveRead,
     onCanvasClick: onCanvasClick,
     onAction: onAction,
