@@ -21,6 +21,7 @@
 14. `docs/game-design/onboarding-readability-localization.md`：当前序章、可读性、渐进显示与中英文本地化实现基线。
 15. `docs/game-design/rebirth-rounds-2-4-narrative.md`：第二至第四轮重生剧情、路线分支、反宇宙演化与跨轮数据契约。
 16. `docs/game-design/second-loop-playable-slice.md`：已接入代码的第二轮 12 节点节奏、四条路线反例、碎片叙事与真理裁定。
+17. `docs/game-design/first-loop-ux-repair.md`：2026-07-23 第一轮体验问题的根因、修复状态、验收标准与独立游戏化方向。
 
 ## 路线详案
 

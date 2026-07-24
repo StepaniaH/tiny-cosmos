@@ -189,7 +189,12 @@
   var current = 0;
   var renderedIndex = -1;
   var timer = null;
-  var transitionTimer = null;
+  var transitionSwapTimer = null;
+  var transitionEndTimer = null;
+  var transitioning = false;
+  var queuedIndex = null;
+  var TRANSITION_SWAP_MS = 210;
+  var TRANSITION_TOTAL_MS = 520;
 
   function isEnglish() { return window.GameI18n && window.GameI18n.getLocale() === 'en'; }
   function copy(zh, en) { return isEnglish() ? en : zh; }
@@ -208,7 +213,7 @@
   function renderDots() {
     var dots = document.getElementById('prologue-dots');
     dots.innerHTML = activeFrames.map(function (_, index) {
-      return '<button type="button" data-prologue-index="' + index + '" aria-label="' + copy('前往第 ' + (index + 1) + ' 幕', 'Go to scene ' + (index + 1)) + '"' + (index === current ? ' aria-current="step"' : '') + '></button>';
+      return '<button type="button" data-prologue-index="' + index + '" aria-label="' + copy('前往第 ' + (index + 1) + ' 幕', 'Go to scene ' + (index + 1)) + '"' + (index === current ? ' aria-current="step"' : '') + (transitioning ? ' disabled' : '') + '></button>';
     }).join('');
   }
 
@@ -222,23 +227,76 @@
     });
   }
 
-  function playTransition(direction) {
-    if (!transition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (transitionTimer) clearTimeout(transitionTimer);
+  function clearTransition() {
+    if (transitionSwapTimer) clearTimeout(transitionSwapTimer);
+    if (transitionEndTimer) clearTimeout(transitionEndTimer);
+    transitionSwapTimer = null;
+    transitionEndTimer = null;
+    transitioning = false;
+    queuedIndex = null;
+    root.classList.remove('is-transitioning');
+    if (transition) transition.classList.remove('is-active');
+  }
+
+  function setTransitionControls(disabled) {
+    var previous = document.getElementById('prologue-prev');
+    var next = document.getElementById('prologue-next');
+    previous.disabled = disabled || current === 0;
+    next.disabled = !!disabled;
+    document.querySelectorAll('#prologue-dots button').forEach(function (button) {
+      button.disabled = !!disabled;
+    });
+  }
+
+  function preloadActiveFrames() {
+    if (!(activeMode === 'rebirth' || PRODUCTION_ART_READY)) return;
+    activeFrames.forEach(function (frame) {
+      if (!frame.image) return;
+      var preload = new Image();
+      preload.src = activeImageRoot + frame.image;
+    });
+  }
+
+  function playTransition(direction, nextIndex) {
+    if (!transition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      renderFrame(nextIndex, true);
+      return;
+    }
+    stopTimer();
+    transitioning = true;
+    queuedIndex = null;
+    root.classList.add('is-transitioning');
     transition.dataset.direction = direction < 0 ? 'prev' : 'next';
     transition.classList.remove('is-active');
     void transition.offsetWidth;
     transition.classList.add('is-active');
-    transitionTimer = setTimeout(function () {
+
+    setTransitionControls(true);
+    transitionSwapTimer = setTimeout(function () {
+      transitionSwapTimer = null;
+      renderFrame(nextIndex, false);
+      setTransitionControls(true);
+    }, TRANSITION_SWAP_MS);
+
+    transitionEndTimer = setTimeout(function () {
+      transitionEndTimer = null;
       transition.classList.remove('is-active');
-      transitionTimer = null;
-    }, 820);
+      root.classList.remove('is-transitioning');
+      transitioning = false;
+      setTransitionControls(false);
+      schedule();
+      if (queuedIndex !== null && queuedIndex !== current) {
+        var queued = queuedIndex;
+        queuedIndex = null;
+        go(queued);
+      } else {
+        queuedIndex = null;
+      }
+    }, TRANSITION_TOTAL_MS);
   }
 
-  function go(index) {
-    var nextIndex = Math.max(0, Math.min(activeFrames.length - 1, index));
-    if (renderedIndex !== -1 && nextIndex !== renderedIndex) playTransition(nextIndex - renderedIndex);
-    current = nextIndex;
+  function renderFrame(index, shouldSchedule) {
+    current = Math.max(0, Math.min(activeFrames.length - 1, index));
     var frame = activeFrames[current];
     art.classList.remove('prologue-art-enter');
     void art.offsetWidth;
@@ -267,7 +325,25 @@
     renderLanguageControl();
     renderDots();
     renderedIndex = current;
-    schedule();
+    if (transitioning) setTransitionControls(true);
+    if (shouldSchedule !== false) schedule();
+  }
+
+  function go(index) {
+    var nextIndex = Math.max(0, Math.min(activeFrames.length - 1, index));
+    if (nextIndex === renderedIndex) {
+      renderFrame(nextIndex, !transitioning);
+      return;
+    }
+    if (transitioning) {
+      queuedIndex = nextIndex;
+      return;
+    }
+    if (renderedIndex === -1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      renderFrame(nextIndex, true);
+      return;
+    }
+    playTransition(nextIndex - renderedIndex, nextIndex);
   }
 
   function markSeen() {
@@ -277,9 +353,7 @@
   function close() {
     if (root.hidden) return;
     stopTimer();
-    if (transitionTimer) clearTimeout(transitionTimer);
-    transitionTimer = null;
-    if (transition) transition.classList.remove('is-active');
+    clearTransition();
     markSeen();
     root.hidden = true;
     root.setAttribute('aria-hidden', 'true');
@@ -297,6 +371,8 @@
     }
     current = 0;
     renderedIndex = -1;
+    clearTransition();
+    preloadActiveFrames();
     root.hidden = false;
     root.setAttribute('aria-hidden', 'false');
     document.body.classList.add('prologue-open');

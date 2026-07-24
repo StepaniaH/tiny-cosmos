@@ -12,10 +12,23 @@
   var autosaveTimer = null;
   var lastUiRefresh = 0;
   var UI_REFRESH_MS = 250;
+  var WALL_CLOCK_KEY = GC.SAVE_KEY + '-wall-clock-v1';
 
   // ── Save / Load ──
-  function saveGame() {
+  function writeWallClock(value) {
+    try { localStorage.setItem(WALL_CLOCK_KEY, String(value || Date.now())); } catch (e) {}
+  }
+  function readWallClock() {
+    try {
+      var value = Number(localStorage.getItem(WALL_CLOCK_KEY));
+      return Number.isFinite(value) && value > 0 ? value : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  function saveGame(options) {
     try { localStorage.setItem(GC.SAVE_KEY, GS.toJSON()); } catch (e) {}
+    if (!options || options.updateClock !== false) writeWallClock(Date.now());
   }
   function loadGame() {
     try {
@@ -27,6 +40,22 @@
   function startAutosave() {
     if (autosaveTimer) clearInterval(autosaveTimer);
     autosaveTimer = setInterval(saveGame, GC.AUTOSAVE_MS);
+  }
+  function stopAutosave() {
+    if (!autosaveTimer) return;
+    clearInterval(autosaveTimer);
+    autosaveTimer = null;
+  }
+  function applyBackgroundProgress() {
+    var lastWallClock = readWallClock();
+    var now = Date.now();
+    writeWallClock(now);
+    if (!lastWallClock || lastWallClock > now) {
+      return { requestedSeconds: 0, simulatedSeconds: 0, capped: false };
+    }
+    var result = GE.advanceTime((now - lastWallClock) / 1000);
+    saveGame();
+    return result;
   }
 
   window.TinyCosmos = window.TinyCosmos || {};
@@ -48,14 +77,22 @@
       }
     });
 
-    if (!document.body.classList.contains('prologue-open')) GE.start();
-
     // Canvas renderer
     Renderer.init('cosmos-canvas');
     Renderer.start();
 
     // UI (event bindings + initial render)
     UI.init();
+
+    var prologueOpen = document.body.classList.contains('prologue-open');
+    if (prologueOpen) {
+      // Reading illustrated records is an intentional pause, not idle progress.
+      writeWallClock(Date.now());
+    } else {
+      var initialBackground = applyBackgroundProgress();
+      GE.start();
+      if (UI.notifyBackgroundProgress) UI.notifyBackgroundProgress(initialBackground);
+    }
 
     startAutosave();
 
@@ -77,6 +114,8 @@
         GS.init({ firstContact: true });
         if (window.GameSlice) window.GameSlice.init();
         try { localStorage.removeItem(GC.SAVE_KEY); } catch (e) {}
+        try { localStorage.removeItem(WALL_CLOCK_KEY); } catch (e) {}
+        writeWallClock(Date.now());
         UI.refreshAll();
         if (!document.body.classList.contains('prologue-open')) GE.start();
       }
@@ -84,23 +123,38 @@
 
     document.addEventListener('tinycosmos:prologueopen', function () {
       Renderer.flushClicks();
+      saveGame();
       GE.stop();
     });
     document.addEventListener('tinycosmos:prologueclose', function () {
+      // Do not turn time spent reading the prologue or rebirth record into
+      // production; background progress starts from this moment.
+      writeWallClock(Date.now());
       lastUiRefresh = 0;
+      if (UI.revealGuide) UI.revealGuide();
       UI.refreshAll();
-      GE.start();
+      if (!document.hidden) GE.start();
     });
 
-    window.addEventListener('beforeunload', saveGame);
+    window.addEventListener('beforeunload', function () {
+      saveGame({ updateClock: !document.hidden });
+    });
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
         Renderer.flushClicks();
+        stopAutosave();
         saveGame();
         GE.stop();
       } else {
-        GE.start();
+        if (!document.body.classList.contains('prologue-open')) {
+          var background = applyBackgroundProgress();
+          GE.start();
+          if (UI.notifyBackgroundProgress) UI.notifyBackgroundProgress(background);
+        } else {
+          writeWallClock(Date.now());
+        }
         UI.refreshAll();
+        startAutosave();
       }
     });
   }

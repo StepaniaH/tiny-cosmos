@@ -35,6 +35,8 @@
     ['没有待处理的重要决策。', 'No important decision is waiting.'], ['当前没有必须处理的决策。', 'No decision currently requires attention.'], ['事件会保留，不会在离线时过期。', 'Events are retained and do not expire while offline.'],
     ['路线信号会改变反侧客体模仿你的方式，并决定文明优先提出哪项终局工程。', 'Route signals change how reverse-side objects imitate you and which endgame project civilization proposes first.'],
     ['引导', 'Guide'], ['稍后再看', 'View Later'], ['现在操作', 'Act Now'], ['返回主界面继续操作', 'Return to the command view'],
+    ['上一幕', 'Previous Scene'], ['下一幕', 'Next Scene'], ['跳过', 'Skip'], ['收起', 'Dismiss'],
+    ['查看相关档案', 'Open Related Archive'], ['档案：反侧压力是什么？', 'Archive: What is Reverse Pressure?'],
     ['观测档案', 'Observation Archive'], ['关闭', 'Close'], ['关闭观测日志', 'Close observation log'], ['本轮剧情记录', 'Loop Narrative'], ['主要名词', 'Key Terms'],
     ['筛选档案', 'Filter Archive'], ['输入名词、分类或说明', 'Search terms, categories, or descriptions'],
     ['档案只陈述当前版本已经确定的世界规则。新记录会随观测指令解锁，不要求在操作前读完。', 'The archive only states world rules confirmed in this build. New records unlock with directives; reading them is never required before acting.'],
@@ -69,6 +71,8 @@
     ['自由观测', 'Free Observation'], ['秒后出现', 'seconds until next directive'], ['路线未收束', 'Route unresolved'],
     ['边界未建立', 'Boundary not established'], ['反侧压力', 'Reverse Pressure'], ['正在形成', 'Forming'],
     ['记入档案', 'Archive'], ['偶发发现', 'Incidental Discovery'], ['保存成功', 'Saved'],
+    ['新的操作阶段已就绪，场景引导已更新', 'A new action phase is ready; the context guide has been updated.'],
+    ['细胞阶段提示已收起；反侧压力仍会显示在资源卡与接触面板', 'The cellular-stage notice is dismissed; Reverse Pressure remains visible on resource cards and the contact panel.'],
   ].forEach(function (item) { pair(item[0], item[1]); });
 
   // Second-loop shell, directives, counterexamples, and decision copy.
@@ -327,6 +331,9 @@
     ['读取第一次接触报告。8 秒后观测核会自动继续推进复杂物质，也可以立即继续。', 'Read the First Contact report. The Observer Core continues into complex matter after 8 seconds, or you can proceed now.'],
     ['让结构学会组合', 'Teach Structure to Combine'],
     ['处理反相晶簇，研究分子层，累计获得 12 枚分子并建立 1 个生产单元。', 'Respond to the Reverse Lattice, research Molecules, produce 12 molecules, and establish 1 production unit.'],
+    ['反侧压力不是生命值：它表示另一侧对重复方法的预测程度，并轻微压低原子及以上生产。沿用主路线会强化终局信号但提高压力；转向会打乱预测。', 'Reverse Pressure is not health. It measures how well the other side predicts repeated methods and slightly suppresses Atom-and-higher production. Staying on the leading route strengthens the endgame signal but raises pressure; changing direction disrupts prediction.'],
+    ['原子能够长期存在，却仍各自孤立。分子把“相邻”变成可重复关系；反宇宙则送来一块只在未发生的化学键上结晶的客体。', 'Atoms can persist, yet remain isolated. Molecules turn adjacency into a repeatable relation, while the reverse cosmos sends an object crystallized only on chemical bonds that have not happened.'],
+    ['先在决策队列回应反相晶簇；随后查看反侧压力对生产的实际影响，积累 150 RP 研究分子，合成 12 枚分子并建立生产单元。', 'First answer the Reverse Lattice in the Decision Queue. Then inspect Reverse Pressure’s actual production effect, accumulate 150 RP to research Molecules, synthesize 12, and establish a production unit.'],
     ['建立自持边界', 'Establish a Self-Sustaining Boundary'],
     ['回应静默合唱体，研究细胞层，累计获得 10 枚细胞并建立 2 个生产单元。', 'Respond to the Silent Choir, research Cells, produce 10 cells, and establish 2 production units.'],
     ['确定复杂性的照料方式', 'Choose How to Care for Complexity'],
@@ -641,6 +648,7 @@
     'SEALED': '封存', 'FUTURE': '未来', 'ONLINE': '在线', 'FIRST LOOP': '第一轮',
     'FOCUS': '焦点', 'RESERVE': '保护', 'NET': '净值', 'SEC': '秒', 'STEADY-STATE GATE': '稳态判定',
     'REVERSE-SIDE CONTACT': '反侧接触', 'PHASE SHIFT / CELLULAR INTERIOR': '相位转移 / 细胞内部',
+    'LINE INSPECTOR / HOVER': '线条说明 / 悬停',
     'CIVILIZATION': '文明', 'LIFE': '生命', 'CELL': '细胞', 'MOLECULE': '分子',
     'ATOM': '原子', 'NUCLEON': '核子', 'QUARK': '夸克',
   };

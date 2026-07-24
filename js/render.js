@@ -8,7 +8,7 @@
   var I18n = window.GameI18n;
   var Slice = window.GameSlice;
 
-  var canvas, ctx, animId, cssW, cssH, dpr, bgGrad;
+  var canvas, ctx, animId, cssW, cssH, dpr, bgGrad, inspector;
   var particles = [];       // orbiting particles per tier
   var bursts = [];          // click burst particles: [{x,y,vx,vy,life,color}]
   var clickCount = 0;       // accumulated clicks for batch processing
@@ -23,6 +23,7 @@
     canvas = document.getElementById(canvasId);
     if (!canvas) return;
     ctx = canvas.getContext('2d');
+    inspector = document.getElementById('canvas-inspector');
 
     for (var i = 0; i < GC.TIERS.length; i++) {
       var ring = [];
@@ -37,8 +38,22 @@
     }
     resize();
     window.addEventListener('resize', resize);
+    canvas.addEventListener('pointermove', inspectPointer);
+    canvas.addEventListener('pointerleave', function (event) {
+      if (!inspector || event.relatedTarget === inspector || inspector.contains(event.relatedTarget)) return;
+      hideInspector();
+    });
+    if (inspector) {
+      inspector.addEventListener('pointerleave', function (event) {
+        if (event.relatedTarget === canvas) return;
+        hideInspector();
+      });
+    }
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) stop();
+      if (document.hidden) {
+        hideInspector();
+        stop();
+      }
       else start();
     });
   }
@@ -54,6 +69,136 @@
     bgGrad.addColorStop(0, '#09191e');
     bgGrad.addColorStop(0.45, '#041014');
     bgGrad.addColorStop(1, '#010507');
+    hideInspector();
+  }
+
+  function localized(zh, en) {
+    return I18n && I18n.getLocale() !== 'zh-CN' ? en : zh;
+  }
+
+  function inspectPointer(event) {
+    if (!inspector || !canvas || (window.matchMedia && window.matchMedia('(hover: none)').matches)) return;
+    var rect = canvas.getBoundingClientRect();
+    var x = event.clientX - rect.left;
+    var y = event.clientY - rect.top;
+    var cx = cssW / 2;
+    var cy = cssH / 2;
+    var maxR = Math.min(cx, cy) * 0.82;
+    var minR = maxR * 0.13;
+    var gap = (maxR - minR) / (GC.TIERS.length - 1);
+    var distance = Math.hypot(x - cx, y - cy);
+    var state = GS.getState();
+    var maxRes = GS.getMaxResearchedTier();
+    var info = null;
+    var pressure = state && state.slice && state.slice.reverse
+      ? (Slice && Slice.getReversePressure ? Slice.getReversePressure() : state.slice.reverse.pressure)
+      : 0;
+
+    if (pressure > 25 && Math.abs(distance - (minR + 5.55 * gap)) <= 10) {
+      info = {
+        title: localized('反侧压力轨迹', 'REVERSE PRESSURE TRACE'),
+        copy: localized(
+          '红色断续弧不是生命值，而是反宇宙对重复干预模式的学习压力；越高，当前生产越容易受抑制。',
+          'The broken red arc is not health. It is the reverse cosmos learning repeated interventions; higher pressure can suppress current production.'
+        ),
+        entry: 'reverse-pressure',
+      };
+    }
+
+    if (!info) {
+      var nearestTier = -1;
+      var nearestDelta = Infinity;
+      for (var tierId = 0; tierId < GC.TIERS.length; tierId += 1) {
+        var ringDelta = Math.abs(distance - (minR + tierId * gap));
+        if (ringDelta < nearestDelta) {
+          nearestTier = tierId;
+          nearestDelta = ringDelta;
+        }
+      }
+      if (nearestTier >= 0 && nearestDelta <= 10) {
+        var tpl = GC.TIERS[nearestTier];
+        var unlocked = nearestTier <= maxRes;
+        var focused = !!(state && state.slice && state.slice.enabled && state.slice.focusTier === nearestTier);
+        var reserved = !!(state && state.slice && state.slice.enabled && state.slice.reserveTier === nearestTier);
+        var tierName = localized(tpl.nameZh, tpl.name);
+        var entryByTier = ['material-stack', 'material-stack', 'material-stack', 'molecule-tier', 'cell-tier', 'life-tier', 'civilization-tier'];
+        if (!unlocked) {
+          info = {
+            title: localized('未揭示结构轨道 · T' + nearestTier, 'UNREVEALED ORBIT · T' + nearestTier),
+            copy: localized(
+              '灰色虚线是尚未完成研究的尺度占位，不代表正在流动或生产的资源。',
+              'The gray dashed ring marks an unrevealed scale. It is not an active resource flow or production line.'
+            ),
+            entry: 'material-stack',
+          };
+        } else if (focused) {
+          info = {
+            title: localized('宇宙焦点 · ' + tierName, 'COSMIC FOCUS · ' + tierName),
+            copy: localized(
+              '加粗青色轨道表示当前宇宙焦点；该层获得焦点倍率，但过度集中也会改变整体稳定性。',
+              'The bold cyan orbit marks the current cosmic focus. This layer receives the focus multiplier, while over-concentration can change overall stability.'
+            ),
+            entry: 'cosmic-focus',
+          };
+        } else if (reserved) {
+          info = {
+            title: localized('保留线 · ' + tierName, 'RESERVE LINE · ' + tierName),
+            copy: localized(
+              '外侧绿色短弧表示该层被设为保留层：系统会优先留下安全库存，再允许它被上层消耗。',
+              'The short green outer arc marks a reserve layer. The system keeps a safety stock here before upper layers may consume it.'
+            ),
+            entry: 'reserve-line',
+          };
+        } else {
+          info = {
+            title: 'T' + nearestTier + ' · ' + tierName,
+            copy: localized(
+              '这条环线代表一个已观测的物质尺度；沿线光点是可见样本，不是从内向外输送的管道。',
+              'This orbit represents an observed matter scale. Its particles are visible samples, not a pipe carrying matter outward.'
+            ),
+            entry: entryByTier[nearestTier] || 'material-stack',
+          };
+        }
+      }
+    }
+
+    if (!info && distance <= maxR + 40 && (Math.abs(x - cx) <= 5 || Math.abs(y - cy) <= 5)) {
+      info = {
+        title: localized('观测坐标线', 'OBSERVATION AXIS'),
+        copy: localized(
+          '穿过中心的青色虚线只是观测读数的坐标辅助，不参与生产、消耗或稳定性计算。',
+          'The cyan dashed crosshair is a reading aid only. It does not affect production, demand, or stability.'
+        ),
+        entry: 'observer-equation',
+      };
+    }
+
+    if (!info) {
+      hideInspector();
+      return;
+    }
+    showInspector(info, x, y);
+  }
+
+  function showInspector(info, x, y) {
+    var title = document.getElementById('canvas-inspector-title');
+    var copy = document.getElementById('canvas-inspector-copy');
+    var archive = document.getElementById('canvas-inspector-archive');
+    if (title) title.textContent = info.title;
+    if (copy) copy.textContent = info.copy;
+    if (archive) {
+      archive.dataset.loreTarget = info.entry;
+      archive.textContent = localized('查看相关档案', 'OPEN RELATED ARCHIVE');
+    }
+    inspector.hidden = false;
+    var left = Math.max(12, Math.min(cssW - inspector.offsetWidth - 12, x + 16));
+    var top = Math.max(12, Math.min(cssH - inspector.offsetHeight - 12, y + 16));
+    inspector.style.left = left + 'px';
+    inspector.style.top = top + 'px';
+  }
+
+  function hideInspector() {
+    if (inspector) inspector.hidden = true;
   }
 
   // ── Click → Quark ──

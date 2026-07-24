@@ -53,6 +53,7 @@
         message: '',
         researchGoalAcknowledged: false,
         stabilityGoalAcknowledged: false,
+        eraIndicatorDismissed: false,
       },
       focusTier: null,
       reserveTier: null,
