@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>Round-Two Terminal Fixture</title></head>
+<body>
+  <p>Preparing the round-two terminal fixture…</p>
+  <script src="../../js/constants.js"></script>
+  <script src="../../js/state.js"></script>
+  <script>
+    (function () {
+      var GS = window.GameState;
+      var state = GS.init({ firstContact: true });
+      var first = state.slice;
+
+      first.missionStep = 23;
+      first.flags.civilizationComplete = true;
+      first.law = 'expansion';
+      first.complexity = 'bloom';
+      first.enemy.status = 'resolved';
+      first.enemy.method = 'overload';
+      first.enemy.resolution = 'overload';
+      first.tendencies.advance = 9;
+      first.tendencies.sustain = 4;
+      first.decisions = [
+        { kind: 'law', id: 'expansion', route: 'advance', score: 2 },
+        { kind: 'enemy', id: 'overload', route: 'advance', score: 2 },
+        { kind: 'core', id: 'fuel', route: 'advance', score: 2 },
+        { kind: 'complexity', id: 'bloom', route: 'advance', score: 2 },
+      ];
+
+      GS.beginDirectedRebirth();
+      state = GS.getState();
+      var second = state.slice;
+      var counts = [92, 44, 26, 15, 8, 5, 1];
+      var producers = [4, 3, 2, 2, 1, 1, 0];
+      state.tiers.forEach(function (tier, index) {
+        tier.researched = true;
+        tier.count = counts[index];
+        tier.totalEver = counts[index] * 2;
+        tier.producers = producers[index];
+      });
+      state.researchPoints = 240;
+      state.totalQuarksEver = 640;
+
+      second.elapsedSeconds = 1068;
+      second.missionStep = 11;
+      second.missionStartedAt = 1068;
+      second.focusTier = 2;
+      second.reserveTier = 1;
+      second.flags.civilizationComplete = true;
+      second.roundTwo.inheritanceMode = 'carry';
+      second.roundTwo.fragmentChoice = 'verify';
+      second.roundTwo.counterexample = {
+        id: 'closure-lattice',
+        status: 'resolved',
+        choice: 'revise',
+      };
+      second.roundTwo.proofProgress = window.GC.SECOND_LOOP.proofSeconds;
+      second.roundTwo.witnessResponse = 'challenge';
+      second.roundTwo.truthVerdict = 'revise';
+      second.roundTwo.truthRepeated = false;
+      second.roundTwo.truthRevised = true;
+      second.tendencies.advance = 7;
+      second.tendencies.inquiry = 5;
+      second.decisions = [
+        { kind: 'inheritance', id: 'carry', route: 'advance', score: 1 },
+        { kind: 'fragment', id: 'verify', route: 'inquiry', score: 1 },
+        { kind: 'counterexample', id: 'revise', route: 'inquiry', score: 2 },
+        { kind: 'witness', id: 'challenge', route: 'inquiry', score: 1 },
+        { kind: 'verdict', id: 'revise', route: 'inquiry', score: 2 },
+      ];
+
+      localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      localStorage.setItem(window.GC.SAVE_KEY + '-wall-clock-v1', String(Date.now()));
+      location.replace('../../index.html?fixture=round-two-terminal');
+    })();
+  </script>
+</body>
+</html>

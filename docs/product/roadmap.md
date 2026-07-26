@@ -17,13 +17,15 @@
 ## 已完成：前期体验修订
 
 - 长期目标、当前动作、下一解锁与等待期建议集中到目标栏。
-- 第一处天赋点约在 6 秒后出现；四项局内天赋各两级。
-- 主动观测提供稳态校准、聚焦脉冲和回声解码，在线与离线均可充能。
+- 主动观测在核子合成阶段开放；首个天赋点延后到研究构成教学完成后，四项局内天赋各两级。
+- 主动观测提供稳态校准、聚焦脉冲和回声解码；解锁后在线与离线均可充能。
 - 观测与干预拆成两个工作区，并提高默认与“大字号”模式的关键信息尺寸。
+- 开局只显示观测主界面；成长、决策、路线与接触按教学节点逐段开放。
+- 偶发发现改为画布信标与悬浮阅读层，不再依赖滚动到中央栏底部。
 - 第一轮高频任务中文改成动作与数字优先；身份和另一侧来源不再被操作文案提前说死。
 - 产品愿景、世界观圣经和五轮主叙事成为文档权威入口。
 
-## 下一切片：第二轮终结封存
+## 已完成：第二轮终结封存
 
 目标：让第二轮真正以“局部答案成立，但宇宙仍然终结”收束，并生成第五轮可可靠重建的记录。
 
@@ -89,8 +91,9 @@ node tools/balance/early-agency-smoke.js
 node tools/balance/first-contact-smoke.js
 node tools/balance/civilization-smoke.js
 node tools/balance/second-loop-smoke.js
+node tools/balance/round-transition-smoke.js
 node tools/balance/background-progress-smoke.js
 node tools/balance/time-scale-smoke.js
 ```
 
-新增轮次边界时再加入专用的 `round-transition-smoke.js`，覆盖封存幂等、旧存档迁移和公开轮次门禁。
+`round-transition-smoke.js` 持续覆盖封存幂等、旧存档迁移、确定性校验和、封存后冻结和公开轮次门禁。

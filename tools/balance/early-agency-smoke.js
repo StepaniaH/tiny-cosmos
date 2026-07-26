@@ -23,12 +23,14 @@ function tendenciesOf(game) {
   return JSON.stringify(game.GS.getSlice().tendencies);
 }
 
-function verifyEarlyPoint() {
+function verifyStagedUnlocks() {
   const game = createSliceGame();
   const Slice = game.window.GameSlice;
   const openingObjective = Slice.getObjectiveModel();
   assert(openingObjective.nowTitle === '点亮光核 5 次', 'Opening objective did not state the immediate action');
   assert(openingObjective.nextUnlock.includes('自动生产'), 'Opening objective did not preview the next unlock');
+  assert(!Slice.getInterfaceUnlocks().observation, 'Active Observation appeared during the opening click tutorial');
+  assert(!Slice.getInterfaceUnlocks().intervention, 'Intervention workspace appeared during the opening click tutorial');
 
   for (let click = 0; click < 5; click += 1) {
     game.GS.addResource(0, 1);
@@ -39,14 +41,41 @@ function verifyEarlyPoint() {
 
   const talentState = Slice.getTalentState();
   assert(game.GS.getSlice().missionStep >= 1, 'First mission did not complete');
-  assert(talentState.points >= 1, 'First talent point was not awarded at mission 1');
+  assert(talentState.points === 0, 'A talent point competed with the first production tutorial');
+  assert(!Slice.getInterfaceUnlocks().observation, 'Active Observation unlocked before nucleon synthesis');
+
+  game.GS.getSlice().missionStep = 2;
+  Slice.init();
+  assert(Slice.getInterfaceUnlocks().observation, 'Active Observation did not unlock with nucleon synthesis');
+  assert(!Slice.getInterfaceUnlocks().talents, 'Talents appeared before the research tutorial');
+  assert(!Slice.getInterfaceUnlocks().intervention, 'Intervention workspace appeared before any intervention system');
+
+  game.GS.getSlice().missionStep = 5;
+  Slice.init();
+  assert(Slice.getTalentState().points === 0, 'Talent point appeared while research was still being taught');
+
+  game.GS.getSlice().missionStep = 6;
+  Slice.init();
+  assert(Slice.getTalentState().points === 1, 'First talent point was not awarded after the research explanation');
+  assert(Slice.getInterfaceUnlocks().talents, 'Talent interface did not unlock with the first point');
+  assert(Slice.getInterfaceUnlocks().intervention, 'Growth workspace did not unlock with the first point');
+  assert(!Slice.getInterfaceUnlocks().decisions, 'Decision queue appeared before the First Law');
   assert(Slice.getObjectiveModel().optionalAction.includes('分配 1 点天赋'), 'Goal rail did not surface the first talent choice');
-  assert(game.GS.getSlice().elapsedSeconds <= 180, 'First talent point was not available within three minutes');
-  return game.GS.getSlice().elapsedSeconds;
+
+  game.GS.getSlice().missionStep = 10;
+  Slice.init();
+  assert(Slice.getInterfaceUnlocks().decisions, 'Decision queue did not unlock with the First Law');
+  assert(Slice.getInterfaceUnlocks().routes, 'Route signals did not unlock with the First Law');
+  assert(!Slice.getInterfaceUnlocks().contact, 'Contact interface appeared before contact telemetry existed');
+
+  game.GS.getSlice().missionStep = 12;
+  Slice.init();
+  assert(Slice.getInterfaceUnlocks().contact, 'Contact interface did not unlock with contact telemetry');
+  return Slice.getInterfaceUnlocks();
 }
 
 function verifyTalentEffects() {
-  const game = createSliceGame(20);
+  const game = createSliceGame(23);
   const Slice = game.window.GameSlice;
   const slice = game.GS.getSlice();
   const tendenciesBefore = tendenciesOf(game);
@@ -57,7 +86,7 @@ function verifyTalentEffects() {
   definitions.forEach((definition) => {
     assert(definition.maxRank === 2 && definition.cost === 1, `${definition.id} rank or cost changed`);
   });
-  assert(Slice.getTalentState().points === 5, 'Mission-20 initialization did not backfill five talent points');
+  assert(Slice.getTalentState().points === 5, 'Mission-23 initialization did not backfill five talent points');
 
   const production0 = Slice.getProductionMultiplier(0);
   assert(Slice.spendTalentPoint('focus'), 'Failed to buy focus rank 1');
@@ -92,7 +121,7 @@ function verifyTalentEffects() {
 }
 
 function verifyObservationProtocols() {
-  const game = createSliceGame();
+  const game = createSliceGame(2);
   const Slice = game.window.GameSlice;
   const slice = game.GS.getSlice();
   const tendenciesBefore = tendenciesOf(game);
@@ -140,7 +169,7 @@ function verifyObservationProtocols() {
   assert(decodeResult.id === 'decode' && decodeResult.researchPoints >= 3, 'Decode result was not recorded');
   assert(tendenciesOf(game) === tendenciesBefore, 'Observation protocols changed route tendencies');
 
-  const capped = createSliceGame();
+  const capped = createSliceGame(2);
   capped.GE.advanceTime(1000);
   assert(capped.window.GameSlice.getObservationState().charges === 3, 'Offline recharge exceeded or missed max charges');
   assert(capped.window.GameSlice.getObservationState().rechargeProgress === 0, 'Recharge progress was retained at charge cap');
@@ -165,7 +194,7 @@ function verifyObservationProtocols() {
   assert(BlockedSlice.getObservationState().charges === blockedCharges - 1, 'Valid stabilize did not spend one charge');
   assert(BlockedSlice.getObservationState().active.tierId !== 2, 'Stabilize activated on the isolated atom layer');
 
-  const activeObjective = createSliceGame(1);
+  const activeObjective = createSliceGame(2);
   activeObjective.GS.getSlice().talents.points = 0;
   activeObjective.GS.getSlice().observation.charges = 2;
   assert(activeObjective.window.GameSlice.useObservationProtocol('stabilize'), 'Failed to seed active-protocol objective');
@@ -173,7 +202,7 @@ function verifyObservationProtocols() {
   assert(activeOptional.includes('可解码研究'), 'Goal rail did not distinguish Decode while a sustained protocol was active');
   assert(!activeOptional.includes('稳流、放大焦点'), 'Goal rail advertised disabled sustained protocols');
 
-  const historyGame = createSliceGame(1);
+  const historyGame = createSliceGame(2);
   for (let use = 0; use < 100; use += 1) {
     historyGame.GS.getSlice().observation.charges = 1;
     assert(historyGame.window.GameSlice.useObservationProtocol('decode'), `Decode history seed failed at ${use}`);
@@ -195,10 +224,10 @@ function verifyPersistenceAndMigration() {
   assert(signature.observationHistory.length === 1, 'Loop signature omitted observation history');
 
   const reloaded = createGameRuntime();
-  assert(reloaded.GS.fromJSON(source.GS.toJSON()), 'Failed to reload v8 agency state');
+  assert(reloaded.GS.fromJSON(source.GS.toJSON()), 'Failed to reload v9 agency state');
   reloaded.window.GameSlice.init();
   const reloadedSlice = reloaded.GS.getSlice();
-  assert(reloadedSlice.version === 8, 'Reloaded agency state did not retain version 8');
+  assert(reloadedSlice.version === 9, 'Reloaded agency state did not retain version 9');
   assert(reloaded.window.GameSlice.getTalentState().nodes.focus === 1, 'Talent rank did not persist');
   assert(reloaded.window.GameSlice.getObservationState().active.id === 'surge', 'Active observation did not persist');
   assert(reloaded.window.GameSlice.getObservationState().history.length === 1, 'Observation history did not persist');
@@ -213,10 +242,61 @@ function verifyPersistenceAndMigration() {
   const migrated = createGameRuntime();
   assert(migrated.GS.fromJSON(JSON.stringify(legacy)), 'Failed to migrate a v7 save');
   migrated.window.GameSlice.init();
-  assert(migrated.GS.getSlice().version === 8, 'v7 save was not upgraded to v8');
-  assert(migrated.window.GameSlice.getTalentState().points === 2, 'v7 migration did not backfill passed talent awards');
+  assert(migrated.GS.getSlice().version === 9, 'v7 save was not upgraded to v9');
+  assert(migrated.window.GameSlice.getTalentState().points === 0, 'v7 migration exposed talents before the new unlock step');
   assert(migrated.window.GameSlice.getTalentState().nodes.focus === 0, 'v7 migration invented a talent rank');
   assert(migrated.window.GameSlice.getObservationState().charges === 1, 'v7 migration did not receive the initial observation charge');
+
+  const untouchedLegacy = JSON.parse(legacySource.GS.toJSON());
+  untouchedLegacy.slice.version = 8;
+  untouchedLegacy.slice.missionStep = 5;
+  untouchedLegacy.slice.talents.points = 2;
+  untouchedLegacy.slice.talents.totalEarned = 2;
+  untouchedLegacy.slice.talents.awarded = ['loop-1-mission-1', 'loop-1-mission-5'];
+  const delayed = createGameRuntime();
+  assert(delayed.GS.fromJSON(JSON.stringify(untouchedLegacy)), 'Failed to migrate untouched v8 talents');
+  delayed.window.GameSlice.init();
+  assert(delayed.window.GameSlice.getTalentState().points === 0, 'Untouched early v8 points were not delayed');
+  assert(!delayed.window.GameSlice.getInterfaceUnlocks().intervention, 'Untouched v8 save still exposed Growth before mission 6');
+  delayed.GS.getSlice().missionStep = 6;
+  delayed.window.GameSlice.init();
+  assert(delayed.window.GameSlice.getTalentState().points === 1, 'Delayed v8 point did not return at mission 6');
+
+  const spentLegacy = JSON.parse(legacySource.GS.toJSON());
+  spentLegacy.slice.version = 8;
+  spentLegacy.slice.missionStep = 5;
+  spentLegacy.slice.talents.points = 0;
+  spentLegacy.slice.talents.totalEarned = 1;
+  spentLegacy.slice.talents.awarded = ['loop-1-mission-1'];
+  spentLegacy.slice.talents.nodes.focus = 1;
+  spentLegacy.slice.talents.history = [{ time: 10, loopNumber: 1, id: 'focus', rank: 1, cost: 1 }];
+  const preserved = createGameRuntime();
+  assert(preserved.GS.fromJSON(JSON.stringify(spentLegacy)), 'Failed to migrate spent v8 talent');
+  preserved.window.GameSlice.init();
+  assert(preserved.window.GameSlice.getTalentState().nodes.focus === 1, 'Spent v8 talent rank was revoked');
+  preserved.GS.getSlice().missionStep = 6;
+  preserved.window.GameSlice.init();
+  assert(preserved.window.GameSlice.getTalentState().points === 0, 'Spent v8 point was awarded twice at mission 6');
+
+  const completeLegacy = JSON.parse(legacySource.GS.toJSON());
+  completeLegacy.slice.version = 8;
+  completeLegacy.slice.missionStep = 20;
+  completeLegacy.slice.talents.points = 5;
+  completeLegacy.slice.talents.totalEarned = 5;
+  completeLegacy.slice.talents.awarded = [
+    'loop-1-mission-1',
+    'loop-1-mission-5',
+    'loop-1-mission-10',
+    'loop-1-mission-15',
+    'loop-1-mission-20',
+  ];
+  const cappedLegacy = createGameRuntime();
+  assert(cappedLegacy.GS.fromJSON(JSON.stringify(completeLegacy)), 'Failed to migrate complete v8 talent plan');
+  cappedLegacy.window.GameSlice.init();
+  cappedLegacy.GS.getSlice().missionStep = 23;
+  cappedLegacy.window.GameSlice.init();
+  assert(cappedLegacy.window.GameSlice.getTalentState().totalEarned === 5, 'v8 talent migration over-awarded at mission 23');
+  assert(cappedLegacy.window.GameSlice.getTalentState().points === 5, 'v8 talent migration changed preserved unspent points');
 
   const secondLoop = createSliceGame();
   secondLoop.GS.getSlice().loopNumber = 2;
@@ -231,13 +311,13 @@ function verifyPersistenceAndMigration() {
   };
 }
 
-const firstPointSeconds = verifyEarlyPoint();
+const stagedUnlocks = verifyStagedUnlocks();
 const talents = verifyTalentEffects();
 const observation = verifyObservationProtocols();
 const persistence = verifyPersistenceAndMigration();
 
 console.log(JSON.stringify({
-  firstPointSeconds,
+  stagedUnlocks,
   talentRanks: talents.nodes,
   observationHistory: observation.history.length,
   persistence,

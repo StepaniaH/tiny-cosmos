@@ -180,6 +180,26 @@
     ];
   }
 
+  function buildLoopEndingFrames(summary) {
+    if (summary && Array.isArray(summary.frames) && summary.frames.length) {
+      return summary.frames.map(function (frame) {
+        return {
+          scene: frame.scene || 'rebirth-collapse',
+          image: frame.image || 'rebirth-r02-01.webp',
+          zh: frame.zh,
+          en: frame.en,
+        };
+      });
+    }
+    return [
+      {
+        scene: 'rebirth-collapse', image: 'rebirth-r02-01.webp',
+        zh: ['终结记录已经封存', '局部答案成立，终结仍然发生。没有更多可用操作，只有仍可重读的历史。'],
+        en: ['The terminal record is sealed', 'The local answer held, and the ending still happened. No actions remain—only history that can still be read.'],
+      },
+    ];
+  }
+
   var root = document.getElementById('prologue');
   if (!root) return;
   var art = document.getElementById('prologue-art');
@@ -193,6 +213,7 @@
   var transitionEndTimer = null;
   var transitioning = false;
   var queuedIndex = null;
+  var returnFocus = null;
   var TRANSITION_SWAP_MS = 210;
   var TRANSITION_TOTAL_MS = 520;
 
@@ -316,11 +337,19 @@
     document.getElementById('prologue-title').textContent = isEnglish() ? frame.en[0] : frame.zh[0];
     document.getElementById('prologue-body').textContent = isEnglish() ? frame.en[1] : frame.zh[1];
     document.getElementById('prologue-kicker').textContent = copy(activeKicker[0], activeKicker[1]);
-    document.getElementById('prologue-skip').textContent = activeMode === 'rebirth' ? copy('跳过重生记录', 'Skip Rebirth Record') : copy('跳过序章', 'Skip Prologue');
+    document.getElementById('prologue-skip').textContent = activeMode === 'rebirth'
+      ? copy('跳过重生记录', 'Skip Rebirth Record')
+      : activeMode === 'ending'
+        ? copy('关闭终结记录', 'Close Terminal Record')
+        : copy('跳过序章', 'Skip Prologue');
     document.getElementById('prologue-prev').textContent = copy('上一幕', 'Previous');
     document.getElementById('prologue-prev').disabled = current === 0;
     document.getElementById('prologue-next').textContent = current === activeFrames.length - 1
-      ? (activeMode === 'rebirth' ? copy('进入第二轮', 'Enter Loop Two') : copy('开始观测', 'Begin Observation'))
+      ? (activeMode === 'rebirth'
+        ? copy('进入第二轮', 'Enter Loop Two')
+        : activeMode === 'ending'
+          ? copy('返回封存档案', 'Return to Sealed Archive')
+          : copy('开始观测', 'Begin Observation'))
       : copy('下一幕', 'Next');
     renderLanguageControl();
     renderDots();
@@ -359,8 +388,20 @@
     root.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('prologue-open');
     document.dispatchEvent(new CustomEvent('tinycosmos:prologueclose'));
-    var canvas = document.getElementById('cosmos-canvas');
-    if (canvas) canvas.focus({ preventScroll: true });
+    var fallback = activeMode === 'ending'
+      ? document.getElementById('replay-loop-ending')
+      : document.getElementById('guide-dock');
+    var target = returnFocus
+      && document.documentElement.contains(returnFocus)
+      && !returnFocus.hidden
+      && !returnFocus.disabled
+      && returnFocus.offsetParent !== null
+      ? returnFocus
+      : fallback && !fallback.hidden && !fallback.disabled && fallback.offsetParent !== null
+        ? fallback
+        : document.getElementById('archive-btn');
+    if (target && target.focus) target.focus({ preventScroll: true });
+    returnFocus = null;
   }
 
   function openActive(force) {
@@ -371,6 +412,7 @@
     }
     current = 0;
     renderedIndex = -1;
+    returnFocus = document.activeElement;
     clearTransition();
     preloadActiveFrames();
     root.hidden = false;
@@ -400,6 +442,15 @@
     return openActive(true);
   }
 
+  function openEnding(summary) {
+    activeFrames = buildLoopEndingFrames(summary || {});
+    activeImageRoot = 'assets/rebirth/';
+    activeSeenKey = 'tiny-cosmos-ending-loop-2-seen-v1';
+    activeMode = 'ending';
+    activeKicker = ['第二轮 · 终结封存', 'Loop Two · Terminal Seal'];
+    return openActive(true);
+  }
+
   document.getElementById('prologue-prev').addEventListener('click', function () { go(current - 1); });
   document.getElementById('prologue-next').addEventListener('click', function () {
     if (current === activeFrames.length - 1) close(); else go(current + 1);
@@ -417,6 +468,27 @@
   root.addEventListener('pointermove', schedule);
   document.addEventListener('keydown', function (event) {
     if (root.hidden) return;
+    if (event.key === 'Tab') {
+      var focusable = Array.prototype.filter.call(
+        root.querySelectorAll('button:not([disabled]):not([hidden]), [href], [tabindex]:not([tabindex="-1"])'),
+        function (node) { return node.offsetParent !== null; }
+      );
+      if (focusable.length) {
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (!root.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        } else if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
     if (event.key === 'ArrowRight') { event.preventDefault(); current === activeFrames.length - 1 ? close() : go(current + 1); }
     if (event.key === 'ArrowLeft') { event.preventDefault(); go(current - 1); }
     if (event.key === 'Escape') close();
@@ -426,9 +498,11 @@
   window.GamePrologue = {
     open: function () { open(true); },
     openRebirth: openRebirth,
+    openEnding: openEnding,
     close: close,
     frames: frames.slice(),
     buildRoundTwoFrames: buildRoundTwoFrames,
+    buildLoopEndingFrames: buildLoopEndingFrames,
   };
   open(false);
 })();

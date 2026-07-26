@@ -225,7 +225,10 @@
   ];
 
   var TALENT_AWARD_STEPS = {
-    1: [1, 5, 10, 15, 20],
+    // The first point arrives only after the player has learned production,
+    // synthesis, focus, flow, and the research channel. Later points align
+    // with major decisions instead of competing with the opening tutorial.
+    1: [6, 10, 15, 20, 23],
     2: [0, 2, 4, 7, 9],
   };
 
