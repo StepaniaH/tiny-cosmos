@@ -41,6 +41,7 @@
       }
 
       localStorage.setItem(window.GC.SAVE_KEY, GS.toJSON());
+      localStorage.setItem(window.GC.SAVE_KEY + '-wall-clock-v1', String(Date.now()));
       location.replace('../../index.html?fixture=guidance-' + step);
     })();
   </script>

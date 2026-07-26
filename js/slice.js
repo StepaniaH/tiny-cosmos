@@ -6,6 +6,10 @@
   var GC = window.GC;
   var GS = window.GameState;
 
+  function localized(zh, en) {
+    return window.GameI18n ? window.GameI18n.text(zh, en) : zh;
+  }
+
   function isSecondLoop() {
     var current = GS.getSlice();
     return !!(current && current.loopNumber === 2);
@@ -48,16 +52,16 @@
 
   var MISSIONS = [
     {
-      code: 'BOOT-01', title: '建立观测响应',
+      code: 'BOOT-01', title: '点亮光核 5 次',
       brief: '点击中央光核 5 次。每次点击立即获得 1 枚夸克。',
       hint: '最初几次观测需要手动完成。光核周围的轨道会显示已稳定的资源层。',
-      world: '你接管的微型宇宙刚从一次坍缩中恢复。当前只有观测核和一层未稳定的夸克噪声。',
-      action: '点击中央光核 5 次，让观测核确认这个宇宙会回应你的操作。',
+      world: '可观测区域刚从坍缩中恢复。目前只检测到中央光核与夸克噪声。',
+      action: '点击中央光核 5 次；每次获得 1 枚夸克。',
       restSeconds: 6,
       restMessage: '观测核保持低功率运行。继续点击可以加快第一批夸克积累，也可以观察自动产出。',
     },
     {
-      code: 'BOOT-02', title: '让重复脱离意志',
+      code: 'BOOT-02', title: '购买第 2 个夸克单元',
       brief: '积累夸克，购买第二个夸克生产单元。',
       hint: '生产单元会持续工作，手动点击很快会退到辅助位置。',
       world: '观测响应已经稳定。只靠持续点击会占用你的全部注意力，生产单元可以接管重复工作。',
@@ -66,7 +70,7 @@
       restMessage: '第二个生产单元已经接管一部分工作。继续积累库存，下一阶段会连续消耗夸克。',
     },
     {
-      code: 'MATTER-01', title: '合成五枚核子',
+      code: 'MATTER-01', title: '合成 5 枚核子',
       brief: '使用夸克→核子操作五次，建立第一层高阶结构。',
       hint: '合成会消耗低层库存。后续每个高层也会持续消耗相邻低层。',
       world: '夸克开始重复出现，但它们仍无法形成长期结构。核子是资源链中的第一层组合物。',
@@ -75,17 +79,17 @@
       restMessage: '观察夸克库存的下降和恢复。接下来需要继续补足核子，建立它自己的生产单元。',
     },
     {
-      code: 'FOCUS-01', title: '建立并聚焦核子生产',
+      code: 'FOCUS-01', title: '让核子开始自产',
       brief: '补足核子，购买核子生产单元，再把宇宙焦点移动到核子层。',
       hint: '焦点层生产速度变为 1.8 倍。全宇宙只能保留一个焦点，迁移没有资源成本。',
       world: '观测核的计算能力有限，同一时间只能完整追踪一个物质尺度。被追踪的层级会得到更高的生产效率。',
-      action: '先把核子补到生产单元所需数量并完成购买，再点击“聚焦”。流量图会显示核子产出得到 1.8 倍加速。',
+      action: '核子达到 8 后购买 1 个生产单元，再点击“聚焦”；核子生产倍率将变为 ×1.80。',
       restSeconds: 8,
       restMessage: '保持核子焦点，先让两层库存恢复。下一项任务会要求你维持一段稳定流量。',
     },
     {
-      code: 'FLOW-01', title: '建立双层盈余',
-      brief: '让夸克、核子两行都显示绿色“有盈余”，并把夸克库存维持在 12 以上，共计 35 秒。',
+      code: 'FLOW-01', title: '稳定夸克与核子 35 秒',
+      brief: '聚焦核子；保持夸克≥12，且夸克、核子净流量均>0，连续 35 秒。',
       hint: '“有盈余”就是每秒产出大于每秒消耗。监视器会逐项显示哪些条件已满足、哪些仍需调整。',
       world: '一次短暂的高产不能证明结构已经稳定。观测核需要一段连续记录，确认核子生产没有拖垮夸克层。',
       action: '看“稳态判定”清单：聚焦核子、夸克不少于 12，并让夸克与核子都显示“有盈余”。四项同时为绿色时开始计时。',
@@ -93,7 +97,7 @@
       restMessage: '双层流量记录已经成立。你可以继续扩充产能，研究通道将在下一阶段开放。',
     },
     {
-      code: 'RESEARCH-01', title: '读取研究通道',
+      code: 'RESEARCH-01', title: '查看研究从哪里来',
       brief: '打开“研究构成”，查看夸克和核子各自提供的研究增长。',
       hint: '资源越多，研究贡献越高；增长采用平方根计算，因此囤积同一资源的边际收益会下降。',
       world: '观测核会把稳定存在的资源转化为可复现的规律。研究点持续增长，不需要单独安排研究人员。',
@@ -102,16 +106,16 @@
       restMessage: '研究构成保持可查。让研究点自然增长一会，观察紫色研究速率线的位置。',
     },
     {
-      code: 'RESEARCH-02', title: '揭示原子层',
+      code: 'RESEARCH-02', title: '研究原子',
       brief: '积累 45 研究点，执行“研究原子层”。',
       hint: '研究按钮会支付当前研究点。已经解锁的结构和研究增长速度会保留。',
       world: '研究通道正在接近第一个结构阈值。达到阈值后，观测核能够稳定识别原子。',
-      action: '先确认研究条中的“下一目标”。返回主界面继续积累；达到 45 RP 后，引导会再次提示可用的“研究原子层”按钮。',
+      action: '达到 45 RP 后点击“研究原子层”；未达标时，增加稳定库存可提高研究速率。',
       restSeconds: 0,
       restMessage: '原子层已经出现。新的合成与生产操作立即开放。',
     },
     {
-      code: 'MATTER-02', title: '建立原子生产',
+      code: 'MATTER-02', title: '让原子开始自产',
       brief: '累计获得 18 枚原子，并建立 2 个原子生产单元。',
       hint: '原子会持续消耗核子。流量监视器中的红柱表示每秒消耗。',
       world: '原子层已经可见，但还没有形成自持循环。它会依赖核子库存完成最初扩张。',
@@ -120,7 +124,7 @@
       restMessage: '原子生产已经形成规模。观察核子的消耗红柱，下一项指令会为低层库存建立底线。',
     },
     {
-      code: 'RESERVE-01', title: '设置核子保护线',
+      code: 'RESERVE-01', title: '保护核子库存',
       brief: '在核子卡片上选择“保护”。保护线会为代谢和敌人损失保留最低库存。',
       hint: '当前竖切只能保护一个层级；移动保护线没有资源成本。',
       world: '高层结构会持续消耗相邻低层。保护线公开了当前宇宙拒绝突破的库存底线。',
@@ -129,72 +133,72 @@
       restMessage: '保护线已经生效。观察核子接近底线时，高层消耗如何停止。',
     },
     {
-      code: 'FLOW-02', title: '完成物质稳态观测',
+      code: 'FLOW-02', title: '稳定三层物质 60 秒',
       brief: '同时满足 4 项公开条件：保护核子、核子≥8、原子≥12、核子每秒有盈余，并连续保持 60 秒。',
-      hint: '稳态不是“数字看起来很多”，而是四个条件同时成立。监视器会显示实时判定；焦点放在核子层只是推荐方法，不是隐藏条件。',
+      hint: '4 项必须同时成立；任一失效都会停止计时。聚焦核子可改善净流量，但不是必需条件。',
       world: '原子层正在持续抽取核子。观测核需要证明这条资源链能够承受一分钟的连续运行。',
       action: '逐项核对稳态清单。若核子没有盈余，聚焦核子或增加核子生产；若库存不足，暂停合成原子并等待恢复。四项全绿时开始计时。',
       restSeconds: 7,
       restMessage: '一分钟稳态记录已经写入。三套现有系统都获得了足够数据，可以据此确定第一法则。',
     },
     {
-      code: 'LAW-01', title: '确定第一条法则',
+      code: 'LAW-01', title: '选择第一法则',
       brief: '比较焦点、保护线和研究通道的三种强化，选择第一条法则。',
       hint: '你已经实际使用过三个系统。法则会强化其中一个，并留下路线信号。',
       world: '原子让宇宙第一次拥有可长期保持的结构。观测核需要决定哪条已知规律获得优先权。',
       action: '阅读右侧三个选项。每项都列出当前效果、改变后的数值和路线记录。',
       restSeconds: 7,
-      restMessage: '第一法则正在改变资源流。观察焦点倍率、保护线或研究增长的变化。',
+      restMessage: '第一法则正在改变资源流。视界外的信号也出现了变化，但原因还不清楚。',
     },
     {
-      code: 'PREP-01', title: '部署接触准备',
+      code: 'PREP-01', title: '选择接触准备',
       brief: '选择库存缓冲、脉冲蓄能或远距标定，并完成对应的 30 秒准备。',
       hint: '三项准备分别强化止损、压倒方案和观测方案，也会留下 1 点路线信号。',
-      world: '第一法则稳定后，视界背面出现了不同步的资源影子。外部结构尚未成形，当前仍有时间准备。',
+      world: '第一法则稳定后，视界外出现了一组跟随资源变化的信号。它还没有稳定形状，你仍有时间准备。',
       action: '在决策队列中比较三项准备。选定后完成显示的库存、产能或研究条件。',
       restSeconds: 7,
       restMessage: '接触准备已经就绪。保持现有资源配置，下一项指令会读取视界背面的征兆。',
     },
     {
-      code: 'CONTACT-01', title: '读取反宇宙征兆',
+      code: 'CONTACT-01', title: '检查接触预警',
       brief: '检查真空水蛭的目标、损失上限和倒计时，准备后建立接触。',
       hint: '倒计时结束会自动建立接触，也可以提前确认。',
-      world: '未被第一法则采用的可能性没有消失，它们在视界背面形成了第二组资源影子。',
+      world: '信号会跟随第一法则改变，但来源与意图都未知。TC-07 暂时只记录可测行为。',
       action: '查看接触面板中的目标、截取速率和损失上限。准备完成后可以提前建立接触。',
     },
     {
       code: 'CONTACT-02', title: '处理真空水蛭',
       brief: '选择压倒、断供或观测，并完成对应操作。',
-      hint: '第四种“同步”会在跨周目取得反宇宙样本后开放。',
+      hint: '“同步”需要跨轮样本，当前不可用。',
       world: '真空水蛭正在截取原子，但损失存在公开上限。处理方法会决定资源代价和本轮路线记录。',
       action: '在接触面板中并列比较三种方案。每项都会说明成本、完成时间、停止损失的方法和路线记录。',
       restSeconds: 7,
       restMessage: '真空水蛭已经退去。先检查累计损失和留下的核心余像。',
     },
     {
-      code: 'CORE-01', title: '处置核心余像',
+      code: 'CORE-01', title: '决定余像用途',
       brief: '敌人已经退去。决定余像进入边界燃料、资源回流或行为档案。',
       hint: '这次选择会与此前法则、敌人处理共同形成路线信号。',
       world: '敌人带走的资源没有直接返回，它们在视界边缘形成了一块可利用的稳定余像。',
       action: '在右侧选择余像用途。立即收益和路线记录会同时写入本轮档案。',
     },
     {
-      code: 'REPORT-01', title: '第一次接触完成',
+      code: 'REPORT-01', title: '查看第一次接触报告',
       brief: '读取第一次接触报告。8 秒后观测核会自动继续推进复杂物质，也可以立即继续。',
       hint: '报告只归纳真实选择，不评价正误；它会留在决策履历中，并成为文明提案的第一组依据。',
       world: '第一次接触已经结束。系统没有把你归入固定阵营，只保存了这一轮实际采用的方法。',
       action: '查看接触报告与路线信号。无需额外操作，倒计时结束后将开放分子层。',
     },
     {
-      code: 'MOLECULE-01', title: '让结构学会组合',
+      code: 'MOLECULE-01', title: '研究分子',
       brief: '处理反相晶簇，研究分子层，累计获得 12 枚分子并建立 1 个生产单元。',
-      hint: '反侧压力不是生命值：它表示另一侧对重复方法的预测程度，并轻微压低原子及以上生产。沿用主路线会强化终局信号但提高压力；转向会打乱预测。',
-      world: '原子能够长期存在，却仍各自孤立。分子把“相邻”变成可重复关系；反宇宙则送来一块只在未发生的化学键上结晶的客体。',
+      hint: '反侧压力会压低原子及以上生产；重复当前主路线会升压，转向会降压。具体倍率见接触面板。',
+      world: '原子能够长期存在，却仍各自孤立。分子把“相邻”变成可重复关系；视界背面出现反相晶簇，它只在未形成的化学键位置留下读数。',
       action: '先在决策队列回应反相晶簇；随后查看反侧压力对生产的实际影响，积累 150 RP 研究分子，合成 12 枚分子并建立生产单元。',
       restSeconds: 7,
     },
     {
-      code: 'CELL-01', title: '建立自持边界',
+      code: 'CELL-01', title: '研究细胞',
       brief: '回应静默合唱体，研究细胞层，累计获得 10 枚细胞并建立 2 个生产单元。',
       hint: '从细胞开始，结构会维护内部、积累生态记忆并承受反侧影响；生产与消耗不再只是直线升级。',
       world: '分子网络越过临界点：结构开始主动修补“里面”。静默合唱体同时包围外侧，试图让所有边界共享同一个节拍。',
@@ -202,7 +206,7 @@
       restSeconds: 7,
     },
     {
-      code: 'ETHIC-01', title: '确定复杂性的照料方式',
+      code: 'ETHIC-01', title: '选择如何保护细胞',
       brief: '在决策队列中选择如何对待刚出现的自持结构。',
       hint: '这是发展阶段的中层决策：它不会覆盖第一法则，而会与此前记录一起影响文明提案。',
       world: '细胞会自行维持，也会竞争低层物质。观测核必须决定是推动扩张、维持生态、保存证据，还是让正反两侧共同试验。',
@@ -210,7 +214,7 @@
       restSeconds: 7,
     },
     {
-      code: 'LIFE-01', title: '让选择成为谱系',
+      code: 'LIFE-01', title: '研究生命',
       brief: '回应镜像胚种，研究生命层，累计获得 6 份生命并建立 2 个生产单元。',
       hint: '生命会把环境、路线和反侧压力写进谱系；此时路线仍可改变，但代价已经可以被后代继承。',
       world: '自持结构开始跨代复制差异。反侧送来一枚没有祖先却拥有记忆的胚种，逼迫观测核决定何种历史可以进入谱系。',
@@ -218,7 +222,7 @@
       restSeconds: 7,
     },
     {
-      code: 'SIGNAL-01', title: '辨认背面的第二种声音',
+      code: 'SIGNAL-01', title: '验证背面生命信号',
       brief: '保持至少 4 份生命与非负细胞流量，连续记录 75 秒。',
       hint: '这不是敌人倒计时。条件失效时记录缓慢回退，可随时返回主界面调度。',
       world: '生命出现后，背面噪声不再只是重复资源变化。某种结构正在按固定间隔回应，像是在确认这里是否也有观察者。',
@@ -226,7 +230,7 @@
       restSeconds: 7,
     },
     {
-      code: 'CIV-01', title: '译出共同问题',
+      code: 'CIV-01', title: '研究文明',
       brief: '积累 1800 RP，研究文明层。',
       hint: '文明不是更大的库存，而是资源链中第一次能够理解路线记录并提出自身方案的行动者。',
       world: '正面生命与背面信号同时指向同一个问题：这个宇宙应该继续扩张、维持循环、理解观察，还是共同改写坍缩？',
@@ -241,7 +245,7 @@
       action: '保留或继续合成生命；达到 12 份生命后执行“生命 → 文明”。',
     },
     {
-      code: 'CIV-REPORT', title: '第一轮大循环完成',
+      code: 'CIV-REPORT', title: '第一轮完成',
       brief: '文明已经诞生，并根据本轮决策提出主提案与备选提案。',
       hint: '提案解释“为什么出现”，但当前版本不会强迫你立即进入终局工程。资源链可以继续运行。',
       world: '资源链中第一次出现了能够回看整轮历史的行动者。它们把观测核称为“那个总盯着仓库看的天体”，随后递交了两份彼此不完全相同的未来。',
@@ -262,8 +266,8 @@
     {
       code: 'R2-BIAS-01', title: '测量有方向的初始物质',
       brief: '保持夸克≥12、核子≥4，且两层净流量不为负，连续记录 25 秒。',
-      hint: '这不是第一次轮的基础教学。目标是确认继承偏差能否在稳定资源流中持续存在。',
-      world: '这一轮的最初物质不再中立。某些组合比上轮更容易发生，而被排除的代价也更早留下轮廓。',
+      hint: '本轮已跳过基础教学；只需验证继承偏差能否稳定维持 25 秒。',
+      world: '某些组合比上一轮更容易发生，相应代价也更早显现。',
       action: '用焦点与保护线调整现成的双层生产链；全部条件同时满足时开始连续记录。',
       restSeconds: 6,
       restMessage: '偏差已经被测量，而不是被当作理所当然。研究通道正在寻找它最早改变的结构。',
@@ -290,7 +294,7 @@
       code: 'R2-COUNTER-01', title: '面对为你定制的反例',
       brief: '读取路线专属反侧结构，并决定重复旧方法、用备选路线修正，或建立双侧试验。',
       hint: '反例不是数值更高的旧敌人。它针对的是你上轮最常用、最成功的那套方法。',
-      world: '另一侧没有继承你的结论，却继承了自己曾如何失去可能性。它把那段损失压缩成一个专门测试上轮真理的结构。',
+      world: '背面结构精准针对上一轮主路线，但它如何获得这段信息仍然未知。',
       action: '在决策队列阅读反例的行为规则，再选择一种回应框架。',
       restSeconds: 5,
       restMessage: '回应框架已经公开。接下来必须用真实资源流证明它，而不是只在档案里声明立场。',
@@ -318,7 +322,7 @@
       brief: '选择第二座文明应当接受、反驳，还是暂缓采用上一轮文明证词。',
       hint: '证词不会跨轮成为命令。它可以提供方向，也必须允许后来者留下异议。',
       world: '第一座文明无法活着抵达这里，但它留下的结构化证词已经影响了哪些连接更容易出现。后来者有权知道，也有权不同意。',
-      action: '在决策队列为证词设定继承方式。选择会成为第二轮结束时的 witnessResponse。',
+      action: '在决策队列为证词设定继承方式。选择会写入第二轮档案，并影响本轮最终裁定。',
       restSeconds: 5,
       restMessage: '证词获得了继承权限。生命阶段将同时携带上轮答案与本轮异议。',
     },
@@ -343,18 +347,18 @@
     {
       code: 'R2-VERDICT', title: '裁定第一条真理的地位',
       brief: '选择重复上轮真理、用本轮备选路线修正，或保留为尚未解决的争议。',
-      hint: '这里记录 truthRepeated 与 truthRevised；没有任何选项被标记为隐藏真结局。',
+      hint: '三种裁定都会写入跨轮档案；没有隐藏的正确选项。',
       world: '一条真理若不能面对反例，只是一次幸运；若只能原样重复，又可能变成惯性。第二座文明要求你明确它在下一轮档案中的地位。',
       action: '在决策队列阅读第二座文明的意见，并完成真理裁定。',
       restSeconds: 5,
       restMessage: '两轮历史第一次同时拥有结论与异议。观测核正在生成下一份跨轮签名。',
     },
     {
-      code: 'R2-REPORT', title: '第二轮：答案的反例完成',
-      brief: '第二座文明已经评价上轮真理，并留下可供第三轮读取的反例记录。',
-      hint: '资源链可以继续运行。第三轮将让反宇宙第一次携带自己的继承物进入开场。',
-      world: '第一轮证明一种未来可以成立；第二轮证明它必须如何面对针对性的质疑。历史不再是一条直线，而是两份能够互相校验的证词。',
-      action: '查看真理裁定、反例回应与文明证词。第二轮可玩叙事闭环至此完成。',
+      code: 'R2-REPORT', title: '第二轮：答案已经完成检验',
+      brief: '第二座文明已经完成裁定。现在封存本轮，查看局部答案成立后终结仍然发生的三幕记录。',
+      hint: '封存会停止资源、研究与任务计时；两轮档案仍保持可读。',
+      world: '第一轮证明一种未来可以成立；第二轮证明它必须面对针对性的质疑。答案经受住了检验，但宇宙没有因此获得例外。',
+      action: '切到干预，核对真理裁定、反例回应与文明证词，然后封存终结报告。',
     },
   ];
 
@@ -716,6 +720,86 @@
     };
   }
 
+  function fallbackTerminalChecksum(s) {
+    var roundTwo = s && s.roundTwo ? s.roundTwo : {};
+    var fields = [
+      roundTwo.inheritanceMode,
+      roundTwo.fragmentChoice,
+      roundTwo.counterexample && roundTwo.counterexample.id,
+      roundTwo.counterexample && roundTwo.counterexample.choice,
+      roundTwo.witnessResponse,
+      roundTwo.truthVerdict,
+    ].map(function (value) { return value || 'none'; }).join('|');
+    var hash = 2166136261;
+    for (var index = 0; index < fields.length; index += 1) {
+      hash ^= fields.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    var hex = ('00000000' + (hash >>> 0).toString(16).toUpperCase()).slice(-8);
+    return 'TC-' + hex.slice(0, 4) + '-' + hex.slice(4);
+  }
+
+  function getLoopEndingSummary() {
+    var s = slice();
+    if (!s || s.loopNumber !== 2 || !s.roundTwo) return null;
+    var campaign = GS.getCampaignStatus ? GS.getCampaignStatus() : { phase: 'active', pendingSignature: null };
+    var signature = campaign.pendingSignature
+      || (s.flags && s.flags.civilizationComplete && s.roundTwo.truthVerdict && GS.buildLoopSignature
+        ? GS.buildLoopSignature('ending-preview')
+        : null);
+    var checksum = signature && signature.terminal && signature.terminal.checksum
+      ? signature.terminal.checksum
+      : fallbackTerminalChecksum(s);
+    var verdicts = {
+      repeat: {
+        label: '旧真理再次成立',
+        enTitle: 'The old truth holds again',
+        zh: '针对性反例已经完成，第一轮答案在公开条件下再次成立。它不是永恒定律，只是一条经受住本轮检验的局部结论。',
+        en: 'The targeted counterexample is complete. The first-loop answer held again under public conditions. It is not an eternal law—only a local conclusion that survived this test.',
+      },
+      revise: {
+        label: '修正后的真理成立',
+        enTitle: 'The revised truth holds',
+        zh: '针对性反例已经完成。旧答案只有写入本轮修正后才成立；文明保存了原文，也保存了它失效的位置。',
+        en: 'The targeted counterexample is complete. The old answer holds only after this loop’s revision. Civilization preserved both the original claim and where it failed.',
+      },
+      dispute: {
+        label: '真理保留为争议',
+        enTitle: 'The truth remains disputed',
+        zh: '针对性反例已经完成，但两轮证词无法合并成唯一结论。文明把分歧作为有效结果封存，没有把不确定伪装成失败。',
+        en: 'The targeted counterexample is complete, but the two testimonies cannot be merged into one conclusion. Civilization sealed disagreement as a valid result rather than disguising uncertainty as failure.',
+      },
+    };
+    var verdict = verdicts[s.roundTwo.truthVerdict] || verdicts.dispute;
+    return {
+      eligible: !!(s.flags && s.flags.civilizationComplete && s.roundTwo.truthVerdict),
+      sealed: campaign.phase === 'sealed',
+      checksum: checksum,
+      verdictLabel: verdict.label,
+      hook: '谁有资格把残留称为历史？',
+      frames: [
+        {
+          scene: 'rebirth-route',
+          image: 'references/shared-horizon-master.png',
+          zh: [verdict.label, verdict.zh],
+          en: [verdict.enTitle, verdict.en],
+        },
+        {
+          scene: 'rebirth-collapse',
+          image: 'rebirth-r02-01.webp',
+          zh: ['然后，终结仍然发生', '所有公开条件都已满足。没有隐藏资源、错误选项或背叛需要追责；物质、生命和第二座文明仍一起越过了不可逆的终点。'],
+          en: ['Then the ending still happens', 'Every public condition was satisfied. There is no hidden resource, wrong option, or betrayal to blame; matter, life, and the second civilization still cross the irreversible end together.'],
+        },
+        {
+          scene: 'rebirth-horizon',
+          image: 'references/shared-horizon-master.png',
+          zh: ['两份终结报告使用同一个校验和', '当前宇宙记录资源流向终点；视界背面的报告记录同样的数量从终点流出。方向相反，校验和相同：' + checksum + '。谁有资格把残留称为历史？'],
+          en: ['Two terminal reports share one checksum', 'This cosmos records resources flowing into the end. The report beyond the horizon records the same quantities flowing out. Opposite directions, identical checksum: ' + checksum + '. Who has the right to call the remainder history?'],
+        },
+      ],
+    };
+  }
+
   var ROUND_TWO_DISCOVERIES = [
     {
       id: 'checksum-ghost', steps: [1], at: 8, code: 'INHERITED FRAGMENT / 01',
@@ -750,6 +834,308 @@
   function isEnabled() {
     var s = slice();
     return !!(s && s.enabled);
+  }
+
+  function mutationsBlocked() {
+    return !!(GS.isLoopSealed && GS.isLoopSealed());
+  }
+
+  function getInterfaceUnlocks() {
+    var s = slice();
+    if (s && GS.isLoopSealed && GS.isLoopSealed()) {
+      return {
+        observation: true,
+        talents: true,
+        decisions: true,
+        routes: true,
+        contact: true,
+        intervention: true,
+      };
+    }
+    if (!s || !s.enabled) {
+      return {
+        observation: false,
+        talents: false,
+        decisions: false,
+        routes: false,
+        contact: false,
+        intervention: false,
+      };
+    }
+    if (s.loopNumber === 2) {
+      return {
+        observation: true,
+        talents: true,
+        decisions: true,
+        routes: true,
+        contact: s.missionStep >= 4,
+        intervention: true,
+      };
+    }
+    var talentsUnlocked = !!(s.talents && s.talents.totalEarned > 0);
+    var decisionsUnlocked = s.missionStep >= 10;
+    return {
+      // Active Observation arrives only after production and synthesis have
+      // both been taught. It then fills real waiting time without competing
+      // with the opening click/producer tutorial.
+      observation: s.missionStep >= 2,
+      talents: talentsUnlocked,
+      decisions: decisionsUnlocked,
+      routes: decisionsUnlocked,
+      contact: s.missionStep >= 12,
+      intervention: talentsUnlocked || decisionsUnlocked,
+    };
+  }
+
+  // ── Per-loop talents ────────────────────────────────────────────
+
+  function getTalentDefinition(id) {
+    return GC.TALENT_DEFINITIONS.find(function (definition) { return definition.id === id; }) || null;
+  }
+
+  function getTalentRank(id) {
+    var s = slice();
+    return s && s.talents && s.talents.nodes ? Number(s.talents.nodes[id] || 0) : 0;
+  }
+
+  function getTalentDefinitions() {
+    return GC.TALENT_DEFINITIONS.map(function (definition) {
+      return Object.assign({}, definition);
+    });
+  }
+
+  function getTalentState() {
+    var s = slice();
+    if (!s || !s.talents) return null;
+    return {
+      points: s.talents.points,
+      totalEarned: s.talents.totalEarned,
+      awarded: s.talents.awarded.slice(),
+      nodes: Object.assign({}, s.talents.nodes),
+      history: s.talents.history.map(function (entry) { return Object.assign({}, entry); }),
+    };
+  }
+
+  function grantTalentPointsForProgress() {
+    var s = slice();
+    if (!s || !s.enabled || !s.talents) return 0;
+    var awardSteps = GC.TALENT_AWARD_STEPS[s.loopNumber] || [];
+    var granted = 0;
+    awardSteps.forEach(function (missionStep) {
+      if (s.missionStep < missionStep) return;
+      var awardId = 'loop-' + s.loopNumber + '-mission-' + missionStep;
+      if (s.talents.awarded.indexOf(awardId) !== -1) return;
+      s.talents.awarded.push(awardId);
+      s.talents.points += 1;
+      s.talents.totalEarned += 1;
+      granted += 1;
+    });
+    if (granted > 0) {
+      addLog('GROWTH', '获得天赋点 ×' + granted + '。可用于强化聚焦、流量、研究或观测回声。');
+    }
+    return granted;
+  }
+
+  function spendTalentPoint(id) {
+    var s = slice();
+    var definition = getTalentDefinition(id);
+    if (!s || !s.enabled || mutationsBlocked() || !s.talents || !definition) return false;
+    var rank = getTalentRank(id);
+    if (rank >= definition.maxRank || s.talents.points < definition.cost) return false;
+    s.talents.points -= definition.cost;
+    s.talents.nodes[id] = rank + 1;
+    s.talents.history.push({
+      time: s.elapsedSeconds,
+      loopNumber: s.loopNumber,
+      id: id,
+      rank: rank + 1,
+      cost: definition.cost,
+    });
+    addLog('GROWTH', '天赋已强化：' + definition.nameZh + ' ' + (rank + 1) + '/' + definition.maxRank + '。');
+    return true;
+  }
+
+  // ── Active observation protocols ────────────────────────────────
+
+  function getObservationDefinition(id) {
+    return GC.OBSERVATION.protocols.find(function (definition) { return definition.id === id; }) || null;
+  }
+
+  function getObservationRechargeSeconds() {
+    return Math.max(
+      1,
+      GC.OBSERVATION.rechargeSeconds - getTalentRank('echo') * GC.OBSERVATION.echoReductionSeconds
+    );
+  }
+
+  function getApproxResearchPerSecond() {
+    var s = slice();
+    if (!s || !s.enabled) return 0;
+    var rate = 0;
+    for (var tierId = 0; tierId < GC.TIERS.length; tierId += 1) {
+      var tier = GS.getTier(tierId);
+      if (!tier || !tier.researched || tier.count <= 0) continue;
+      rate += Math.sqrt(tier.count) * GC.RP_SQRT_COEFF[tierId] * GC.TICKS_PER_SEC;
+    }
+    return rate * GC.FIRST_CONTACT.researchMultiplier * getResearchMultiplier();
+  }
+
+  function hasEffectiveProduction(tierId) {
+    var tier = GS.getTier(tierId);
+    return !!(
+      tier &&
+      tier.researched &&
+      GS.getProducerOutput(tierId) > 0 &&
+      getProductionMultiplier(tierId) > 0
+    );
+  }
+
+  function getLowestNetResearchedTier() {
+    var selected = null;
+    var selectedRate = Infinity;
+    for (var tierId = 0; tierId < GC.TIERS.length; tierId += 1) {
+      if (!hasEffectiveProduction(tierId)) continue;
+      var rate = getTierNetRate(tierId);
+      if (rate < selectedRate) {
+        selected = tierId;
+        selectedRate = rate;
+      }
+    }
+    return selected;
+  }
+
+  function getHighestProductiveResearchedTier() {
+    for (var tierId = GS.getMaxResearchedTier(); tierId >= 0; tierId -= 1) {
+      if (hasEffectiveProduction(tierId)) return tierId;
+    }
+    return null;
+  }
+
+  function getObservationTarget(id) {
+    var s = slice();
+    if (id === 'stabilize') return getLowestNetResearchedTier();
+    if (id === 'surge') {
+      if (s && s.focusTier !== null && hasEffectiveProduction(s.focusTier)) return s.focusTier;
+      return getHighestProductiveResearchedTier();
+    }
+    return null;
+  }
+
+  function getObservationOptions() {
+    var s = slice();
+    var charges = s && s.observation ? s.observation.charges : 0;
+    var active = s && s.observation ? s.observation.active : null;
+    return GC.OBSERVATION.protocols.map(function (definition) {
+      var option = Object.assign({}, definition);
+      option.tierId = getObservationTarget(definition.id);
+      option.available = charges > 0 && (
+        definition.id === 'decode' ||
+        (!active && option.tierId !== null)
+      );
+      if (definition.id === 'decode') {
+        option.researchReward = Math.max(
+          definition.minimumResearch,
+          getApproxResearchPerSecond() * definition.researchSeconds
+        );
+      }
+      return option;
+    });
+  }
+
+  function getObservationState() {
+    var s = slice();
+    if (!s || !s.observation) return null;
+    return {
+      charges: s.observation.charges,
+      maxCharges: GC.OBSERVATION.maxCharges,
+      rechargeProgress: s.observation.rechargeProgress,
+      rechargeSeconds: getObservationRechargeSeconds(),
+      active: s.observation.active ? Object.assign({}, s.observation.active) : null,
+      lastResult: s.observation.lastResult ? Object.assign({}, s.observation.lastResult) : null,
+      history: s.observation.history.map(function (entry) { return Object.assign({}, entry); }),
+    };
+  }
+
+  function useObservationProtocol(id) {
+    var s = slice();
+    var definition = getObservationDefinition(id);
+    if (!s || !s.enabled || mutationsBlocked() || !getInterfaceUnlocks().observation || !s.observation || !definition || s.observation.charges < 1) return false;
+    var isSustained = definition.durationSeconds > 0;
+    if (isSustained && s.observation.active) return false;
+    var targetTierId = isSustained ? getObservationTarget(id) : null;
+    if (isSustained && targetTierId === null) return false;
+
+    var result = {
+      time: s.elapsedSeconds,
+      loopNumber: s.loopNumber,
+      id: id,
+    };
+    s.observation.charges -= 1;
+
+    if (isSustained) {
+      s.observation.active = {
+        id: id,
+        tierId: targetTierId,
+        startedAt: s.elapsedSeconds,
+        durationSeconds: definition.durationSeconds,
+        remaining: definition.durationSeconds,
+        productionMultiplier: definition.productionMultiplier,
+      };
+      result.tierId = targetTierId;
+      result.durationSeconds = definition.durationSeconds;
+      result.productionMultiplier = definition.productionMultiplier;
+      addLog('OBSERVE', definition.nameZh + '已作用于' + GC.TIERS[targetTierId].nameZh + '层。');
+    } else if (id === 'decode') {
+      var reward = Math.max(
+        definition.minimumResearch,
+        getApproxResearchPerSecond() * definition.researchSeconds
+      );
+      GS.addRP(reward);
+      result.researchPoints = reward;
+      addLog('OBSERVE', definition.nameZh + '完成：获得 ' + reward.toFixed(2) + ' RP。');
+    }
+
+    s.observation.lastResult = Object.assign({}, result);
+    s.observation.history.push(Object.assign({}, result));
+    if (s.observation.history.length > GC.OBSERVATION.historyLimit) {
+      s.observation.history.splice(0, s.observation.history.length - GC.OBSERVATION.historyLimit);
+    }
+    return true;
+  }
+
+  function updateObservation(dt) {
+    var s = slice();
+    if (!s || !s.observation || !getInterfaceUnlocks().observation || dt <= 0) return;
+    var observation = s.observation;
+
+    if (observation.active) {
+      observation.active.remaining = Math.max(0, observation.active.remaining - dt);
+      if (observation.active.remaining <= 0) {
+        addLog('OBSERVE', getObservationDefinition(observation.active.id).nameZh + '已结束。');
+        observation.active = null;
+      }
+    }
+
+    if (observation.charges >= GC.OBSERVATION.maxCharges) {
+      observation.charges = GC.OBSERVATION.maxCharges;
+      observation.rechargeProgress = 0;
+      return;
+    }
+
+    observation.rechargeProgress += dt;
+    var rechargeSeconds = getObservationRechargeSeconds();
+    while (observation.rechargeProgress >= rechargeSeconds && observation.charges < GC.OBSERVATION.maxCharges) {
+      observation.rechargeProgress -= rechargeSeconds;
+      observation.charges += 1;
+    }
+    if (observation.charges >= GC.OBSERVATION.maxCharges) observation.rechargeProgress = 0;
+  }
+
+  function getObservationProductionMultiplier(tierId) {
+    var s = slice();
+    var active = s && s.observation ? s.observation.active : null;
+    if (!active || active.remaining <= 0 || active.tierId !== tierId) return 1;
+    return active.productionMultiplier || 1;
   }
 
   function routeOrFallback(id, fallback) {
@@ -836,7 +1222,7 @@
   function chooseRoundTwoDecision(kind, id) {
     var s = slice();
     var decision = getRoundTwoDecision();
-    if (!s || !decision || decision.kind !== kind) return false;
+    if (!s || mutationsBlocked() || !decision || decision.kind !== kind) return false;
     var option = decision.options.find(function (item) { return item.id === id; });
     if (!option) return false;
     if (kind === 'inheritance') s.roundTwo.inheritanceMode = id;
@@ -895,7 +1281,7 @@
     var object = s && s.reverse && s.reverse.objects[objectId];
     var definition = getReverseObjectDefinition(objectId);
     var choice = getReverseChoiceDefinition(objectId, choiceId);
-    if (!s || !object || object.status !== 'pending' || !definition || !choice) return false;
+    if (!s || mutationsBlocked() || !object || object.status !== 'pending' || !definition || !choice) return false;
     var repeatsMirroredRoute = !!object.mirroredRoute && choice.route === object.mirroredRoute;
     object.status = 'resolved';
     object.choice = choice.id;
@@ -946,6 +1332,7 @@
     if (s.reverse.objects.choir.choice === 'harbor' && tierId === 3) mult *= 0.7;
     if (s.reverse.objects.seed.choice === 'cocoon' && tierId === 4) mult *= 0.7;
     if (s.reverse.objects.seed.choice === 'awaken' && tierId === 4) mult *= 1.22;
+    mult *= Math.pow(getTalentDefinition('flow').multiplierPerRank, getTalentRank('flow'));
     return mult;
   }
 
@@ -1006,6 +1393,7 @@
     var missions = activeMissions();
     if (s.missionStep >= missions.length) s.missionStep = missions.length - 1;
     if (s.missionStartedAt === undefined || s.missionStartedAt > s.elapsedSeconds) s.missionStartedAt = s.elapsedSeconds;
+    grantTalentPointsForProgress();
     if (isSecondLoop()) {
       s.roundTwo.counterexample.id = getRoundTwoCounterexample().id;
       evaluateMission();
@@ -1065,6 +1453,7 @@
     var missions = activeMissions();
     s.missionStep = Math.min(step, missions.length - 1);
     s.missionStartedAt = s.elapsedSeconds;
+    grantTalentPointsForProgress();
     var mission = missions[s.missionStep];
     addLog('GUIDE', mission.code + ' / ' + mission.title);
 
@@ -1223,6 +1612,9 @@
   function acknowledgeDiscovery(id) {
     var s = slice();
     if (!s || s.discoveries.triggered.indexOf(id) === -1) return false;
+    var discoveries = isSecondLoop() ? ROUND_TWO_DISCOVERIES : RESEARCH_DISCOVERIES;
+    var discovery = discoveries.find(function (item) { return item.id === id; });
+    if (discovery && discovery.choices && discovery.choices.length && !s.discoveries.resolved[id]) return false;
     if (s.discoveries.acknowledged.indexOf(id) === -1) s.discoveries.acknowledged.push(id);
     return true;
   }
@@ -1232,7 +1624,7 @@
     var discoveries = isSecondLoop() ? ROUND_TWO_DISCOVERIES : RESEARCH_DISCOVERIES;
     var discovery = discoveries.find(function (item) { return item.id === discoveryId; });
     var choice = discovery && discovery.choices ? discovery.choices.find(function (item) { return item.id === choiceId; }) : null;
-    if (!s || !discovery || !choice || s.discoveries.triggered.indexOf(discoveryId) === -1 || s.discoveries.resolved[discoveryId]) return false;
+    if (!s || mutationsBlocked() || !discovery || !choice || s.discoveries.triggered.indexOf(discoveryId) === -1 || s.discoveries.resolved[discoveryId]) return false;
     if (choice.rewardTier !== undefined && choice.reward) GS.addResource(choice.rewardTier, choice.reward);
     if (choice.rp) GS.addRP(choice.rp);
     s.discoveries.resolved[discoveryId] = choiceId;
@@ -1401,8 +1793,10 @@
 
   function tick(dt) {
     var s = slice();
-    if (!s || !s.enabled) return;
+    if (!s || !s.enabled || (GS.isLoopSealed && GS.isLoopSealed())) return;
     s.elapsedSeconds += dt;
+    grantTalentPointsForProgress();
+    updateObservation(dt);
 
     if (s.guide && s.guide.interlude) {
       s.guide.remaining = Math.max(0, s.guide.remaining - dt);
@@ -1436,6 +1830,9 @@
   function getProductionMultiplier(tierId) {
     var s = slice();
     if (!s || !s.enabled) return 1;
+    var focusTalentMultiplier = s.focusTier === tierId
+      ? Math.pow(getTalentDefinition('focus').multiplierPerRank, getTalentRank('focus'))
+      : 1;
     if (isSecondLoop()) {
       var signature = loopSignature();
       var route = routeOrFallback(signature.dominantRoute, 'ordinary');
@@ -1447,6 +1844,8 @@
       if (s.roundTwo.inheritanceMode === 'carry' && tierId === 2) secondMult *= 1.05;
       if (s.roundTwo.counterexample.choice === 'revise' && tierId === 3) secondMult *= 1.12;
       if (s.roundTwo.counterexample.choice === 'reciprocal' && (tierId === 3 || tierId === 4)) secondMult *= 1.08;
+      secondMult *= focusTalentMultiplier;
+      secondMult *= getObservationProductionMultiplier(tierId);
       return secondMult;
     }
     if (s.enemy.status === 'active' && s.enemy.method === 'cutoff' && s.enemy.isolationActive && tierId === 2) return 0;
@@ -1457,6 +1856,8 @@
     if (s.flags.demoComplete) mult *= GC.FIRST_CONTACT.evolutionProductionMultiplier[tierId] || 1;
     mult *= getReversePressureMultiplier(tierId);
     mult *= getReverseProductionModifier(tierId);
+    mult *= focusTalentMultiplier;
+    mult *= getObservationProductionMultiplier(tierId);
     return mult;
   }
 
@@ -1468,6 +1869,7 @@
       var secondMult = GC.SECOND_LOOP.researchByRoute[route] || 1;
       if (s.roundTwo.inheritanceMode === 'expose') secondMult *= 1.12;
       if (s.roundTwo.fragmentChoice === 'verify') secondMult *= 1.08;
+      secondMult *= Math.pow(getTalentDefinition('research').multiplierPerRank, getTalentRank('research'));
       return secondMult;
     }
     var mult = s.law === 'observer' ? 1.25 : 1;
@@ -1475,6 +1877,7 @@
     if (s.reverse.objects.lattice.choice === 'map') mult *= 1.15;
     if (s.reverse.objects.choir.choice === 'listen') mult *= 1.18;
     if (s.reverse.objects.seed.choice === 'witness') mult *= 1.2;
+    mult *= Math.pow(getTalentDefinition('research').multiplierPerRank, getTalentRank('research'));
     return mult;
   }
 
@@ -1486,6 +1889,7 @@
 
   function canSynthesize(tierId) {
     var s = slice();
+    if (mutationsBlocked()) return false;
     if (!s || !s.enabled) return true;
     if (isSecondLoop()) {
       var secondGates = [0, 0, 2, 6, 8, 8, 9];
@@ -1501,6 +1905,7 @@
 
   function canBuyProducer(tierId) {
     var s = slice();
+    if (mutationsBlocked()) return false;
     if (!s || !s.enabled) return true;
     if (isSecondLoop()) {
       var secondGates = [0, 0, 2, 6, 8, 8, 99];
@@ -1517,7 +1922,7 @@
 
   function explainResearch() {
     var s = slice();
-    if (!s || !s.enabled || (!isSecondLoop() && s.missionStep < 5)) return false;
+    if (!s || !s.enabled || mutationsBlocked() || (!isSecondLoop() && s.missionStep < 5)) return false;
     if (!s.flags.researchExplained) {
       s.flags.researchExplained = true;
       addLog('LAB', '研究构成已展开：资源数量通过平方根换算为研究贡献。');
@@ -1551,7 +1956,7 @@
 
   function onCanvasClick() {
     var s = slice();
-    if (!s || !s.enabled) return;
+    if (!s || !s.enabled || mutationsBlocked()) return;
     s.stats.canvasClicks += 1;
     if (s.stats.canvasClicks === 1) addLog('OBS', '观测记录 001：噪声对注视作出了回应。');
     evaluateMission();
@@ -1559,7 +1964,7 @@
 
   function onAction(type, data) {
     var s = slice();
-    if (!s || !s.enabled) return;
+    if (!s || !s.enabled || mutationsBlocked()) return;
     if (type === 'buyProducer' && data.tierId === 0) {
       s.stats.boughtQuarkProducer = true;
       addLog('OBS', '观测记录 003：重复开始脱离意志。');
@@ -1579,7 +1984,7 @@
 
   function setFocus(tierId) {
     var s = slice();
-    if (!s || !s.enabled || (!isSecondLoop() && s.missionStep < 3)) return false;
+    if (!s || !s.enabled || mutationsBlocked() || (!isSecondLoop() && s.missionStep < 3)) return false;
     if (!GS.getTier(tierId).researched || s.focusTier === tierId) return false;
     s.focusTier = tierId;
     s.stats.focusChanges += 1;
@@ -1590,7 +1995,7 @@
 
   function setReserve(tierId) {
     var s = slice();
-    if (!s || !s.enabled || (!isSecondLoop() && s.missionStep < 8)) return false;
+    if (!s || !s.enabled || mutationsBlocked() || (!isSecondLoop() && s.missionStep < 8)) return false;
     if (!GS.getTier(tierId).researched) return false;
     s.reserveTier = s.reserveTier === tierId ? null : tierId;
     s.flags.reserveConfigured = s.reserveTier !== null;
@@ -1601,7 +2006,7 @@
 
   function chooseLaw(id) {
     var s = slice();
-    if (!s || !s.flags.lawDecisionOpen || s.law) return false;
+    if (!s || mutationsBlocked() || !s.flags.lawDecisionOpen || s.law) return false;
     var option = LAW_OPTIONS.find(function (item) { return item.id === id; });
     if (!option) return false;
     s.law = id;
@@ -1614,7 +2019,7 @@
 
   function choosePreparation(id) {
     var s = slice();
-    if (!s || !s.flags.preparationOpen || s.preparation.id || s.preparation.completed) return false;
+    if (!s || mutationsBlocked() || !s.flags.preparationOpen || s.preparation.id || s.preparation.completed) return false;
     var option = getPreparationOption(id);
     if (!option) return false;
     s.preparation.id = id;
@@ -1641,7 +2046,7 @@
 
   function beginContact() {
     var s = slice();
-    if (!s || (s.enemy.status !== 'warning' && s.enemy.status !== 'hidden')) return false;
+    if (!s || mutationsBlocked() || (s.enemy.status !== 'warning' && s.enemy.status !== 'hidden')) return false;
     s.enemy.status = 'active';
     s.enemy.warningRemaining = 0;
     addLog('CONTACT', '真空水蛭附着原子层。累计截取达到上限后会停止增长。');
@@ -1651,7 +2056,7 @@
 
   function chooseEnemyMethod(id) {
     var s = slice();
-    if (!s || s.enemy.status !== 'active' || s.enemy.method) return false;
+    if (!s || mutationsBlocked() || s.enemy.status !== 'active' || s.enemy.method) return false;
     var method = ENEMY_METHODS.find(function (item) { return item.id === id; });
     if (!method || method.disabled) return false;
     s.enemy.method = id;
@@ -1742,7 +2147,7 @@
 
   function pulseOverload() {
     var s = slice();
-    if (!s || s.enemy.status !== 'active' || s.enemy.method !== 'overload') return false;
+    if (!s || mutationsBlocked() || s.enemy.status !== 'active' || s.enemy.method !== 'overload') return false;
     var pulseCost = getOverloadCost();
     if (!GS.spendResource(1, pulseCost)) return false;
     s.enemy.overloadPulses += 1;
@@ -1754,7 +2159,7 @@
 
   function toggleIsolation() {
     var s = slice();
-    if (!s || s.enemy.status !== 'active' || s.enemy.method !== 'cutoff') return false;
+    if (!s || mutationsBlocked() || s.enemy.status !== 'active' || s.enemy.method !== 'cutoff') return false;
     s.enemy.isolationActive = !s.enemy.isolationActive;
     addLog('TACTIC', s.enemy.isolationActive ? '原子供给隔离已开启。' : '原子供给隔离已解除。');
     return true;
@@ -1777,7 +2182,7 @@
 
   function chooseCoreDisposition(id) {
     var s = slice();
-    if (!s || !s.flags.coreDecisionOpen || s.flags.demoComplete) return false;
+    if (!s || mutationsBlocked() || !s.flags.coreDecisionOpen || s.flags.demoComplete) return false;
     var option = CORE_OPTIONS.find(function (item) { return item.id === id; });
     if (!option) return false;
     recordDecision('core', id, option.route, option.title);
@@ -1794,7 +2199,7 @@
 
   function continueEvolution() {
     var s = slice();
-    if (!s || s.missionStep !== 15 || !s.flags.demoComplete) return false;
+    if (!s || mutationsBlocked() || s.missionStep !== 15 || !s.flags.demoComplete) return false;
     s.flags.reportAcknowledged = true;
     addLog('GUIDE', '接触报告保留在决策履历中。观测窗口继续向复杂物质扩展。');
     evaluateMission();
@@ -1803,7 +2208,7 @@
 
   function chooseComplexity(id) {
     var s = slice();
-    if (!s || !s.flags.complexityDecisionOpen || s.complexity) return false;
+    if (!s || mutationsBlocked() || !s.flags.complexityDecisionOpen || s.complexity) return false;
     var option = COMPLEXITY_OPTIONS.find(function (item) { return item.id === id; });
     if (!option) return false;
     s.complexity = id;
@@ -1844,6 +2249,194 @@
     var s = slice();
     var missions = activeMissions();
     return s ? missions[Math.min(s.missionStep, missions.length - 1)] : missions[0];
+  }
+
+  function hasPendingDecision(s) {
+    if (!s) return false;
+    if (s.loopNumber === 2) return !!getRoundTwoDecision();
+    if (s.flags.lawDecisionOpen && !s.law) return true;
+    if (s.flags.preparationOpen && !s.preparation.id) return true;
+    if (s.enemy.status === 'active' && !s.enemy.method) return true;
+    if (s.flags.coreDecisionOpen && !s.flags.demoComplete) return true;
+    if (s.flags.complexityDecisionOpen && !s.complexity) return true;
+    return !!getPendingReverseObject();
+  }
+
+  function getObjectiveModel() {
+    var s = slice();
+    var missions = activeMissions();
+    if (!s) {
+      return {
+        loopTitle: '第一轮',
+        chapterTitle: '第一章 · 唤醒',
+        chapterProgress: '1 / 5',
+        campaignTitle: '让第一座文明在终结前出现',
+        campaignCopy: '先让物质回应，再把短暂变化变成可以持续的结构。',
+        phaseLabels: ['唤醒物质', '建立法则', '第一次接触', '孕育生命', '点燃文明'],
+        phase: 0,
+        nowTitle: missions[0].title,
+        nowProgress: '等待观测启动',
+        nextUnlock: '自动生产与物质循环',
+        optionalAction: '点亮中央光核，让第一批夸克出现',
+        pendingDecision: false,
+      };
+    }
+    if (GS.isLoopSealed && GS.isLoopSealed()) {
+      var sealedEnding = getLoopEndingSummary();
+      return {
+        loopTitle: '第二轮',
+        chapterTitle: '第五章 · 终结封存',
+        chapterProgress: '5 / 5',
+        campaignTitle: '第二轮已经终结',
+        campaignCopy: '局部答案已经完成检验，终结仍然发生。资源与任务时钟停止，档案保持可读。',
+        phaseLabels: ['校验继承', '承受反例', '保存分歧', '孕育后来者', '封存终结'],
+        phase: 4,
+        nowTitle: '终结报告已封存',
+        nowProgress: sealedEnding ? sealedEnding.checksum : '跨轮记录已生成',
+        nextUnlock: '当前可玩轮次已经完整收束',
+        optionalAction: '重读三幕终结记录，或查看两轮观测档案',
+        pendingDecision: false,
+      };
+    }
+    if (s.loopNumber === 2
+      && s.flags
+      && s.flags.civilizationComplete
+      && s.roundTwo
+      && s.roundTwo.truthVerdict) {
+      var endingPreview = getLoopEndingSummary();
+      return {
+        loopTitle: '第二轮',
+        chapterTitle: '第五章 · 终结封存',
+        chapterProgress: '5 / 5',
+        campaignTitle: '第二轮答案已经完成检验',
+        campaignCopy: '局部答案在公开条件下成立。下一步不是进入新轮次，而是封存这次终结，并确认成立为何仍不足以避免它。',
+        phaseLabels: ['校验继承', '承受反例', '保存分歧', '孕育后来者', '封存终结'],
+        phase: 4,
+        nowTitle: '封存第二轮终结报告',
+        nowProgress: endingPreview ? endingPreview.checksum : '等待生成终结校验和',
+        nextUnlock: '三幕终结记录与只读跨轮档案',
+        optionalAction: '切到“干预”，封存终结报告',
+        pendingDecision: true,
+      };
+    }
+
+    var second = s.loopNumber === 2;
+    var phase = second
+      ? (s.missionStep < 3 ? 0 : s.missionStep < 6 ? 1 : s.missionStep < 8 ? 2 : s.missionStep < 10 ? 3 : 4)
+      : (s.missionStep < 10 ? 0 : s.missionStep < 12 ? 1 : s.missionStep < 16 ? 2 : s.missionStep < 23 ? 3 : 4);
+    var phaseLabels = second
+      ? ['校验继承', '承受反例', '保存分歧', '孕育后来者', '裁定真理']
+      : ['唤醒物质', '建立法则', '第一次接触', '孕育生命', '点燃文明'];
+    var chapterNames = second
+      ? ['第一章 · 继承偏差', '第二章 · 路线反例', '第三章 · 碎片证词', '第四章 · 第二文明', '第五章 · 真理裁定']
+      : ['第一章 · 唤醒', '第二章 · 法则', '第三章 · 接触', '第四章 · 生命', '第五章 · 文明'];
+    var firstUnlocks = [
+      '自动生产：夸克单元会接管重复点击',
+      '核子合成：第一次把低层资源组合成高层',
+      '宇宙焦点：选择当前要加速的物质层',
+      '稳态判定：用公开条件验证资源链',
+      '研究通道：稳定资源会持续产生研究点',
+      '原子研究：打开第三层物质',
+      '原子生产：建立三层资源循环',
+      '保护线：为低层库存设置公开底线',
+      '三层稳态：完成第一条长期运行记录',
+      '第一法则：选择本轮最优先的运行方式',
+      '接触准备：为视界外信号预留应对方案',
+      '接触预警：读取目标、倒计时与损失上限',
+      '接触方案：压倒、断供或冒险观测',
+      '核心余像：把接触结果转成下一阶段优势',
+      '接触报告：看清本轮选择留下的路线',
+      '复杂物质：分子、细胞与生命开始出现',
+      '细胞：资源链第一次形成可保护的内部',
+      '发展伦理：决定如何对待刚出现的复杂性',
+      '生命：选择开始进入谱系',
+      '双侧生命信号：确认另一侧也在演化',
+      '文明研究：把路线信号变成可讨论的问题',
+      '第一座文明：让生命开始解释历史',
+      '文明议案：读取本轮主提案与备选提案',
+      '定向坍缩：把一条答案和它的代价带入下一轮',
+    ];
+    var nextMission = missions[Math.min(s.missionStep + 1, missions.length - 1)];
+    var nextUnlock = second
+      ? (s.missionStep < missions.length - 1 ? '下一指令：' + nextMission.title : '生成可供第三轮读取的跨轮记录')
+      : (firstUnlocks[s.missionStep] || '下一指令：' + nextMission.title);
+
+    var talentState = getTalentState();
+    var observationState = getObservationState();
+    var activeDiscovery = getActiveDiscovery();
+    var pendingDecision = hasPendingDecision(s);
+    var optionalAction = '';
+    if (activeDiscovery) {
+      optionalAction = localized(
+        activeDiscovery.choices && activeDiscovery.choices.length
+          ? '画布中有一项新现象等待回应；选择不会过期'
+          : '打开画布中的新发现；当前目标会继续运行',
+        activeDiscovery.choices && activeDiscovery.choices.length
+          ? 'A new phenomenon is waiting in the playfield; its choices will not expire'
+          : 'Open the new discovery in the playfield; the current objective keeps running'
+      );
+    } else if (pendingDecision) {
+      optionalAction = localized(
+        '切到“干预”，处理一项不会自动消失的决策',
+        'Open Intervene to resolve a decision that will not expire'
+      );
+    } else if (talentState && talentState.points > 0) {
+      optionalAction = localized(
+        '切到“干预”，分配 ' + talentState.points + ' 点天赋',
+        'Open Intervene to spend ' + talentState.points + ' talent point' + (talentState.points === 1 ? '' : 's')
+      );
+    } else if (observationState && observationState.active) {
+      optionalAction = observationState.charges > 0
+        ? localized(
+          '主动协议仍在运行；可解码研究，稳态与脉冲需等它结束',
+          'An active protocol is running; Decode is available, while the other protocols must wait'
+        )
+        : localized(
+          '主动协议仍在运行；可继续调整焦点与保护线',
+          'An active protocol is running; you can keep adjusting Focus and the Reserve Line'
+        );
+    } else if (observationState && observationState.charges > 0 && getInterfaceUnlocks().observation) {
+      optionalAction = localized(
+        '使用主动观测：稳流、放大焦点，或立即解码研究',
+        'Use Active Observation to stabilize flow, amplify Focus, or decode research'
+      );
+    } else if (observationState && getInterfaceUnlocks().observation) {
+      var rechargeRemaining = Math.max(0, Math.ceil(observationState.rechargeSeconds - observationState.rechargeProgress));
+      optionalAction = localized(
+        '下一次主动观测约 ' + rechargeRemaining + ' 秒后充满',
+        'Next observation charge in about ' + rechargeRemaining + ' seconds'
+      );
+    } else if (!second && s.missionStep === 1) {
+      optionalAction = localized(
+        '观察自动生产接管重复点击；主动观测会在核子合成阶段开放',
+        'Watch automation replace repeated clicking; Active Observation opens with nucleon synthesis'
+      );
+    } else {
+      optionalAction = localized(
+        '继续点亮光核；先完成最初的观测响应',
+        'Keep lighting the core and complete the initial observation response'
+      );
+    }
+
+    var mission = getMission();
+    var progress = getMissionProgress();
+    var interlude = s.guide && s.guide.interlude;
+    return {
+      loopTitle: second ? '第二轮' : '第一轮',
+      chapterTitle: chapterNames[phase],
+      chapterProgress: (phase + 1) + ' / 5',
+      campaignTitle: second ? '检验上一次留下的答案' : '让第一座文明在终结前出现',
+      campaignCopy: second
+        ? '旧方法会让重建更快，也会让另一侧更早找到它的盲区。建立第二座文明，并决定旧答案应当保留、修改还是成为争议。'
+        : '先稳定物质链，再处理视界外的接触。所有长期目标都围绕一件事：让文明来得及留下答案。',
+      phaseLabels: phaseLabels,
+      phase: phase,
+      nowTitle: interlude ? '自由观测：整理资源与信号' : mission.title,
+      nowProgress: progress.label,
+      nextUnlock: nextUnlock,
+      optionalAction: optionalAction,
+      pendingDecision: pendingDecision,
+    };
   }
 
   function getRoundTwoMissionProgress(s) {
@@ -1936,6 +2529,28 @@
   function getMissionProgress() {
     var s = slice();
     if (!s) return { value: 0, max: 1, percent: 0, label: '等待观测核启动' };
+    if (GS.isLoopSealed && GS.isLoopSealed()) {
+      var ending = getLoopEndingSummary();
+      return {
+        value: 1,
+        max: 1,
+        percent: 100,
+        label: '终结报告已封存 · ' + (ending ? ending.checksum : '记录完成'),
+      };
+    }
+    if (s.loopNumber === 2
+      && s.flags
+      && s.flags.civilizationComplete
+      && s.roundTwo
+      && s.roundTwo.truthVerdict) {
+      var endingPreview = getLoopEndingSummary();
+      return {
+        value: 1,
+        max: 1,
+        percent: 100,
+        label: '等待封存 · ' + (endingPreview ? endingPreview.checksum : '终结报告'),
+      };
+    }
     if (s.guide && s.guide.interlude) {
       return {
         value: 1,
@@ -2093,6 +2708,7 @@
     isEnabled: isEnabled,
     getMission: getMission,
     getMissionProgress: getMissionProgress,
+    getObjectiveModel: getObjectiveModel,
     getGuideState: function () { var s = slice(); return s ? s.guide : null; },
     getMissions: function () { return activeMissions(); },
     isSecondLoop: isSecondLoop,
@@ -2101,6 +2717,7 @@
     chooseRoundTwoDecision: chooseRoundTwoDecision,
     getRoundTwoCounterexample: getRoundTwoCounterexample,
     getLoopMemorySummary: getLoopMemorySummary,
+    getLoopEndingSummary: getLoopEndingSummary,
     getLawOptions: function () { return LAW_OPTIONS; },
     getPreparationOptions: function () { return PREPARATION_OPTIONS; },
     getPreparationConditionState: getPreparationConditionState,
@@ -2120,6 +2737,14 @@
     getRouteMeta: function () { return ROUTES; },
     getRouteRanking: getRouteRanking,
     getCivilizationProposals: getCivilizationProposals,
+    getTalentDefinitions: getTalentDefinitions,
+    getTalentState: getTalentState,
+    spendTalentPoint: spendTalentPoint,
+    getInterfaceUnlocks: getInterfaceUnlocks,
+    getObservationState: getObservationState,
+    getObservationOptions: getObservationOptions,
+    useObservationProtocol: useObservationProtocol,
+    getObservationRechargeSeconds: getObservationRechargeSeconds,
     getProductionMultiplier: getProductionMultiplier,
     getDemandMultiplier: getDemandMultiplier,
     getResearchMultiplier: getResearchMultiplier,

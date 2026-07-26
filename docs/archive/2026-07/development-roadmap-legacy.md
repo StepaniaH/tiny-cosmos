@@ -1,4 +1,8 @@
-# Tiny Cosmos 开发路线图
+# Tiny Cosmos 旧开发路线图
+
+状态：historical
+归档日期：2026-07-26
+替代文档：[当前制作路线图](../../product/roadmap.md)
 
 本文用于项目维护和交接。玩法讨论、平衡验证和技术方向都从这里进入。
 
@@ -85,7 +89,8 @@ node tools/balance/run-validation.js --all
 - 无尽花园：`docs/game-design/routes/endless-garden.md`
 - 最后观测者：`docs/game-design/routes/last-observer.md`
 - 双生大坍缩：`docs/game-design/routes/twin-crunch.md`
-- 第二至第四轮重生剧情：`docs/game-design/rebirth-rounds-2-4-narrative.md`
+- 当前五轮主叙事：`docs/design/narrative/five-loop-arc.md`
+- 第二至第四轮旧重生剧情与数据契约（历史）：`docs/archive/2026-07/rebirth-rounds-2-4-narrative.md`
 - 第二轮可玩节奏：`docs/game-design/second-loop-playable-slice.md`
 - 第二至第四轮图片分镜：`docs/art/rebirth-rounds-2-4-storyboard-prompts.md`
 

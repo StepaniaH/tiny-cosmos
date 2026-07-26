@@ -2,8 +2,12 @@
 
 版本：1.0  
 确立日期：2026-07-23  
-状态：剧情与数据契约已确立；图片待按分镜生产  
-上位规则：`world-bible.md`、`loop-and-inheritance.md`、`routes/shared-campaign.md`
+状态：historical
+原状态：剧情与数据契约已确立；图片待按分镜生产
+归档日期：2026-07-26
+原上位规则：`world-bible.md`、`loop-and-inheritance.md`、`routes/shared-campaign.md`
+
+> 本文保留旧第二至第四轮剧情、`LoopSignature` 数据契约与第二轮生产依据。第四轮汇合方案已被“四轮完整游玩 + 第五轮总结”的 [五轮主叙事](../../design/narrative/five-loop-arc.md) 取代；当前作者真相见 [世界观圣经](../../game-design/world-bible.md)。第二轮已实现事实仍以 [第二轮可玩竖切](../../game-design/second-loop-playable-slice.md) 为准。
 
 ## 目标
 

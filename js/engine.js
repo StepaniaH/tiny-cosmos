@@ -14,11 +14,19 @@
   var BACKGROUND_STEP_SECONDS = 0.25;
   var MAX_BACKGROUND_SECONDS = 12 * 60 * 60;
 
+  function isLoopSealed(st) {
+    return !!(st && st.loop && st.loop.phase === 'sealed');
+  }
+
   // ── Tick ────────────────────────────────────────────────────────
 
   function tick() {
     var st = GS.getState();
     if (!st) return;
+    if (isLoopSealed(st)) {
+      stop();
+      return;
+    }
 
     for (var simulationStep = 0; simulationStep < timeScale; simulationStep += 1) {
       simulateStep(st, BASE_STEP_SECONDS);
@@ -29,6 +37,7 @@
   }
 
   function simulateStep(st, dt) {
+    if (isLoopSealed(st)) return false;
 
     st.tickCount += dt * GC.TICKS_PER_SEC;
 
@@ -46,6 +55,7 @@
       window.GameSlice.tick(dt);
     }
 
+    return true;
   }
 
   // ── Production ──────────────────────────────────────────────────
@@ -126,6 +136,14 @@
     if (!st || requested <= 0) {
       return { requestedSeconds: requested, simulatedSeconds: 0, capped: false };
     }
+    if (isLoopSealed(st)) {
+      return {
+        requestedSeconds: requested,
+        simulatedSeconds: 0,
+        capped: false,
+        blocked: 'loop-sealed',
+      };
+    }
 
     var simulated = Math.min(requested, MAX_BACKGROUND_SECONDS);
     var remaining = simulated;
@@ -147,7 +165,7 @@
 
   function synthesize(tierId) {
     var st = GS.getState();
-    if (!st) return false;
+    if (!st || isLoopSealed(st)) return false;
 
     var t = st.tiers[tierId];
     if (!t.researched || tierId === 0) return false;
@@ -168,7 +186,7 @@
 
   function buyProducer(tierId) {
     var st = GS.getState();
-    if (!st) return false;
+    if (!st || isLoopSealed(st)) return false;
     if (window.GameSlice && window.GameSlice.isEnabled() && !window.GameSlice.canBuyProducer(tierId)) return false;
 
     var t = st.tiers[tierId];
@@ -185,6 +203,7 @@
   }
 
   function research(tierId) {
+    if (isLoopSealed(GS.getState())) return false;
     if (!GS.canResearch(tierId)) return false;
     var ok = GS.doResearch(tierId);
     if (ok && window.GameSlice && window.GameSlice.isEnabled()) window.GameSlice.onAction('research', { tierId: tierId });
@@ -192,6 +211,7 @@
   }
 
   function bigCrunch() {
+    if (isLoopSealed(GS.getState())) return false;
     if (!GS.canPrestige()) return false;
     var cpGain = GS.bigCrunchReset();
     return cpGain;
@@ -200,9 +220,14 @@
   // ── Loop control ────────────────────────────────────────────────
 
   function start() {
-    if (intervalId) return;
+    if (isLoopSealed(GS.getState())) {
+      stop();
+      return false;
+    }
+    if (intervalId) return true;
     var tickMs = Math.floor(1000 / GC.TICKS_PER_SEC); // 50ms
     intervalId = setInterval(tick, tickMs);
+    return true;
   }
 
   function stop() {

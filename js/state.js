@@ -5,6 +5,7 @@
   'use strict';
 
   var GC = window.GC;
+  var MAX_PLAYABLE_LOOP = 2;
 
   // ── Internal State ──────────────────────────────────────────────
   var state = null;
@@ -40,7 +41,7 @@
     var isSecondLoop = loopNumber === 2;
     return {
       enabled: !!enabled,
-      version: 7,
+      version: 9,
       loopNumber: loopNumber,
       loopSignature: signature,
       elapsedSeconds: 0,
@@ -127,6 +128,25 @@
         acknowledged: [],
         resolved: {},
       },
+      talents: {
+        points: 0,
+        totalEarned: 0,
+        awarded: [],
+        nodes: {
+          focus: 0,
+          flow: 0,
+          research: 0,
+          echo: 0,
+        },
+        history: [],
+      },
+      observation: {
+        charges: GC.OBSERVATION.initialCharges,
+        rechargeProgress: 0,
+        active: null,
+        lastResult: null,
+        history: [],
+      },
       archive: {
         read: [],
       },
@@ -158,11 +178,81 @@
 
   function createLoopMeta() {
     return {
-      version: 1,
+      version: 2,
       number: 1,
+      phase: 'active',
+      sealedLoopNumber: null,
       activeSignature: null,
+      pendingSignature: null,
       signatures: [],
     };
+  }
+
+  function normalizedLoopNumber(value, fallback) {
+    var number = Math.floor(Number(value));
+    if (!Number.isFinite(number) || number < 1) return fallback || 1;
+    return number;
+  }
+
+  function buildTerminalChecksum(signature, completedLoopNumber) {
+    var outcome = signature.roundOutcome || {};
+    var parts = completedLoopNumber === 2 ? [
+      outcome.inheritanceMode,
+      outcome.fragmentChoice,
+      outcome.counterexampleId,
+      outcome.counterexampleChoice,
+      outcome.witnessResponse,
+      outcome.truthVerdict,
+    ] : [
+      signature.completedEnding,
+      outcome.law || signature.priorLaw,
+      outcome.contactMethod || signature.priorContactMethod,
+      outcome.afterimageUse || signature.priorAfterimageUse,
+      outcome.complexity,
+      signature.civilizationWitness,
+    ];
+    parts = parts.map(function (value) { return value || 'none'; });
+    var input = parts.join('|');
+    var hash = 2166136261;
+    for (var i = 0; i < input.length; i += 1) {
+      hash ^= input.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    var hex = (hash >>> 0).toString(16).toUpperCase().padStart(8, '0');
+    return 'TC-' + hex.slice(0, 4) + '-' + hex.slice(4);
+  }
+
+  function migrateLoopSignature(signature) {
+    if (!signature || typeof signature !== 'object') return null;
+
+    var legacyTarget = normalizedLoopNumber(
+      signature.nextLoopNumber !== undefined ? signature.nextLoopNumber : signature.loopNumber,
+      2
+    );
+    var completedLoopNumber = normalizedLoopNumber(
+      signature.completedLoopNumber,
+      Math.max(1, legacyTarget - 1)
+    );
+    var nextLoopNumber = normalizedLoopNumber(signature.nextLoopNumber, legacyTarget);
+    if (nextLoopNumber <= completedLoopNumber) nextLoopNumber = completedLoopNumber + 1;
+
+    signature.schemaVersion = 3;
+    signature.completedLoopNumber = completedLoopNumber;
+    signature.nextLoopNumber = nextLoopNumber;
+    // Kept as a compatibility alias for the existing second-loop consumers.
+    signature.loopNumber = nextLoopNumber;
+    signature.roundOutcome = Object.assign({
+      kind: completedLoopNumber === 2 ? 'round-two-counterexample' : 'first-loop-proposal',
+    }, signature.roundOutcome || {});
+    signature.terminal = Object.assign({
+      cause: 'inevitable-collapse',
+      hookId: completedLoopNumber === 2 ? 'paired-terminal-checksum' : 'prior-report-checksum',
+      checksumAlgorithm: 'tc-terminal-fnv1a-v1',
+    }, signature.terminal || {});
+    if (!signature.terminal.checksum) {
+      signature.terminal.checksum = buildTerminalChecksum(signature, completedLoopNumber);
+    }
+    return signature;
   }
 
   function routeRankingFromSlice(sliceState) {
@@ -186,6 +276,11 @@
   function buildLoopSignature(kind) {
     if (!state) return null;
     var sliceState = state.slice || createSliceState(false);
+    var completedLoopNumber = normalizedLoopNumber(
+      state.loop && state.loop.number,
+      normalizedLoopNumber(sliceState.loopNumber, 1)
+    );
+    var nextLoopNumber = completedLoopNumber + 1;
     var ranking = routeRankingFromSlice(sliceState);
     var dominant = kind === 'ordinary' ? 'ordinary' : ranking[0].id;
     var secondary = kind === 'ordinary' ? null : ranking[1].id;
@@ -218,15 +313,44 @@
     };
     var priorMethod = decisionId(sliceState, 'enemy');
     var complexity = decisionId(sliceState, 'complexity');
+    var talentHistory = sliceState.talents && Array.isArray(sliceState.talents.history)
+      ? sliceState.talents.history.map(function (entry) { return Object.assign({}, entry); })
+      : [];
+    var observationHistory = sliceState.observation && Array.isArray(sliceState.observation.history)
+      ? sliceState.observation.history.map(function (entry) { return Object.assign({}, entry); })
+      : [];
     var preservedByComplexity = {
       bloom: 'fastest-lineage',
       sanctuary: 'uncompetitive-lineages',
       witness: 'causal-record',
       braid: 'dual-side-sample',
     };
-    return {
-      schemaVersion: 1,
-      loopNumber: (state.loop && state.loop.number ? state.loop.number : 1) + 1,
+    var activeSignature = sliceState.loopSignature || (state.loop && state.loop.activeSignature) || {};
+    var roundTwo = sliceState.roundTwo || {};
+    var roundOutcome = completedLoopNumber === 2 ? {
+      kind: 'round-two-counterexample',
+      inheritedTruth: activeSignature.truths && activeSignature.truths[0] || null,
+      inheritanceMode: roundTwo.inheritanceMode || null,
+      fragmentChoice: roundTwo.fragmentChoice || null,
+      counterexampleId: roundTwo.counterexample && roundTwo.counterexample.id || null,
+      counterexampleChoice: roundTwo.counterexample && roundTwo.counterexample.choice || null,
+      counterexampleStatus: roundTwo.counterexample && roundTwo.counterexample.status || null,
+      witnessResponse: roundTwo.witnessResponse || null,
+      truthVerdict: roundTwo.truthVerdict || null,
+      truthRepeated: !!roundTwo.truthRepeated,
+      truthRevised: !!roundTwo.truthRevised,
+    } : {
+      kind: 'first-loop-proposal',
+      law: sliceState.law || null,
+      contactMethod: priorMethod,
+      afterimageUse: decisionId(sliceState, 'core'),
+      complexity: complexity,
+    };
+    return migrateLoopSignature({
+      schemaVersion: 3,
+      completedLoopNumber: completedLoopNumber,
+      nextLoopNumber: nextLoopNumber,
+      loopNumber: nextLoopNumber,
       completedEnding: dominant,
       endingVariant: dominant + '-proposal-v1',
       truths: [truthByRoute[dominant]],
@@ -244,8 +368,15 @@
         var object = sliceState.reverse.objects[id];
         return object && object.choice && object.choice !== 'legacy';
       }),
+      terminal: {
+        cause: 'inevitable-collapse',
+        hookId: completedLoopNumber === 2 ? 'paired-terminal-checksum' : 'prior-report-checksum',
+      },
+      roundOutcome: roundOutcome,
+      talentHistory: talentHistory,
+      observationHistory: observationHistory,
       createdAtSeconds: sliceState.elapsedSeconds || 0,
-    };
+    });
   }
 
   function applySecondLoopStart() {
@@ -287,6 +418,7 @@
 
   /** Big Crunch: reset tiers but keep global progress */
   function bigCrunchReset() {
+    if (isLoopSealed()) return false;
     // Calculate CP gain before resetting
     var cpGain = calcCPGain();
 
@@ -306,17 +438,88 @@
     return cpGain;
   }
 
+  function getLoopPhase() {
+    return state && state.loop && state.loop.phase === 'sealed' ? 'sealed' : 'active';
+  }
+
+  function isLoopSealed() {
+    return getLoopPhase() === 'sealed';
+  }
+
+  function findSignatureForCompletedLoop(loopNumber) {
+    if (!state || !state.loop || !Array.isArray(state.loop.signatures)) return null;
+    for (var i = state.loop.signatures.length - 1; i >= 0; i -= 1) {
+      var signature = state.loop.signatures[i];
+      if (signature && signature.completedLoopNumber === loopNumber) return signature;
+    }
+    return null;
+  }
+
+  function canFinalizeCurrentLoop() {
+    if (!state || !state.loop || !state.slice || isLoopSealed()) return false;
+    if (state.loop.number !== MAX_PLAYABLE_LOOP || state.slice.loopNumber !== MAX_PLAYABLE_LOOP) return false;
+    if (!state.slice.flags || !state.slice.flags.civilizationComplete) return false;
+    return !!(state.slice.roundTwo && state.slice.roundTwo.truthVerdict);
+  }
+
+  /**
+   * Seal the completed second loop without starting unavailable content.
+   * The operation is idempotent so UI retries and save callbacks cannot
+   * duplicate the terminal signature.
+   */
+  function finalizeCurrentLoop() {
+    if (!state || !state.loop) return false;
+
+    if (isLoopSealed()) {
+      var sealedSignature = state.loop.pendingSignature
+        || findSignatureForCompletedLoop(state.loop.sealedLoopNumber);
+      if (!sealedSignature || state.loop.sealedLoopNumber !== MAX_PLAYABLE_LOOP) return false;
+      state.loop.pendingSignature = sealedSignature;
+      return { sealed: true, alreadySealed: true, signature: sealedSignature };
+    }
+
+    if (!canFinalizeCurrentLoop()) return false;
+
+    var existing = findSignatureForCompletedLoop(MAX_PLAYABLE_LOOP);
+    var signature = existing || buildLoopSignature('sealed');
+    if (!existing) state.loop.signatures.push(signature);
+    state.loop.phase = 'sealed';
+    state.loop.sealedLoopNumber = MAX_PLAYABLE_LOOP;
+    state.loop.pendingSignature = signature;
+
+    return { sealed: true, alreadySealed: !!existing, signature: signature };
+  }
+
+  function getCampaignStatus() {
+    var loop = state && state.loop ? state.loop : createLoopMeta();
+    return {
+      phase: loop.phase === 'sealed' ? 'sealed' : 'active',
+      currentLoop: Math.min(MAX_PLAYABLE_LOOP, normalizedLoopNumber(loop.number, 1)),
+      playableThrough: MAX_PLAYABLE_LOOP,
+      sealedLoopNumber: loop.sealedLoopNumber || null,
+      canFinalize: canFinalizeCurrentLoop(),
+      canEnterNextLoop: loop.phase !== 'sealed'
+        && loop.number < MAX_PLAYABLE_LOOP
+        && !!(state && state.slice && state.slice.flags && state.slice.flags.civilizationComplete),
+      pendingSignature: loop.pendingSignature || null,
+    };
+  }
+
   /** Directed rebirth: preserve a structured ending and begin the next campaign. */
   function beginDirectedRebirth() {
     if (!state || !state.slice || !state.slice.flags.civilizationComplete) return false;
-    if (state.loop && state.loop.number >= 2) return false;
+    if (!state.loop) state.loop = createLoopMeta();
+    if (isLoopSealed() || state.loop.number !== 1 || state.slice.loopNumber !== 1) return false;
     var signature = buildLoopSignature('directed');
+    if (!signature || signature.nextLoopNumber > MAX_PLAYABLE_LOOP) return false;
     var cpGain = calcCPGain();
 
-    if (!state.loop) state.loop = createLoopMeta();
     state.loop.signatures.push(signature);
-    state.loop.number = signature.loopNumber;
+    state.loop.number = signature.nextLoopNumber;
+    state.loop.phase = 'active';
+    state.loop.sealedLoopNumber = null;
     state.loop.activeSignature = signature;
+    state.loop.pendingSignature = null;
 
     state.tiers = GC.TIERS.map(createTier);
     state.researchPoints = 0;
@@ -325,7 +528,7 @@
     state.constantPoints += cpGain;
     state.prestiges += 1;
     checkMilestones();
-    state.slice = createSliceState(true, { loopNumber: signature.loopNumber, signature: signature });
+    state.slice = createSliceState(true, { loopNumber: signature.nextLoopNumber, signature: signature });
     applySecondLoopStart();
 
     return { cpGain: cpGain, signature: signature };
@@ -358,6 +561,7 @@
   // ── Resource ops ────────────────────────────────────────────────
 
   function addResource(tierId, amount) {
+    if (!state || isLoopSealed()) return false;
     var t = state.tiers[tierId];
     t.count += amount;
     t.totalEver += amount;
@@ -365,9 +569,11 @@
     if (tierId === 0) {
       state.totalQuarksEver += amount;
     }
+    return true;
   }
 
   function spendResource(tierId, amount) {
+    if (!state || isLoopSealed()) return false;
     var t = state.tiers[tierId];
     if (t.count < amount) return false;
     t.count -= amount;
@@ -386,8 +592,10 @@
   }
 
   function addProducer(tierId) {
+    if (!state || isLoopSealed()) return false;
     var t = state.tiers[tierId];
     t.producers += 1;
+    return true;
   }
 
   // ── Synthesis cost (semi-exponential) ───────────────────────────
@@ -431,8 +639,10 @@
   }
 
   function recordSynth(tierId) {
+    if (!state || isLoopSealed()) return false;
     state.tiers[tierId].synthCount += 1;
     state.totalSynthesis += 1;
+    return true;
   }
 
   // ── Research ────────────────────────────────────────────────────
@@ -448,7 +658,7 @@
   }
 
   function canResearch(tierId) {
-    if (!state) return false;
+    if (!state || isLoopSealed()) return false;
     var t = state.tiers[tierId];
     if (t.researched) return false;
     // Must be adjacent to max researched tier
@@ -463,6 +673,7 @@
   }
 
   function doResearch(tierId) {
+    if (!state || isLoopSealed()) return false;
     var cost = getResearchCost(tierId);
     if (state.researchPoints < cost) return false;
     state.researchPoints -= cost;
@@ -471,7 +682,9 @@
   }
 
   function addRP(amount) {
+    if (!state || isLoopSealed()) return false;
     state.researchPoints += amount;
+    return true;
   }
 
   // ── Prestige ────────────────────────────────────────────────────
@@ -484,11 +697,12 @@
   }
 
   function canPrestige() {
-    if (!state) return false;
+    if (!state || isLoopSealed()) return false;
     return state.tiers[6].count >= 1;
   }
 
   function allocateCP(strongForce, lightSpeed, gravity) {
+    if (!state || isLoopSealed()) return false;
     var total = strongForce + lightSpeed + gravity;
     if (total > state.constantPoints) return false;
     state.constants.strongForce = strongForce;
@@ -583,13 +797,62 @@
         t.descZh = tpl.descZh;
       });
       var loopDefaults = createLoopMeta();
-      parsed.loop = Object.assign({}, loopDefaults, parsed.loop || {});
-      if (!Array.isArray(parsed.loop.signatures)) parsed.loop.signatures = [];
-      var savedLoopNumber = parsed.loop.number || (parsed.slice && parsed.slice.loopNumber) || 1;
+      var savedLoopData = parsed.loop || {};
+      var rawLoopNumber = normalizedLoopNumber(
+        savedLoopData.number || (parsed.slice && parsed.slice.loopNumber),
+        1
+      );
+      var attemptedUnavailableLoop = rawLoopNumber > MAX_PLAYABLE_LOOP;
+      var savedLoopNumber = Math.min(MAX_PLAYABLE_LOOP, rawLoopNumber);
+      var hadSavedPhase = savedLoopData.phase === 'active' || savedLoopData.phase === 'sealed';
+      parsed.loop = Object.assign({}, loopDefaults, savedLoopData);
+      parsed.loop.version = loopDefaults.version;
       parsed.loop.number = savedLoopNumber;
+      parsed.loop.phase = savedLoopData.phase === 'sealed' ? 'sealed' : 'active';
+      if (attemptedUnavailableLoop || (!hadSavedPhase && savedLoopData.pendingSignature)) {
+        parsed.loop.phase = 'sealed';
+      }
+
+      if (!Array.isArray(parsed.loop.signatures)) parsed.loop.signatures = [];
+      parsed.loop.signatures = parsed.loop.signatures.map(migrateLoopSignature).filter(Boolean);
       if (!parsed.loop.activeSignature && parsed.slice && parsed.slice.loopSignature) {
         parsed.loop.activeSignature = parsed.slice.loopSignature;
       }
+      parsed.loop.activeSignature = migrateLoopSignature(parsed.loop.activeSignature);
+      parsed.loop.pendingSignature = migrateLoopSignature(parsed.loop.pendingSignature);
+
+      if (savedLoopNumber === 2
+        && (!parsed.loop.activeSignature || parsed.loop.activeSignature.nextLoopNumber !== 2)) {
+        parsed.loop.activeSignature = parsed.loop.signatures.find(function (signature) {
+          return signature.nextLoopNumber === 2;
+        }) || null;
+      }
+
+      if (parsed.loop.phase === 'sealed') {
+        parsed.loop.sealedLoopNumber = Math.min(
+          MAX_PLAYABLE_LOOP,
+          normalizedLoopNumber(parsed.loop.sealedLoopNumber, savedLoopNumber)
+        );
+        if (!parsed.loop.pendingSignature) {
+          for (var signatureIndex = parsed.loop.signatures.length - 1; signatureIndex >= 0; signatureIndex -= 1) {
+            if (parsed.loop.signatures[signatureIndex].completedLoopNumber === parsed.loop.sealedLoopNumber) {
+              parsed.loop.pendingSignature = parsed.loop.signatures[signatureIndex];
+              break;
+            }
+          }
+        }
+        if (parsed.loop.pendingSignature) {
+          var pendingHistoryIndex = parsed.loop.signatures.findIndex(function (signature) {
+            return signature.completedLoopNumber === parsed.loop.sealedLoopNumber;
+          });
+          if (pendingHistoryIndex === -1) parsed.loop.signatures.push(parsed.loop.pendingSignature);
+          else parsed.loop.signatures[pendingHistoryIndex] = parsed.loop.pendingSignature;
+        }
+      } else {
+        parsed.loop.sealedLoopNumber = null;
+        parsed.loop.pendingSignature = null;
+      }
+
       var sliceDefaults = createSliceState(parsed.slice && parsed.slice.enabled, {
         loopNumber: savedLoopNumber,
         signature: parsed.loop.activeSignature || (parsed.slice && parsed.slice.loopSignature) || null,
@@ -614,6 +877,74 @@
         parsed.slice.enemy = Object.assign({}, sliceDefaults.enemy, parsed.slice.enemy || {});
         parsed.slice.discoveries = Object.assign({}, sliceDefaults.discoveries, parsed.slice.discoveries || {});
         if (!parsed.slice.discoveries.resolved || typeof parsed.slice.discoveries.resolved !== 'object') parsed.slice.discoveries.resolved = {};
+        var savedTalentNodes = parsed.slice.talents && parsed.slice.talents.nodes ? parsed.slice.talents.nodes : {};
+        parsed.slice.talents = Object.assign({}, sliceDefaults.talents, parsed.slice.talents || {});
+        parsed.slice.talents.nodes = Object.assign({}, sliceDefaults.talents.nodes, savedTalentNodes);
+        if (!Array.isArray(parsed.slice.talents.awarded)) parsed.slice.talents.awarded = [];
+        if (!Array.isArray(parsed.slice.talents.history)) parsed.slice.talents.history = [];
+        parsed.slice.talents.points = Math.max(0, Number(parsed.slice.talents.points) || 0);
+        parsed.slice.talents.totalEarned = Math.max(
+          parsed.slice.talents.points + parsed.slice.talents.history.length,
+          Number(parsed.slice.talents.totalEarned) || 0
+        );
+        Object.keys(sliceDefaults.talents.nodes).forEach(function (id) {
+          parsed.slice.talents.nodes[id] = Math.max(0, Math.min(2, Number(parsed.slice.talents.nodes[id]) || 0));
+        });
+        if (savedSliceVersion < 9 && savedLoopNumber === 1) {
+          // v8 awarded first-loop talent points at missions 1/5/10/15/20.
+          // Preserve points the player already spent, but remap award markers
+          // onto the slower 6/10/15/20/23 plan so loading cannot grant them a
+          // second time. Completely untouched early points are safely delayed.
+          var firstLoopAwardPrefix = 'loop-1-mission-';
+          var migratedAwardSteps = [6, 10, 15, 20, 23];
+          var legacyAwardCount = parsed.slice.talents.awarded.filter(function (id) {
+            return String(id).indexOf(firstLoopAwardPrefix) === 0;
+          }).length;
+          var spentRanks = Object.keys(parsed.slice.talents.nodes).reduce(function (total, id) {
+            return total + parsed.slice.talents.nodes[id];
+          }, 0);
+          var spentCount = Math.max(spentRanks, parsed.slice.talents.history.length);
+          var preservedEarned = Math.min(
+            migratedAwardSteps.length,
+            Math.max(
+              legacyAwardCount,
+              spentCount + parsed.slice.talents.points,
+              parsed.slice.talents.totalEarned
+            )
+          );
+          var nonFirstLoopAwards = parsed.slice.talents.awarded.filter(function (id) {
+            return String(id).indexOf(firstLoopAwardPrefix) !== 0;
+          });
+          var untouchedEarlyPoint = parsed.slice.missionStep < migratedAwardSteps[0] && spentCount === 0;
+          if (untouchedEarlyPoint) {
+            parsed.slice.talents.points = 0;
+            parsed.slice.talents.totalEarned = 0;
+            parsed.slice.talents.awarded = nonFirstLoopAwards;
+          } else {
+            parsed.slice.talents.totalEarned = Math.max(spentCount, preservedEarned);
+            parsed.slice.talents.points = Math.min(
+              parsed.slice.talents.points,
+              Math.max(0, parsed.slice.talents.totalEarned - spentCount)
+            );
+            parsed.slice.talents.awarded = nonFirstLoopAwards.concat(
+              migratedAwardSteps.slice(0, preservedEarned).map(function (missionStep) {
+                return firstLoopAwardPrefix + missionStep;
+              })
+            );
+          }
+        }
+        parsed.slice.observation = Object.assign({}, sliceDefaults.observation, parsed.slice.observation || {});
+        parsed.slice.observation.charges = Math.max(0, Math.min(
+          GC.OBSERVATION.maxCharges,
+          Number(parsed.slice.observation.charges) || 0
+        ));
+        parsed.slice.observation.rechargeProgress = Math.max(0, Number(parsed.slice.observation.rechargeProgress) || 0);
+        if (!parsed.slice.observation.active || typeof parsed.slice.observation.active !== 'object') parsed.slice.observation.active = null;
+        if (!parsed.slice.observation.lastResult || typeof parsed.slice.observation.lastResult !== 'object') parsed.slice.observation.lastResult = null;
+        if (!Array.isArray(parsed.slice.observation.history)) parsed.slice.observation.history = [];
+        if (parsed.slice.observation.history.length > GC.OBSERVATION.historyLimit) {
+          parsed.slice.observation.history = parsed.slice.observation.history.slice(-GC.OBSERVATION.historyLimit);
+        }
         if (savedSliceVersion < 6) {
           if (parsed.slice.missionStep > 16) parsed.slice.reverse.objects.lattice = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
           if (parsed.slice.missionStep > 17) parsed.slice.reverse.objects.choir = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
@@ -633,7 +964,20 @@
         if (!Array.isArray(parsed.slice.logs)) parsed.slice.logs = [];
         parsed.slice.version = sliceDefaults.version;
         parsed.slice.loopNumber = savedLoopNumber;
-        parsed.slice.loopSignature = parsed.loop.activeSignature || parsed.slice.loopSignature || null;
+        parsed.slice.loopSignature = parsed.loop.activeSignature || null;
+      }
+      if (parsed.loop.phase === 'sealed'
+        && !parsed.loop.pendingSignature
+        && !attemptedUnavailableLoop
+        && savedLoopNumber === MAX_PLAYABLE_LOOP
+        && parsed.slice.flags
+        && parsed.slice.flags.civilizationComplete
+        && parsed.slice.roundTwo
+        && parsed.slice.roundTwo.truthVerdict) {
+        // Recover an interrupted/partial seal by returning to the completed
+        // report. A subsequent finalize call will rebuild the missing record.
+        parsed.loop.phase = 'active';
+        parsed.loop.sealedLoopNumber = null;
       }
       state = parsed;
       return true;
@@ -648,6 +992,8 @@
     bigCrunchReset: bigCrunchReset,
     beginDirectedRebirth: beginDirectedRebirth,
     buildLoopSignature: buildLoopSignature,
+    canFinalizeCurrentLoop: canFinalizeCurrentLoop,
+    finalizeCurrentLoop: finalizeCurrentLoop,
 
     // Getters
     getState: getState,
@@ -660,7 +1006,10 @@
     getConstants: getConstants,
     getSlice: getSlice,
     getLoop: getLoop,
+    getLoopPhase: getLoopPhase,
+    isLoopSealed: isLoopSealed,
     getActiveSignature: getActiveSignature,
+    getCampaignStatus: getCampaignStatus,
     getAllocatedCP: getAllocatedCP,
     getUnspentCP: getUnspentCP,
     getMaxResearchedTier: getMaxResearchedTier,

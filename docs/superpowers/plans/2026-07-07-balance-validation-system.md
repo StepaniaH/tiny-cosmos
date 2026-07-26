@@ -2,7 +2,7 @@
 
 状态：已在 `dev` 分支完成
 实施日期：2026-07-07
-用途：保存当时的目标、结构、执行结果和排错记录。当前工作安排以 `docs/balance/roadmap.md` 为准。
+用途：保存当时的目标、结构、执行结果和排错记录。当前工作安排以 `docs/product/roadmap.md` 为准。
 
 ## 实施目标
 
@@ -221,7 +221,7 @@ node --check tools/balance/write-baseline.js
 
 开始修改玩法前阅读：
 
-- `docs/balance/roadmap.md`
+- `docs/product/roadmap.md`
 - `docs/balance/protocol.md`
 - `docs/balance/reports/baseline-current.md`
 - `docs/game-design/README.md`

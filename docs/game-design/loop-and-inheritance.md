@@ -3,8 +3,9 @@
 状态：玩法设计稿；`LoopSignature` 与第二轮反例竖切已实现
 更新日期：2026-07-23
 
-> 第二至第四轮的开场剧情、路线反例、反宇宙继承和 `LoopSignature` 数据契约见
-> [`rebirth-rounds-2-4-narrative.md`](rebirth-rounds-2-4-narrative.md)；对应 31 张图片生产规范见
+> 当前五轮剧情、路线反例、反宇宙揭示与第五轮总结以
+> [五轮主叙事](../design/narrative/five-loop-arc.md) 为准。旧第二至第四轮剧情与 `LoopSignature`
+> 数据契约保存在[历史基线](../archive/2026-07/rebirth-rounds-2-4-narrative.md)；对应旧 31 张图片生产规范见
 > [`../art/rebirth-rounds-2-4-storyboard-prompts.md`](../art/rebirth-rounds-2-4-storyboard-prompts.md)。
 > 当前第二轮 12 节点实现、路线反例与验收状态见
 > [`second-loop-playable-slice.md`](second-loop-playable-slice.md)。
