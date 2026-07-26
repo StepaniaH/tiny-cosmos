@@ -33,13 +33,35 @@
     afterimage: 0.25,
   };
   var players = {};
-  var muted = true;
+  var userMuted = true;
+  var platformMuted = false;
+  var adMuted = false;
 
   try {
     var storedPreference = window.localStorage.getItem(STORAGE_KEY);
-    muted = storedPreference === null ? true : storedPreference !== '0';
+    userMuted = storedPreference === null ? true : storedPreference !== '0';
   } catch (error) {
-    muted = true;
+    userMuted = true;
+  }
+
+  function isMuted() {
+    return userMuted || platformMuted || adMuted;
+  }
+
+  function announceState() {
+    document.dispatchEvent(new CustomEvent('tinycosmos:audiostatechange', {
+      detail: {
+        muted: isMuted(),
+        userMuted: userMuted,
+        platformMuted: platformMuted,
+        adMuted: adMuted,
+      },
+    }));
+  }
+
+  function stopPlayersIfMuted() {
+    if (!isMuted()) return;
+    Object.keys(players).forEach(function (id) { players[id].pause(); });
   }
 
   function category(id) {
@@ -58,7 +80,7 @@
   }
 
   function play(id) {
-    if (muted) return false;
+    if (isMuted()) return false;
     var player = getPlayer(id);
     if (!player) return false;
     try {
@@ -73,23 +95,43 @@
   }
 
   function setMuted(value) {
-    muted = !!value;
-    Object.keys(players).forEach(function (id) {
-      if (muted) players[id].pause();
-    });
+    userMuted = !!value;
+    stopPlayersIfMuted();
     try {
-      window.localStorage.setItem(STORAGE_KEY, muted ? '1' : '0');
+      window.localStorage.setItem(STORAGE_KEY, userMuted ? '1' : '0');
     } catch (error) {
       // Audio preferences remain in memory if storage is unavailable.
     }
-    return muted;
+    announceState();
+    return isMuted();
+  }
+
+  function setPlatformMuted(value) {
+    platformMuted = !!value;
+    stopPlayersIfMuted();
+    announceState();
+    return isMuted();
+  }
+
+  function setAdMuted(value) {
+    adMuted = !!value;
+    stopPlayersIfMuted();
+    announceState();
+    return isMuted();
   }
 
   window.GameAudio = {
     play: play,
-    isMuted: function () { return muted; },
+    isMuted: isMuted,
+    isUserMuted: function () { return userMuted; },
+    isPlatformMuted: function () { return platformMuted; },
+    isAdMuted: function () { return adMuted; },
     setMuted: setMuted,
-    toggleMuted: function () { return setMuted(!muted); },
+    setPlatformMuted: setPlatformMuted,
+    setAdMuted: setAdMuted,
+    toggleMuted: function () { return setMuted(!userMuted); },
     getFiles: function () { return Object.assign({}, FILES); },
   };
+
+  document.dispatchEvent(new CustomEvent('tinycosmos:audioready'));
 })();

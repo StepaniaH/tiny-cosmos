@@ -7,6 +7,7 @@
 - [项目文档总入口](./docs/README.md)
 - [产品愿景](./docs/product/vision.md)
 - [当前制作路线图](./docs/product/roadmap.md)
+- [CrazyGames 提交说明](./docs/product/crazygames-submission.md)
 - [世界观圣经](./docs/game-design/world-bible.md)
 - [五轮主叙事](./docs/design/narrative/five-loop-arc.md)
 
@@ -26,6 +27,8 @@ python3 -m http.server 4173
 
 ```bash
 node tools/validate-static-assets.js
+node tools/i18n-default-smoke.js
+node tools/crazygames-smoke.js
 node tools/balance/early-agency-smoke.js
 node tools/balance/first-contact-smoke.js
 node tools/balance/civilization-smoke.js
