@@ -5,10 +5,29 @@
   'use strict';
 
   var STORAGE_KEY = 'tiny-cosmos-locale-v1';
-  var locale = 'zh-CN';
+  var hasSavedPreference = false;
+
+  function localeFromLanguage(language) {
+    return /^zh(?:[-_]|$)/i.test(String(language || '')) ? 'zh-CN' : 'en';
+  }
+
+  function getSystemLocale() {
+    var language = '';
+    try {
+      language = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+    } catch (error) {}
+    return localeFromLanguage(language);
+  }
+
+  // First-time players see Chinese only when their system language is Chinese.
+  // An explicit in-game choice always wins on later visits.
+  var locale = getSystemLocale();
   try {
     var saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'en' || saved === 'zh-CN') locale = saved;
+    if (saved === 'en' || saved === 'zh-CN') {
+      locale = saved;
+      hasSavedPreference = true;
+    }
   } catch (error) {}
 
   var EN = Object.create(null);
@@ -74,7 +93,9 @@
     ['简体中文', 'Simplified Chinese'], ['文字大小', 'Text Size'], ['舒适', 'Comfortable'], ['更大', 'Larger'],
     ['“舒适”已针对普通笔记本屏幕提高可读性。', 'Comfortable is already tuned for readable text on a typical laptop.'],
     ['事件音效', 'Event Audio'], ['只影响界面与事件反馈，不影响存档。', 'Affects interface and event feedback only, never saves.'],
-    ['声音 · 关', 'Sound · Off'], ['声音 · 开', 'Sound · On'], ['序章进度', 'Prologue progress'], ['序章', 'Prologue'],
+    ['声音 · 关', 'Sound · Off'], ['声音 · 开', 'Sound · On'], ['声音 · 平台静音', 'Sound · Platform Muted'],
+    ['声音由 CrazyGames 平台静音', 'Audio is muted by the CrazyGames platform'],
+    ['序章进度', 'Prologue progress'], ['序章', 'Prologue'],
     ['随时重新观看世界观与本轮目标。', 'Replay the world premise and loop objective at any time.'], ['重新观看', 'Replay'],
     ['关闭设置', 'Close settings'], ['第一章 · 唤醒', 'Chapter I · Awakening'],
     ['第二章 · 法则', 'Chapter II · Law'], ['第三章 · 接触', 'Chapter III · Contact'],
@@ -790,7 +811,7 @@
     if (!root) return;
     document.documentElement.lang = locale;
     document.documentElement.dataset.locale = locale;
-    document.title = locale === 'en' ? 'Tiny Cosmos // First Civilization' : 'Tiny Cosmos // 第一轮文明';
+    document.title = 'Tiny Cosmos';
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
         var parent = node.parentElement;
@@ -809,15 +830,30 @@
   function setLocale(next) {
     if (next !== 'en' && next !== 'zh-CN') return;
     locale = next;
+    hasSavedPreference = true;
     try { localStorage.setItem(STORAGE_KEY, locale); } catch (error) {}
     apply(document.body);
     document.dispatchEvent(new CustomEvent('tinycosmos:localechange', { detail: { locale: locale } }));
   }
 
+  function setAutomaticLocale(language) {
+    if (hasSavedPreference) return false;
+    var next = localeFromLanguage(language);
+    if (next === locale) return false;
+    locale = next;
+    apply(document.body);
+    document.dispatchEvent(new CustomEvent('tinycosmos:localechange', {
+      detail: { locale: locale, automatic: true },
+    }));
+    return true;
+  }
+
   window.GameI18n = {
     apply: apply,
     getLocale: function () { return locale; },
+    hasSavedPreference: function () { return hasSavedPreference; },
     setLocale: setLocale,
+    setAutomaticLocale: setAutomaticLocale,
     text: function (zh, en) { return locale === 'en' ? (en || translateCore(zh)) : zh; },
     translate: translateCore,
   };

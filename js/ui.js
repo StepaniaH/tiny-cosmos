@@ -50,9 +50,12 @@
     var button = el('sound-toggle');
     if (!button || !Sound) return;
     var muted = Sound.isMuted();
-    button.textContent = muted ? '声音 · 关' : '声音 · 开';
+    var platformMuted = Sound.isPlatformMuted && Sound.isPlatformMuted();
+    button.textContent = platformMuted ? '声音 · 平台静音' : (muted ? '声音 · 关' : '声音 · 开');
+    button.disabled = !!platformMuted;
     button.setAttribute('aria-pressed', String(muted));
-    button.setAttribute('aria-label', muted ? '开启事件音效' : '关闭事件音效');
+    button.setAttribute('aria-label', platformMuted ? '声音由 CrazyGames 平台静音' : (muted ? '开启事件音效' : '关闭事件音效'));
+    if (I18n) I18n.apply(button);
   }
   function fmt(n, digits) {
     if (digits === undefined) digits = 1;
@@ -2362,6 +2365,7 @@
       lastLogSignature = '';
       refreshAll();
     });
+    document.addEventListener('tinycosmos:audiostatechange', updateSoundToggle);
   }
 
   function revealGuide() {

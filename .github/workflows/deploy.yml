@@ -34,6 +34,8 @@ jobs:
           required_files=(
             index.html
             css/game.css
+            js/crazygames.js
+            js/i18n.js
             js/constants.js
             js/state.js
             js/slice.js
@@ -61,7 +63,10 @@ jobs:
           done < <(find js -type f -name '*.js' -print0)
 
           node tools/validate-static-assets.js
+          node tools/i18n-default-smoke.js
+          node tools/crazygames-smoke.js
           node tools/balance/first-contact-smoke.js
+          node tools/build-crazygames-package.js
 
       - name: Assemble verified static site
         if: >-

@@ -8,6 +8,7 @@
   var UI = window.GameUI;
   var Renderer = window.CanvasRenderer;
   var I18n = window.GameI18n;
+  var Platform = window.TinyCosmosPlatform;
 
   var autosaveTimer = null;
   var lastUiRefresh = 0;
@@ -29,6 +30,7 @@
   function saveGame(options) {
     try { localStorage.setItem(GC.SAVE_KEY, GS.toJSON()); } catch (e) {}
     if (!options || options.updateClock !== false) writeWallClock(Date.now());
+    if (Platform) Platform.syncProgress();
   }
   function loadGame() {
     try {
@@ -73,6 +75,7 @@
       var now = Date.now();
       if (now - lastUiRefresh >= UI_REFRESH_MS) {
         UI.refreshAll();
+        if (Platform) Platform.syncProgress();
         lastUiRefresh = now;
       }
     });
@@ -92,6 +95,10 @@
       var initialBackground = applyBackgroundProgress();
       GE.start();
       if (UI.notifyBackgroundProgress) UI.notifyBackgroundProgress(initialBackground);
+    }
+    if (Platform) {
+      Platform.markLoaded();
+      Platform.markPlayable();
     }
 
     startAutosave();
@@ -117,6 +124,7 @@
         try { localStorage.removeItem(WALL_CLOCK_KEY); } catch (e) {}
         writeWallClock(Date.now());
         UI.refreshAll();
+        if (Platform) Platform.syncProgress({ initial: true });
         if (!document.body.classList.contains('prologue-open')) GE.start();
       }
     });
@@ -133,6 +141,7 @@
       lastUiRefresh = 0;
       if (UI.revealGuide) UI.revealGuide();
       UI.refreshAll();
+      if (Platform) Platform.syncProgress();
       if (!document.hidden) GE.start();
     });
 
@@ -154,6 +163,7 @@
           writeWallClock(Date.now());
         }
         UI.refreshAll();
+        if (Platform) Platform.syncProgress();
         startAutosave();
       }
     });

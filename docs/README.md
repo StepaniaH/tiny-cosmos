@@ -31,7 +31,7 @@
 ## 当前项目快照
 
 - 第一轮从启动资源链到第一座文明的竖切已经可玩。
-- 第二轮“答案的反例”已有可保存的 12 节点与正式重生资产；终结封存是下一实现切片。
+- 第二轮“答案的反例”已有可保存的 12 节点、正式重生资产和三幕终结封存。
 - 第三、第四轮尚未按新的五轮悲剧结构实现。
 - 第五轮是较短的交互式总结，不再完整重复七层资源建设。
 - 当前运行时仍包含较早的“玩家是观测核”“背面宇宙由未选择可能性形成”等说法；新文档已将其改为前期误读或待对齐内容。
@@ -63,6 +63,7 @@
 - [`balance/reports/baseline-current.md`](./balance/reports/baseline-current.md)：当前基线报告。
 - [`architecture/platform-direction.md`](./architecture/platform-direction.md)：网页与桌面发行方向。
 - [`deployment.md`](./deployment.md)：部署说明。
+- [`product/crazygames-submission.md`](./product/crazygames-submission.md)：CrazyGames 打包、SDK 与提交表单说明。
 
 ### 历史记录
 

@@ -20,7 +20,7 @@
   }
 
   function updateControls() {
-    var locale = window.GameI18n ? window.GameI18n.getLocale() : 'zh-CN';
+    var locale = window.GameI18n ? window.GameI18n.getLocale() : 'en';
     layer.querySelectorAll('[data-locale]').forEach(function (button) {
       var selected = button.dataset.locale === locale;
       button.classList.toggle('selected', selected);
