@@ -3,9 +3,12 @@
 版本：1.0  
 确立日期：2026-07-23  
 状态：31 张生产槽位与提示词已确立；第二轮 10 个槽位已生产并接入，第三、四轮待生产  
-剧情依据：`docs/game-design/rebirth-rounds-2-4-narrative.md`
+原剧情依据：`docs/archive/2026-07/rebirth-rounds-2-4-narrative.md`
+当前上位叙事：`docs/design/narrative/five-loop-arc.md`
 
 > 当前候选、SHA-256 与推荐项见 [`rebirth-production-log.md`](rebirth-production-log.md)。
+>
+> 第二轮已生产资产继续作为实现基线；第三、第四轮未生产槽位在继续制作前，需要先按当前五轮主叙事重新映射。
 
 ## 资产预算与播放规则
 

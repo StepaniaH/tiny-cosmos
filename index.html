@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#050a0d">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <title>Tiny Cosmos // 第一轮文明</title>
-  <link rel="stylesheet" href="css/game.css?v=29">
+  <link rel="stylesheet" href="css/game.css?v=33">
 </head>
-<body>
+<body data-workspace="evolution">
   <div class="screen-noise" aria-hidden="true"></div>
 
   <header class="command-header">
@@ -43,6 +43,45 @@
       <button id="reset-btn" class="btn btn-danger-quiet">重启宇宙</button>
     </div>
   </header>
+
+  <nav id="workspace-tabs" class="workspace-tabs" aria-label="工作区切换">
+    <button id="workspace-evolution" type="button" aria-pressed="true" data-workspace="evolution">
+      <strong>观测</strong><span>/ 资源 · 流量 · 研究</span>
+    </button>
+    <button id="workspace-intervention" type="button" aria-pressed="false" data-workspace="intervention">
+      <strong>干预</strong><span>/ 决策 · 天赋 · 接触</span><b id="intervention-badge" hidden>0</b>
+    </button>
+  </nav>
+
+  <section id="goal-rail" class="goal-rail" aria-labelledby="campaign-goal-title">
+    <div class="goal-rail-primary">
+      <div class="campaign-goal-kicker"><span id="campaign-chapter">第一章 · 唤醒</span><b id="campaign-chapter-progress">1 / 5</b></div>
+      <h2 id="campaign-goal-title">让宇宙演化出能回应你的文明</h2>
+      <p id="campaign-goal-copy">从夸克开始建立稳定物质，面对视界背面的另一侧，并让文明根据你的真实选择提出未来。</p>
+      <ol id="campaign-phases" class="campaign-phases" aria-label="第一轮目标进度">
+        <li class="current"><i></i><span>唤醒物质</span></li>
+        <li><i></i><span>建立法则</span></li>
+        <li><i></i><span>第一次接触</span></li>
+        <li><i></i><span>孕育生命</span></li>
+        <li><i></i><span>点燃文明</span></li>
+      </ol>
+    </div>
+    <div class="goal-rail-live" aria-label="当前目标摘要">
+      <div class="goal-now">
+        <span>当前操作</span>
+        <strong id="goal-now-title">建立观测响应</strong>
+        <b id="goal-now-progress">中央光核 0 / 5 次</b>
+      </div>
+      <div class="goal-next">
+        <span>下一解锁</span>
+        <strong id="goal-next-unlock">自动生产与物质循环</strong>
+      </div>
+      <div class="goal-optional">
+        <span>等待时可做</span>
+        <strong id="goal-optional-action">观察资源变化，整理新出现的故事碎片</strong>
+      </div>
+    </div>
+  </section>
 
   <main class="command-grid">
     <aside class="panel resource-panel">
@@ -134,6 +173,11 @@
         <button id="guide-dock" class="mission-state" type="button" aria-label="收起场景引导"><span>场景引导</span><b id="guide-dock-label">已展开</b></button>
       </section>
 
+      <section id="operation-resource-strip" class="operation-resource-strip" aria-labelledby="operation-resource-title">
+        <header><span>ACTIVE MATTER / INTERVENTION</span><strong id="operation-resource-title">当前操作资源</strong></header>
+        <div id="operation-resource-list" class="operation-resource-list"></div>
+      </section>
+
       <section id="cosmos-stage" class="cosmos-stage">
         <canvas id="cosmos-canvas"></canvas>
         <div class="reverse-noise-overlay" aria-hidden="true"></div>
@@ -146,25 +190,6 @@
           <button id="canvas-inspector-archive" type="button" data-lore-target="material-stack">查看相关档案</button>
         </aside>
         <div id="click-hint" class="click-hint"><span>操作</span> 点击中央光核 · 获得 1 夸克</div>
-        <section id="flow-monitor" class="flow-monitor collapsed" aria-label="物质流量监视器">
-          <div class="flow-monitor-head">
-            <div><span>MATTER FLOW / Δt</span><strong>物质流量</strong></div>
-            <button id="flow-monitor-toggle" type="button" aria-expanded="false" aria-label="展开物质流量监视器">+</button>
-          </div>
-          <div id="flow-monitor-body" class="flow-monitor-body">
-            <section id="stability-checklist" class="stability-checklist" hidden></section>
-            <div class="flow-legend"><strong>资源平衡</strong><span class="prod">产出</span><span class="demand">消耗</span><span class="net">净变化</span></div>
-            <div id="flow-chart" class="flow-chart"></div>
-            <section id="research-trend" class="research-trend" aria-label="研究速率最近六十秒变化"></section>
-          </div>
-        </section>
-        <aside id="discovery-card" class="discovery-card" hidden aria-live="polite">
-          <header><span id="discovery-code">偶发发现 / 01</span><button id="discovery-ack" type="button">记入档案</button></header>
-          <strong id="discovery-title"></strong>
-          <p id="discovery-copy"></p>
-          <div id="discovery-choices" class="discovery-choices"></div>
-          <small id="discovery-note"></small>
-        </aside>
         <div id="anomaly-overlay" class="anomaly-overlay" hidden>
           <span>REVERSE-SIDE CONTACT</span><strong>真空水蛭</strong><small id="anomaly-overlay-state">正在形成</small>
         </div>
@@ -186,6 +211,27 @@
         <div id="research-breakdown" class="research-breakdown" hidden></div>
       </section>
 
+      <section id="flow-monitor" class="flow-monitor collapsed" aria-label="物质流量监视器">
+        <div class="flow-monitor-head">
+          <div><span>MATTER FLOW / Δt</span><strong>物质流量</strong></div>
+          <button id="flow-monitor-toggle" type="button" aria-expanded="false" aria-label="展开物质流量监视器">+</button>
+        </div>
+        <div id="flow-monitor-body" class="flow-monitor-body">
+          <section id="stability-checklist" class="stability-checklist" hidden></section>
+          <div class="flow-legend"><strong>资源平衡</strong><span class="prod">产出</span><span class="demand">消耗</span><span class="net">净变化</span></div>
+          <div id="flow-chart" class="flow-chart"></div>
+          <section id="research-trend" class="research-trend" aria-label="研究速率最近六十秒变化"></section>
+        </div>
+      </section>
+
+      <aside id="discovery-card" class="discovery-card" hidden aria-live="polite">
+        <header><span id="discovery-code">偶发发现 / 01</span><button id="discovery-ack" type="button">记入档案</button></header>
+        <strong id="discovery-title"></strong>
+        <p id="discovery-copy"></p>
+        <div id="discovery-choices" class="discovery-choices"></div>
+        <small id="discovery-note"></small>
+      </aside>
+
       <section id="contact-panel" class="panel contact-panel">
         <div class="panel-heading compact">
           <div><span class="panel-index">02</span><h2>反宇宙接触</h2></div>
@@ -198,19 +244,6 @@
     </section>
 
     <aside class="right-stack">
-      <section id="campaign-goal" class="panel campaign-goal" aria-labelledby="campaign-goal-title">
-        <div class="campaign-goal-kicker"><span id="campaign-chapter">第一章 · 唤醒</span><b id="campaign-chapter-progress">1 / 5</b></div>
-        <h2 id="campaign-goal-title">让宇宙演化出能回应你的文明</h2>
-        <p id="campaign-goal-copy">从夸克开始建立稳定物质，面对视界背面的另一侧，并让文明根据你的真实选择提出未来。</p>
-        <ol id="campaign-phases" class="campaign-phases" aria-label="第一轮目标进度">
-          <li class="current"><i></i><span>唤醒物质</span></li>
-          <li><i></i><span>建立法则</span></li>
-          <li><i></i><span>第一次接触</span></li>
-          <li><i></i><span>孕育生命</span></li>
-          <li><i></i><span>点燃文明</span></li>
-        </ol>
-      </section>
-
       <section id="directive-panel" class="panel directive-panel">
         <div class="panel-heading compact">
           <div><span class="panel-index">03</span><h2>观测指令</h2></div>
@@ -221,9 +254,35 @@
         <div class="directive-progress"><span>当前进度</span><b id="directive-progress-label">中央光核 0 / 5 次</b><div><i id="directive-progress-fill"></i></div></div>
       </section>
 
+      <section id="observation-panel" class="panel observation-panel">
+        <div class="panel-heading compact">
+          <div><span class="panel-index">04</span><h2>主动观测</h2></div>
+          <span id="observation-status" class="status-chip muted">等待充能</span>
+        </div>
+        <div class="observation-content">
+          <div class="observation-telemetry">
+            <span><small>可用观测</small><strong id="observation-charges">0 / 2</strong></span>
+            <span><small>下次充能</small><strong id="observation-recharge">尚未开始</strong></span>
+          </div>
+          <div id="observation-active" class="observation-active">当前没有正在解析的宇宙信号。</div>
+          <div id="observation-options" class="observation-options"></div>
+          <div id="observation-result" class="observation-result" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section id="talent-panel" class="panel talent-panel">
+        <div class="panel-heading compact">
+          <div><span class="panel-index">05</span><h2>观测天赋</h2></div>
+          <span class="status-chip"><b id="talent-points">0</b> 点可用</span>
+        </div>
+        <div id="talent-grid" class="talent-grid">
+          <div class="empty-state small"><p>天赋将在第一次稳定观测后开放。</p><small>每一点都应改变操作方式，而不只是增加产量。</small></div>
+        </div>
+      </section>
+
       <section id="event-panel" class="panel event-panel">
         <div class="panel-heading compact">
-          <div><span class="panel-index">04</span><h2>决策队列</h2></div>
+          <div><span class="panel-index">06</span><h2>决策队列</h2></div>
           <span id="event-status" class="status-chip muted">空闲</span>
         </div>
         <div id="decision-hierarchy" class="decision-hierarchy" aria-label="决策层级"></div>
@@ -234,7 +293,7 @@
 
       <section id="route-panel" class="panel route-panel">
         <div class="panel-heading compact">
-          <div><span class="panel-index">05</span><h2>路线信号</h2></div>
+          <div><span class="panel-index">07</span><h2>路线信号</h2></div>
           <span class="panel-code">ROUTE PROJECTIONS</span>
         </div>
         <div id="route-signals" class="route-signals"></div>
@@ -356,17 +415,17 @@
     </div>
   </section>
 
-  <script src="js/i18n.js?v=7"></script>
-  <script src="js/prologue.js?v=6"></script>
+  <script src="js/i18n.js?v=9"></script>
+  <script src="js/prologue.js?v=7"></script>
   <script src="js/settings.js?v=1"></script>
-  <script src="js/constants.js?v=23"></script>
-  <script src="js/state.js?v=24"></script>
-  <script src="js/slice.js?v=14"></script>
-  <script src="js/lore.js?v=5"></script>
+  <script src="js/constants.js?v=25"></script>
+  <script src="js/state.js?v=27"></script>
+  <script src="js/slice.js?v=18"></script>
+  <script src="js/lore.js?v=6"></script>
   <script src="js/engine.js?v=21"></script>
   <script src="js/render.js?v=21"></script>
   <script src="js/audio.js?v=3"></script>
-  <script src="js/ui.js?v=28"></script>
+  <script src="js/ui.js?v=32"></script>
   <script src="js/main.js?v=22"></script>
 </body>
 </html>

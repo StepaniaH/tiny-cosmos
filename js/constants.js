@@ -185,6 +185,81 @@
     },
   };
 
+  // ── Slice talents and active observation ────────────────────────
+  // Talents are per-loop choices. They never add route tendency; their only
+  // effects are applied by GameSlice's existing production, demand and
+  // research hooks.
+  var TALENT_DEFINITIONS = [
+    {
+      id: 'focus',
+      nameZh: '深度聚焦',
+      descZh: '焦点所在层每级额外获得 1.08 倍生产。',
+      maxRank: 2,
+      cost: 1,
+      multiplierPerRank: 1.08,
+    },
+    {
+      id: 'flow',
+      nameZh: '流量整序',
+      descZh: '全局代谢需求每级乘以 0.95。',
+      maxRank: 2,
+      cost: 1,
+      multiplierPerRank: 0.95,
+    },
+    {
+      id: 'research',
+      nameZh: '并行推演',
+      descZh: '研究增长每级额外获得 1.08 倍。',
+      maxRank: 2,
+      cost: 1,
+      multiplierPerRank: 1.08,
+    },
+    {
+      id: 'echo',
+      nameZh: '回声蓄能',
+      descZh: '观测充能间隔每级缩短 5 秒。',
+      maxRank: 2,
+      cost: 1,
+      secondsPerRank: 5,
+    },
+  ];
+
+  var TALENT_AWARD_STEPS = {
+    1: [1, 5, 10, 15, 20],
+    2: [0, 2, 4, 7, 9],
+  };
+
+  var OBSERVATION = {
+    initialCharges: 1,
+    maxCharges: 3,
+    rechargeSeconds: 45,
+    echoReductionSeconds: 5,
+    historyLimit: 80,
+    protocols: [
+      {
+        id: 'stabilize',
+        nameZh: '稳态校准',
+        descZh: '定位净流量最低的已研究层，并临时提高该层生产。',
+        durationSeconds: 45,
+        productionMultiplier: 1.45,
+      },
+      {
+        id: 'surge',
+        nameZh: '聚焦脉冲',
+        descZh: '短时放大当前焦点；没有焦点时作用于最高已研究层。',
+        durationSeconds: 20,
+        productionMultiplier: 1.8,
+      },
+      {
+        id: 'decode',
+        nameZh: '解码回声',
+        descZh: '立即把约二十秒的当前研究增长压缩成研究点。',
+        researchSeconds: 20,
+        minimumResearch: 3,
+      },
+    ],
+  };
+
   // ── Export ──────────────────────────────────────────────────────
   window.GC = {
     TIERS: TIERS,
@@ -205,5 +280,8 @@
     AUTOSAVE_MS: AUTOSAVE_MS,
     FIRST_CONTACT: FIRST_CONTACT,
     SECOND_LOOP: SECOND_LOOP,
+    TALENT_DEFINITIONS: TALENT_DEFINITIONS,
+    TALENT_AWARD_STEPS: TALENT_AWARD_STEPS,
+    OBSERVATION: OBSERVATION,
   };
 })();

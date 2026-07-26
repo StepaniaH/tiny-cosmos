@@ -10,73 +10,73 @@
   var frames = [
     {
       scene: 'collapse', image: 'prologue-01.webp',
-      zh: ['上一轮，宇宙失去了形状', '恒星、轨道与最后的信号一同坠入大坍缩。没有胜利者，也没有留下答案。'],
-      en: ['The last cosmos lost its shape', 'Stars, orbits, and the final signals fell together into the Big Crunch. It left no victor and no answer.'],
+      zh: ['上一个宇宙已经结束', '恒星、轨道和最后一段通信一起坠入黑暗。没有胜利者，也没有答案。'],
+      en: ['The last cosmos has ended', 'Stars, orbits, and the final transmission fell into darkness together. It left no victor and no answer.'],
     },
     {
       scene: 'silence', image: 'prologue-02.webp',
-      zh: ['坍缩之后，只剩不可读的噪声', '时间仍在经过，但没有结构能证明自己曾经存在。'],
-      en: ['Only unreadable noise remained', 'Time still passed, but no structure could prove that it had ever existed.'],
+      zh: ['黑暗里还有一段信号', '它很微弱，却一直重复。像有什么东西不肯忘记刚才发生过什么。'],
+      en: ['A signal remains in the dark', 'It is faint, but it keeps repeating—as if something refuses to forget what just happened.'],
     },
     {
       scene: 'core', image: 'prologue-03.webp',
-      zh: ['一枚观测核从黑暗中重新启动', '它无法凭空创造宇宙，只保住了观察、保护，以及记录选择的能力。'],
-      en: ['An Observer Core restarted in the dark', 'It cannot create a cosmos from nothing. It retained only the power to observe, protect, and record choices.'],
+      zh: ['你在信号里醒来', '你不知道自己是什么，只知道你能观察、保护，并让极小的变化偏向一个方向。'],
+      en: ['You wake inside the signal', 'You do not know what you are. You only know that you can observe, protect, and nudge small changes in one direction.'],
     },
     {
       scene: 'observer', image: 'prologue-04.webp',
-      zh: ['现在，你接管了它', '编号 TC-07。职责不是统治，而是让微弱的可能性有机会成为可持续的现实。'],
-      en: ['Now, it is in your care', 'Designation TC-07. Your task is not to rule, but to give fragile possibilities a chance to become sustainable reality.'],
+      zh: ['系统把你标记为 TC-07', '这也许是设备编号，也许不是。没有记录能回答：究竟是谁在这里观察。'],
+      en: ['The system labels you TC-07', 'It may be a device number—or it may not. No surviving record can say who is observing here.'],
     },
     {
       scene: 'quark', image: 'prologue-05.webp',
-      zh: ['最初，只有夸克噪声会回应注视', '一次回应是一枚粒子。重复的回应可以变成生产，生产可以变成稳定。'],
-      en: ['At first, only quark noise answers', 'One response becomes one particle. Repeated responses can become production, and production can become stability.'],
+      zh: ['物质会回应你的操作', '先点亮一枚夸克。重复几次，再让生产单元接过这份工作。'],
+      en: ['Matter responds to your actions', 'Light one quark first. Repeat it a few times, then let production units take over.'],
     },
     {
       scene: 'layers', image: 'prologue-06.webp',
-      zh: ['稳定会把宇宙一层层推向复杂', '夸克形成核子，核子形成原子；随后是分子、细胞、生命，最终也许会出现文明。'],
-      en: ['Stability drives the cosmos toward complexity', 'Quarks form nucleons, nucleons form atoms—then molecules, cells, life, and perhaps, at last, civilization.'],
+      zh: ['先让变化持续下去', '夸克形成核子，核子形成原子。再往后，才可能出现分子、细胞、生命和文明。'],
+      en: ['First, make change last', 'Quarks form nucleons, and nucleons form atoms. Only then can molecules, cells, life, and civilization appear.'],
     },
     {
       scene: 'balance', image: 'prologue-07.webp',
-      zh: ['但每一次上升，都要由下层承担', '高层会持续消耗低层。真正的进步不是数字暴涨，而是让整条物质链继续运转。'],
-      en: ['Every ascent is carried by the layer below', 'Higher layers continuously consume lower ones. Progress is not a spike in numbers, but a matter chain that keeps running.'],
+      zh: ['高处永远依赖低处', '新结构会继续消耗旧结构。只看最大的数字，很快就会让整条物质链停下来。'],
+      en: ['Every higher layer depends on the one below', 'New structures keep consuming older ones. Watching only the largest number will soon stall the whole chain.'],
     },
     {
       scene: 'law', image: 'prologue-08.webp',
-      zh: ['当结构稳定，你必须决定什么最重要', '推进、维持、求证——你的方法会成为这座宇宙的第一条法则。'],
-      en: ['When structure stabilizes, you must set a priority', 'Advance, sustain, or inquire—your method will become this cosmos’s First Law.'],
+      zh: ['你的选择会留下偏向', '你可以冲得更快、守住底线，或先弄清发生了什么。用过的方法会慢慢变成这里的规则。'],
+      en: ['Your choices leave a bias', 'You can push faster, protect the floor, or first learn what is happening. Repeated methods slowly become rules here.'],
     },
     {
       scene: 'reverse', image: 'prologue-09.webp',
-      zh: ['被排除的可能性并不会消失', '每一个被确定的答案，都会把其他答案推到观测视界的背面。'],
-      en: ['Excluded possibilities do not disappear', 'Every answer made real pushes other answers to the reverse side of the observation horizon.'],
+      zh: ['视界外也有回应', '起初它像噪声。很快你会发现，那道信号会跟着你的资源和选择改变。'],
+      en: ['Something answers beyond the horizon', 'At first it sounds like noise. Soon, you will see the signal change with your resources and choices.'],
     },
     {
       scene: 'contact', image: 'prologue-10.webp',
-      zh: ['另一侧也会开始观察你', '它先学习你的资源流，再学习你的选择。第一次接触不是最终战争，而是双方关系的第一份记录。'],
-      en: ['The other side will begin observing you', 'It learns your resource flow first, then your choices. First Contact is not the final war, but the first record of a relationship.'],
+      zh: ['那道回应需要你的资源', '它会截取、试探，也会后退。你可以反击、隔离，或冒一点风险观察它。'],
+      en: ['The signal needs your resources', 'It siphons, probes, and retreats. You can strike back, isolate it, or risk a little to observe it.'],
     },
     {
       scene: 'choice', image: 'prologue-11.webp',
-      zh: ['没有一条路线是预设的善恶答案', '集中突破、保护循环、保存证据或改写双方规则，都会留下真实代价，也都会证明一种未来可行。'],
-      en: ['No route is a preset moral answer', 'Break through, protect the cycle, preserve evidence, or rewrite both sides. Each has a real cost, and each can prove a future possible.'],
+      zh: ['它也在计算怎样活下去', '你还不知道它是什么。但它会学习你的办法，像你一样为下一次终结做准备。'],
+      en: ['It is also calculating how to survive', 'You still do not know what it is. But it learns your methods and prepares for the next ending, just as you do.'],
     },
     {
       scene: 'life', image: 'prologue-12.webp',
-      zh: ['如果物质链坚持得足够久，选择会进入生命', '环境、压力和被保护的差异会成为谱系记忆，传给尚未出现的后来者。'],
-      en: ['If the matter chain endures, choice enters life', 'Environment, pressure, and protected differences become lineage memory for beings not yet born.'],
+      zh: ['生命会记住代价', '被保护的差异、经历过的短缺和你采用的方法，都会进入后来者的谱系。'],
+      en: ['Life will remember the cost', 'Protected differences, endured shortages, and the methods you chose will all enter later lineages.'],
     },
     {
       scene: 'civilization', image: 'prologue-13.webp',
-      zh: ['文明将回读你留下的全部记录', '它不会把你的决定当作命令，而会据此提出自己愿意建造的未来。'],
-      en: ['Civilization will read every record you leave', 'It will not treat your decisions as commands. It will use them to propose the future it is willing to build.'],
+      zh: ['文明会质问你的选择', '它们不会只看你留下多少资源。它们还会问：谁被保护，谁承担了代价。'],
+      en: ['Civilization will question your choices', 'It will not only count the resources you left. It will ask who was protected—and who paid the cost.'],
     },
     {
       scene: 'mission', image: 'prologue-14.webp',
-      zh: ['本轮目标：从一枚夸克走到第一座文明', '建立稳定物质，面对视界另一侧，并让文明回答：这个宇宙接下来应该成为什么？'],
-      en: ['This loop: from one quark to the first civilization', 'Build stable matter, face the other side of the horizon, and let civilization answer: what should this cosmos become next?'],
+      zh: ['本轮目标：让第一座文明出现', '从一枚夸克开始。维持物质链，处理第一次接触，先让这一次宇宙活得足够久。'],
+      en: ['This loop: bring the first civilization into being', 'Begin with one quark. Sustain the matter chain, survive First Contact, and keep this cosmos alive long enough.'],
     },
   ];
 
@@ -144,18 +144,18 @@
     return [
       {
         scene: 'rebirth-collapse', image: 'rebirth-r02-01.webp',
-        zh: ['这一次，坍缩没有抹平全部方向', '完整宇宙仍然归于噪声，但上一轮有一个答案保持了可陈述的形状。'],
-        en: ['This collapse did not erase every direction', 'The complete cosmos still became noise, but one answer from the last loop retained a form that could be stated.'],
+        zh: ['终结再次发生', '上一轮仍然消失了。但有一个答案没有完全散掉，它变成了新宇宙最早的偏向。'],
+        en: ['The ending happened again', 'The last loop still vanished. But one answer did not fully disperse; it became the earliest bias of a new cosmos.'],
       },
       {
         scene: 'rebirth-observer', image: 'references/observer-core-rebirth-master.png',
-        zh: ['TC-07 带着一道可运行的记忆醒来', '观测核没有保存完整历史，只保住一条已经证明能够成立的规律：' + truth[0] + '。'],
-        en: ['TC-07 wakes with a memory that can still run', 'The Core retained no complete history—only one rule already proven capable of holding: ' + truth[1] + '.'],
+        zh: ['TC-07 的界面再次亮起', '你仍然不知道谁在使用它。你只带回了一条曾经成立的规律：' + truth[0] + '。'],
+        en: ['The TC-07 interface lights again', 'You still do not know who is using it. You carried back only one rule that once held: ' + truth[1] + '.'],
       },
       {
         scene: 'rebirth-inheritance', image: 'rebirth-r02-03.webp',
-        zh: ['继承物把记忆重新接回物质', '“' + inheritance[0] + '”会让某些选择更早出现，也会把上一轮未支付完的代价带进来。'],
-        en: ['Inheritance reconnects memory to matter', 'The ' + inheritance[1] + ' makes some choices appear earlier—and carries forward a cost the previous loop did not finish paying.'],
+        zh: ['继承物把记忆接回物质', '“' + inheritance[0] + '”让旧方法更早生效，也把上一次没有付完的代价带了回来。'],
+        en: ['Inheritance reconnects memory to matter', 'The ' + inheritance[1] + ' makes the old method work earlier—and carries back a cost the last loop never finished paying.'],
       },
       {
         scene: 'rebirth-bias', image: 'rebirth-r02-04.webp',
@@ -164,8 +164,8 @@
       },
       {
         scene: 'rebirth-horizon', image: 'references/shared-horizon-master.png',
-        zh: ['视界背面也认出了这个偏差', '另一侧没有保留你的胜利。它保留了可能性曾如何被排除，因此会比第一轮更早试探你。'],
-        en: ['The reverse side recognizes the bias too', 'It retained none of your victory. It retained how possibility was excluded, and will test you earlier than before.'],
+        zh: ['另一侧也认出了这道偏差', '它没有记住你的胜利，只记住自己因此失去了什么。它会比上一次更早出手。'],
+        en: ['The other side recognizes the bias too', 'It remembers none of your victory—only what it lost because of it. This time, it will act earlier.'],
       },
       {
         scene: 'rebirth-route', image: routeImage,
@@ -174,8 +174,8 @@
       },
       {
         scene: 'rebirth-mission', image: 'rebirth-r02-07.webp',
-        zh: ['本轮目标：让答案经受反例', '建立第二座文明，面对为上轮方法定制的反侧结构，并决定这条真理应被重复、修正，还是交给后来者反驳。'],
-        en: ['This loop: make the answer survive a counterexample', 'Build a second civilization, face a reverse structure shaped against your prior method, and decide whether that truth should be repeated, revised, or challenged.'],
+        zh: ['本轮目标：检验上一次的答案', '建立第二座文明，面对专门克制旧方法的对手，再决定这条结论该保留、修改，还是交给后来者反驳。'],
+        en: ['This loop: test the last answer', 'Build a second civilization, face an opponent tailored against the old method, and decide whether that conclusion should stay, change, or be challenged.'],
       },
     ];
   }

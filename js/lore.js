@@ -4,10 +4,10 @@
 
   var ENTRIES = [
     {
-      id: 'observer-core', category: '身份', unlockStep: 0,
-      title: '观测核', subtitle: 'OBSERVER CORE',
-      summary: '玩家在历次大坍缩之间留下的观测与偏转装置。',
-      detail: '观测核不能凭空创造复杂结构，也不能替未来文明生活。它能集中注意、保护库存、偏转局部法则，并把少数仍然成立的记录带过大坍缩。TC-07 是当前观测节点的编号，不代表这是第七个宇宙。',
+      id: 'observer-core', category: '系统', unlockStep: 0,
+      title: 'TC-07 观测界面', subtitle: 'OBSERVER INTERFACE',
+      summary: '你醒来时唯一仍能使用的观测与调度界面。',
+      detail: 'TC-07 能集中注意、保护库存、偏转局部规律，也能保存少量跨过终结的记录。现有档案没有说明它属于谁，也无法证明“使用界面的你”和界面本身是同一件东西。',
     },
     {
       id: 'tiny-cosmos', category: '宇宙', unlockStep: 0,
@@ -36,8 +36,8 @@
     {
       id: 'cosmic-focus', category: '调度', unlockStep: 3,
       title: '宇宙焦点', subtitle: 'COSMIC FOCUS',
-      summary: '观测核当前完整追踪的一个物质尺度。',
-      detail: '观测核无法同时看清全部尺度。焦点会提高所选层的生产，也会改变部分异常的可见性和处理条件。焦点不是命令宇宙服从，而是把有限的观测精度用在一个局部。',
+      summary: 'TC-07 当前完整追踪的一个物质尺度。',
+      detail: '当前界面无法同时看清全部尺度。焦点会提高所选层的生产，也会改变部分异常的可见性和处理条件。它不是命令宇宙服从，而是把有限的观测精度用在一个局部。',
     },
     {
       id: 'matter-flow', category: '系统', unlockStep: 4,
@@ -96,14 +96,14 @@
     {
       id: 'first-law', category: '法则', unlockStep: 10,
       title: '第一法则', subtitle: 'FIRST LAW',
-      summary: '原子稳态后，观测核从已验证的规律中确定的一项局部优先级。',
-      detail: '法则不是凭空发明的技能。急剧膨胀、局部守恒与观测者效应分别强化焦点、保护与研究。一个描述被确定后，未采用的描述仍会在视界背面积累。',
+      summary: '原子稳态后，TC-07 从已验证规律中确定的一项局部优先级。',
+      detail: '法则不是凭空发明的技能。急剧膨胀、局部守恒与观测者效应分别强化焦点、保护与研究。每次确定法则后，视界外的信号也会改变；当前仍无法证明两者为何相关。',
     },
     {
       id: 'reverse-side', category: '宇宙', unlockStep: 10,
       title: '背面宇宙', subtitle: 'REVERSE-SIDE COSMOS',
-      summary: '由未采用法则、熵痕和被观测排除的状态形成的另一侧。',
-      detail: '它不是现实物理中的反物质，也不是天然邪恶的平行世界。正面宇宙每一次确定都会令背面失去一些可能性；最初它只表现为噪声和截流，未来也可能形成生命与文明。',
+      summary: 'TC-07 对视界外回应的临时称呼；来源尚未证实。',
+      detail: '第一轮模型认为，它可能与未采用的法则、熵痕和观测盲区有关。但这只是根据单侧数据作出的解释。可以确认的事实只有：另一侧会截取资源、学习方法，并为自身保留下一次行动的条件。',
     },
     {
       id: 'route-signal', category: '记录', unlockStep: 10,
@@ -114,8 +114,8 @@
     {
       id: 'vacuum-leech', category: '异常', unlockStep: 12,
       title: '真空水蛭', subtitle: 'VACUUM LEECH',
-      summary: '背面宇宙最早获得稳定形状的截流结构。',
-      detail: '它会附着到原子层并把有限资源带向另一侧。名称来自观测核对其行为的临时分类，不代表它是生物。压倒、断供与观测会让双方留下不同的第一份接触记录。',
+      summary: '视界另一侧最早出现的稳定截流结构。',
+      detail: '它会附着到原子层并把有限资源带向另一侧。名称来自 TC-07 对行为的临时分类，不代表它是生物，更不代表它只为破坏而来。压倒、断供与观测会让双方留下不同的第一份接触记录。',
     },
     {
       id: 'controlled-observation', category: '异常', unlockStep: 13,
@@ -138,8 +138,8 @@
     {
       id: 'big-crunch', category: '宇宙', unlockStep: 15,
       title: '大坍缩', subtitle: 'BIG CRUNCH',
-      summary: '结束当前宇宙并把少量跨轮记录留给观测核的过程。',
-      detail: '普通大坍缩提供恒定点，但不宣称当前宇宙回答了什么。完成文明终局后的定向大坍缩会额外留下宇宙真理与继承物。第一次接触只是形成这些答案的第一份前置记录。',
+      summary: '当前宇宙失去全部可读结构的终结过程。',
+      detail: '大部分物质、生命和历史都会在坍缩中消失，只有少量规律能以继承物或校验记录的形式抵达下一轮。档案暂时把这些记录归在 TC-07 名下，但并不知道究竟是谁把它们带了过去。',
     },
     {
       id: 'balanced-orbit', discoveryId: 'balanced-orbit', category: '发现', unlockStep: 4,
@@ -291,7 +291,7 @@
   var CHAPTERS = [
     {
       id: 'cold-start', unlockStep: 0, title: '档案 00 / 坍缩后的核',
-      text: '上一轮宇宙已经失去可读结构。观测核只保住了一个能力：当噪声回应注视时，把回应记下来。它不知道这次宇宙会得到什么答案。',
+      text: '上一个宇宙已经结束。你在一段重复信号里醒来，只能使用标为 TC-07 的观测界面。档案没有说明你是谁。',
     },
     {
       id: 'description', unlockStep: 6, title: '档案 01 / 可以描述的物质',
@@ -303,7 +303,7 @@
     },
     {
       id: 'reverse-shadow', unlockStep: 10, title: '档案 02 / 退到背面的描述',
-      text: '未采用的法则没有消失。它们和高吞吐留下的熵痕一起，在视界背面获得密度。当前宇宙把那一侧叫作异常；那一侧或许也会给当前宇宙起一个名字。',
+      text: '第一法则确定后，视界外的信号随之改变。TC-07 暂时认为它来自未采用的可能性，但单侧观测无法证明这个解释。',
     },
     {
       id: 'first-contact', unlockStep: 15, title: '档案 03 / 第一份接触记录',

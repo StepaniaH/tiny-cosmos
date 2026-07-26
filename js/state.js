@@ -40,7 +40,7 @@
     var isSecondLoop = loopNumber === 2;
     return {
       enabled: !!enabled,
-      version: 7,
+      version: 8,
       loopNumber: loopNumber,
       loopSignature: signature,
       elapsedSeconds: 0,
@@ -126,6 +126,25 @@
         triggered: [],
         acknowledged: [],
         resolved: {},
+      },
+      talents: {
+        points: 0,
+        totalEarned: 0,
+        awarded: [],
+        nodes: {
+          focus: 0,
+          flow: 0,
+          research: 0,
+          echo: 0,
+        },
+        history: [],
+      },
+      observation: {
+        charges: GC.OBSERVATION.initialCharges,
+        rechargeProgress: 0,
+        active: null,
+        lastResult: null,
+        history: [],
       },
       archive: {
         read: [],
@@ -218,6 +237,12 @@
     };
     var priorMethod = decisionId(sliceState, 'enemy');
     var complexity = decisionId(sliceState, 'complexity');
+    var talentHistory = sliceState.talents && Array.isArray(sliceState.talents.history)
+      ? sliceState.talents.history.map(function (entry) { return Object.assign({}, entry); })
+      : [];
+    var observationHistory = sliceState.observation && Array.isArray(sliceState.observation.history)
+      ? sliceState.observation.history.map(function (entry) { return Object.assign({}, entry); })
+      : [];
     var preservedByComplexity = {
       bloom: 'fastest-lineage',
       sanctuary: 'uncompetitive-lineages',
@@ -225,7 +250,7 @@
       braid: 'dual-side-sample',
     };
     return {
-      schemaVersion: 1,
+      schemaVersion: 2,
       loopNumber: (state.loop && state.loop.number ? state.loop.number : 1) + 1,
       completedEnding: dominant,
       endingVariant: dominant + '-proposal-v1',
@@ -244,6 +269,8 @@
         var object = sliceState.reverse.objects[id];
         return object && object.choice && object.choice !== 'legacy';
       }),
+      talentHistory: talentHistory,
+      observationHistory: observationHistory,
       createdAtSeconds: sliceState.elapsedSeconds || 0,
     };
   }
@@ -614,6 +641,31 @@
         parsed.slice.enemy = Object.assign({}, sliceDefaults.enemy, parsed.slice.enemy || {});
         parsed.slice.discoveries = Object.assign({}, sliceDefaults.discoveries, parsed.slice.discoveries || {});
         if (!parsed.slice.discoveries.resolved || typeof parsed.slice.discoveries.resolved !== 'object') parsed.slice.discoveries.resolved = {};
+        var savedTalentNodes = parsed.slice.talents && parsed.slice.talents.nodes ? parsed.slice.talents.nodes : {};
+        parsed.slice.talents = Object.assign({}, sliceDefaults.talents, parsed.slice.talents || {});
+        parsed.slice.talents.nodes = Object.assign({}, sliceDefaults.talents.nodes, savedTalentNodes);
+        if (!Array.isArray(parsed.slice.talents.awarded)) parsed.slice.talents.awarded = [];
+        if (!Array.isArray(parsed.slice.talents.history)) parsed.slice.talents.history = [];
+        parsed.slice.talents.points = Math.max(0, Number(parsed.slice.talents.points) || 0);
+        parsed.slice.talents.totalEarned = Math.max(
+          parsed.slice.talents.points + parsed.slice.talents.history.length,
+          Number(parsed.slice.talents.totalEarned) || 0
+        );
+        Object.keys(sliceDefaults.talents.nodes).forEach(function (id) {
+          parsed.slice.talents.nodes[id] = Math.max(0, Math.min(2, Number(parsed.slice.talents.nodes[id]) || 0));
+        });
+        parsed.slice.observation = Object.assign({}, sliceDefaults.observation, parsed.slice.observation || {});
+        parsed.slice.observation.charges = Math.max(0, Math.min(
+          GC.OBSERVATION.maxCharges,
+          Number(parsed.slice.observation.charges) || 0
+        ));
+        parsed.slice.observation.rechargeProgress = Math.max(0, Number(parsed.slice.observation.rechargeProgress) || 0);
+        if (!parsed.slice.observation.active || typeof parsed.slice.observation.active !== 'object') parsed.slice.observation.active = null;
+        if (!parsed.slice.observation.lastResult || typeof parsed.slice.observation.lastResult !== 'object') parsed.slice.observation.lastResult = null;
+        if (!Array.isArray(parsed.slice.observation.history)) parsed.slice.observation.history = [];
+        if (parsed.slice.observation.history.length > GC.OBSERVATION.historyLimit) {
+          parsed.slice.observation.history = parsed.slice.observation.history.slice(-GC.OBSERVATION.historyLimit);
+        }
         if (savedSliceVersion < 6) {
           if (parsed.slice.missionStep > 16) parsed.slice.reverse.objects.lattice = { status: 'resolved', choice: 'legacy', mirroredRoute: null };
           if (parsed.slice.missionStep > 17) parsed.slice.reverse.objects.choir = { status: 'resolved', choice: 'legacy', mirroredRoute: null };

@@ -2,7 +2,11 @@
 
 版本：1.2  
 更新日期：2026-07-23  
-状态：实现完成，等待新一轮真人试玩
+状态：historical
+原状态：实现完成，等待新一轮真人试玩
+归档日期：2026-07-26
+
+> 本文保留当时的实现任务与回归记录，其中部分未勾选项后来已经完成，因此不再作为当前排期。现行首次体验原则见 [产品愿景](../../product/vision.md)，当前已实现交互见 [第一轮引导与交互反馈](../../game-design/onboarding-ux.md)。
 
 ## 反馈与根因
 
@@ -70,7 +74,8 @@
 - 14 幕美术提示词：`docs/art/prologue-storyboard-prompts.md`
 - 14 幕生产与回归记录：`docs/art/prologue-production-log.md`
 - 序章图片投放目录：`assets/prologue/`
-- 第二至第四轮剧情基线：`docs/game-design/rebirth-rounds-2-4-narrative.md`
+- 当时的第二至第四轮剧情基线：`docs/archive/2026-07/rebirth-rounds-2-4-narrative.md`
+- 当前五轮主叙事：`docs/design/narrative/five-loop-arc.md`
 - 第二至第四轮图片提示词：`docs/art/rebirth-rounds-2-4-storyboard-prompts.md`
 
 ## 任务进度

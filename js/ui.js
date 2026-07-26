@@ -30,6 +30,10 @@
   var lastEnemyStatus = null;
   var eventRenderKey = '';
   var contactRenderKey = '';
+  var observationRenderKey = '';
+  var talentRenderKey = '';
+  var operationResourceRenderKey = '';
+  var currentWorkspace = 'evolution';
   var TERMINAL_WHISPERS = {
     3: '终局疑问 · 边界是门，还是容器？',
     4: '终局疑问 · 永续是否值得放弃远行？',
@@ -38,6 +42,7 @@
   };
 
   function el(id) { return document.getElementById(id); }
+  function localized(zh, en) { return I18n ? I18n.text(zh, en) : zh; }
   function playSound(id) { if (Sound) Sound.play(id); }
   function updateSoundToggle() {
     var button = el('sound-toggle');
@@ -128,6 +133,262 @@
     return { rows: rows, total: total, multiplier: multiplier };
   }
 
+  function formatShortDuration(seconds) {
+    var rounded = Math.max(0, Math.ceil(seconds || 0));
+    if (rounded < 60) return localized(rounded + ' 秒', rounded + 's');
+    return localized(
+      Math.floor(rounded / 60) + ' 分 ' + String(rounded % 60).padStart(2, '0') + ' 秒',
+      Math.floor(rounded / 60) + 'm ' + String(rounded % 60).padStart(2, '0') + 's'
+    );
+  }
+
+  function setWorkspace(name, announce) {
+    if (name !== 'evolution' && name !== 'intervention') return false;
+    var changed = currentWorkspace !== name;
+    currentWorkspace = name;
+    if (changed) {
+      lastGuideStep = null;
+      lastGuidePhase = null;
+    }
+    document.body.dataset.workspace = name;
+    ['evolution', 'intervention'].forEach(function (workspaceName) {
+      var button = el('workspace-' + workspaceName);
+      if (!button) return;
+      var selected = workspaceName === name;
+      button.setAttribute('aria-pressed', String(selected));
+      button.tabIndex = selected ? 0 : -1;
+    });
+    if (announce) {
+      showToast(name === 'evolution'
+        ? localized('已切到观测：资源、流量与研究', 'Observation workspace: resources, flow, and research')
+        : localized('已切到干预：决策、天赋与接触', 'Intervention workspace: decisions, talents, and contact'), false);
+    }
+    setTimeout(positionGuide, 0);
+    return true;
+  }
+
+  function updateGoalRail() {
+    if (!Slice.getObjectiveModel) return;
+    var objective = Slice.getObjectiveModel();
+    el('campaign-chapter').textContent = objective.chapterTitle;
+    el('campaign-chapter-progress').textContent = objective.chapterProgress;
+    el('campaign-goal-title').textContent = objective.campaignTitle;
+    el('campaign-goal-copy').textContent = objective.campaignCopy;
+    el('goal-now-title').textContent = objective.nowTitle;
+    el('goal-now-progress').textContent = objective.nowProgress;
+    el('goal-next-unlock').textContent = objective.nextUnlock;
+    el('goal-optional-action').textContent = objective.optionalAction;
+    Array.prototype.forEach.call(el('campaign-phases').children, function (item, index) {
+      item.querySelector('span').textContent = objective.phaseLabels[index] || '';
+      item.classList.toggle('complete', index < objective.phase);
+      item.classList.toggle('current', index === objective.phase);
+    });
+  }
+
+  function updateOperationResourceStrip() {
+    var list = el('operation-resource-list');
+    if (!list) return;
+    var rows = [];
+    for (var tierId = 0; tierId < GC.TIERS.length; tierId += 1) {
+      var tier = GS.getTier(tierId);
+      if (!tier || !tier.researched) continue;
+      var rates = getRates(tierId);
+      rows.push({
+        tierId: tierId,
+        name: GC.TIERS[tierId].nameZh,
+        color: GC.TIERS[tierId].color,
+        count: tier.count,
+        net: rates.net,
+      });
+    }
+    var renderKey = rows.map(function (row) { return row.tierId; }).join('|');
+    if (renderKey !== operationResourceRenderKey) {
+      operationResourceRenderKey = renderKey;
+      list.innerHTML = rows.map(function (row) {
+        return '<button class="operation-resource-chip" type="button" data-tier-jump="' + row.tierId + '">' +
+          '<span><i style="background:' + row.color + '"></i>T' + row.tierId + ' · ' + row.name + '</span>' +
+          '<strong data-operation-count></strong>' +
+          '<small data-operation-net></small>' +
+          '</button>';
+      }).join('');
+    }
+    rows.forEach(function (row) {
+      var button = list.querySelector('[data-tier-jump="' + row.tierId + '"]');
+      if (!button) return;
+      var sign = row.net >= 0 ? '+' : '−';
+      button.querySelector('[data-operation-count]').textContent = fmt(row.count, 1);
+      var net = button.querySelector('[data-operation-net]');
+      net.textContent = localized(
+        '净变化 ' + sign + fmt(Math.abs(row.net), 2) + '/秒',
+        'Net ' + sign + fmt(Math.abs(row.net), 2) + '/s'
+      );
+      net.className = row.net >= 0 ? 'positive' : 'negative';
+    });
+  }
+
+  function updateObservationPanel() {
+    var panel = el('observation-panel');
+    if (!panel || !Slice.getObservationState) return;
+    var sliceState = GS.getSlice();
+    var unlocked = sliceState.loopNumber === 2 || sliceState.missionStep >= 1;
+    panel.hidden = !unlocked;
+    if (!unlocked) return;
+
+    var state = Slice.getObservationState();
+    var options = Slice.getObservationOptions();
+    var active = state.active;
+    var status = el('observation-status');
+    el('observation-charges').textContent = state.charges + ' / ' + state.maxCharges;
+    if (state.charges >= state.maxCharges) {
+      el('observation-recharge').textContent = '已充满';
+    } else {
+      el('observation-recharge').textContent = formatShortDuration(state.rechargeSeconds - state.rechargeProgress);
+    }
+
+    if (active) {
+      var activeDefinition = options.find(function (option) { return option.id === active.id; });
+      var activeTier = GC.TIERS[active.tierId];
+      status.textContent = '运行中';
+      status.className = 'status-chip';
+      var activeName = activeDefinition ? activeDefinition.nameZh : '主动协议';
+      var activeTierName = activeTier ? activeTier.nameZh : '当前';
+      el('observation-active').textContent = localized(
+        activeName + '正在作用于' + activeTierName + '层，剩余 ' + formatShortDuration(active.remaining) + '。',
+        (activeDefinition && I18n ? I18n.translate(activeDefinition.nameZh) : 'Active protocol') + ' is affecting ' +
+          (activeTier ? activeTier.name : 'the current layer') + '; ' + formatShortDuration(active.remaining) + ' remaining.'
+      );
+    } else {
+      status.textContent = state.charges > 0 ? '可执行' : '充能中';
+      status.className = 'status-chip ' + (state.charges > 0 ? 'safe' : 'muted');
+      el('observation-active').textContent = state.charges > 0
+        ? '消耗 1 次观测：稳定亏空层、放大焦点层，或立即获得研究点。'
+        : '观测次数已用尽；在线与离线期间都会继续充能。';
+    }
+
+    var optionKey = options.map(function (option) {
+      return [option.id, option.available, option.tierId].join(':');
+    }).join('|');
+    if (optionKey !== observationRenderKey) {
+      observationRenderKey = optionKey;
+      el('observation-options').innerHTML = options.map(function (option) {
+        return '<button type="button" data-observation-id="' + option.id + '" ' + (option.available ? '' : 'disabled') + '>' +
+          '<span><b>' + option.nameZh + '</b><em data-observation-effect></em></span>' +
+          '<small>' + option.descZh + '</small>' +
+          '</button>';
+      }).join('');
+    }
+    options.forEach(function (option) {
+      var button = el('observation-options').querySelector('[data-observation-id="' + option.id + '"]');
+      if (!button) return;
+      var hasTarget = option.tierId !== null && option.tierId !== undefined;
+      var target = hasTarget ? GC.TIERS[option.tierId].nameZh + '层' : '当前无可用生产层';
+      button.querySelector('[data-observation-effect]').textContent = option.id === 'decode'
+        ? localized('立即获得约 ' + fmt(option.researchReward, 1) + ' RP', 'Gain about ' + fmt(option.researchReward, 1) + ' RP now')
+        : localized(
+          target + ' · 持续 ' + option.durationSeconds + ' 秒',
+          (hasTarget ? GC.TIERS[option.tierId].name + ' layer' : 'No productive layer available') +
+            ' · ' + option.durationSeconds + 's'
+        );
+    });
+
+    var result = state.lastResult;
+    if (!result) {
+      el('observation-result').textContent = '';
+    } else {
+      var resultDefinition = options.find(function (option) { return option.id === result.id; });
+      if (result.researchPoints !== undefined) {
+        el('observation-result').textContent = localized(
+          '最近结果：' + (resultDefinition ? resultDefinition.nameZh : '解码') + '获得 ' + fmt(result.researchPoints, 2) + ' RP。',
+          'Latest result: Decode gained ' + fmt(result.researchPoints, 2) + ' RP.'
+        );
+      } else {
+        var resultTier = GC.TIERS[result.tierId];
+        el('observation-result').textContent = localized(
+          '最近启动：' + (resultDefinition ? resultDefinition.nameZh : '主动协议') + ' → ' + (resultTier ? resultTier.nameZh : '当前层') + '。',
+          'Latest activation: ' + (resultDefinition && I18n ? I18n.translate(resultDefinition.nameZh) : 'Active protocol') +
+            ' → ' + (resultTier ? resultTier.name : 'current layer') + '.'
+        );
+      }
+    }
+  }
+
+  function updateTalentPanel() {
+    var panel = el('talent-panel');
+    if (!panel || !Slice.getTalentState) return;
+    var state = Slice.getTalentState();
+    var definitions = Slice.getTalentDefinitions();
+    var unlocked = state && (state.totalEarned > 0 || GS.getSlice().loopNumber === 2);
+    panel.hidden = !unlocked;
+    if (!unlocked) return;
+    el('talent-points').textContent = state.points;
+
+    var renderKey = state.points + ':' + definitions.map(function (definition) {
+      return definition.id + ':' + (state.nodes[definition.id] || 0);
+    }).join('|');
+    if (renderKey === talentRenderKey) return;
+    talentRenderKey = renderKey;
+    el('talent-grid').innerHTML = definitions.map(function (definition) {
+      var rank = state.nodes[definition.id] || 0;
+      var maxed = rank >= definition.maxRank;
+      var available = !maxed && state.points >= definition.cost;
+      var action = maxed ? '已满级' : available ? '花费 1 点升级' : '需要 1 点天赋';
+      return '<button class="talent-card" type="button" data-talent-id="' + definition.id + '" ' + (available ? '' : 'disabled') + '>' +
+        '<span><strong>' + definition.nameZh + '</strong><b>' + rank + ' / ' + definition.maxRank + '</b></span>' +
+        '<p>' + definition.descZh + '</p><small>' + action + '</small>' +
+        '</button>';
+    }).join('');
+  }
+
+  function updateInterventionBadge() {
+    var badge = el('intervention-badge');
+    if (!badge) return;
+    var objective = Slice.getObjectiveModel ? Slice.getObjectiveModel() : null;
+    var talent = Slice.getTalentState ? Slice.getTalentState() : null;
+    var count = (objective && objective.pendingDecision ? 1 : 0) + (talent ? talent.points : 0);
+    badge.textContent = count;
+    badge.hidden = count < 1;
+    el('workspace-intervention').setAttribute(
+      'aria-label',
+      count > 0
+        ? localized('干预工作区，有 ' + count + ' 项待处理内容', 'Intervention workspace, ' + count + ' item' + (count === 1 ? '' : 's') + ' waiting')
+        : localized('干预工作区', 'Intervention workspace')
+    );
+  }
+
+  function getElementWorkspace(target) {
+    if (!target || !target.closest) return null;
+    if (target.closest('.resource-panel, #cosmos-stage, #directive-panel')) return 'evolution';
+    if (target.closest('#event-panel, #talent-panel, #route-panel')) return 'intervention';
+    return null;
+  }
+
+  function resolveVisibleGuideTarget(descriptor) {
+    var target = document.querySelector(descriptor.selector);
+    var workspace = getElementWorkspace(target);
+    if (workspace && workspace !== currentWorkspace) {
+      return {
+        descriptor: { selector: '#workspace-' + workspace },
+        target: el('workspace-' + workspace),
+      };
+    }
+    return { descriptor: descriptor, target: target };
+  }
+
+  function updatePrimaryAction() {
+    document.querySelectorAll('.is-primary-action').forEach(function (node) {
+      node.classList.remove('is-primary-action');
+    });
+    var descriptor = getGuideTarget(GS.getSlice());
+    var target = document.querySelector(descriptor.selector);
+    if (!target) return;
+    var workspace = getElementWorkspace(target);
+    if (workspace && workspace !== currentWorkspace) {
+      el('workspace-' + workspace).classList.add('is-primary-action');
+      return;
+    }
+    target.classList.add('is-primary-action');
+  }
+
   function updateMission() {
     var s = GS.getSlice();
     var guide = Slice.getGuideState();
@@ -145,11 +406,14 @@
     el('mission-action-label').textContent = progress.label;
     el('directive-copy').textContent = guide && guide.interlude ? guide.message : mission.brief;
     el('directive-hint').textContent = guide && guide.interlude
-      ? '这段时间没有新系统或强制目标。继续操作、观察流量，下一项指令会自动出现。'
+      ? '下一项指令将在 ' + Math.ceil(guide.remaining) + ' 秒后出现。现在可调整焦点与保护线，或消耗观测次数获取短期增益。'
       : mission.hint;
     el('directive-progress-fill').style.width = progress.percent + '%';
     el('directive-progress-label').textContent = progress.label;
-    if (el('loop-window-label')) el('loop-window-label').textContent = s.loopNumber === 2 ? '第二轮' : '第一轮';
+    if (el('loop-window-label')) {
+      var loopLabels = ['第一轮', '第二轮', '第三轮', '第四轮', '第五轮'];
+      el('loop-window-label').textContent = loopLabels[Math.max(0, Math.min(loopLabels.length - 1, (s.loopNumber || 1) - 1))];
+    }
     el('canvas-focus-label').textContent = s.focusTier === null
       ? '焦点未建立'
       : '焦点 ×' + Slice.getProductionMultiplier(s.focusTier).toFixed(2) + ' · ' + GC.TIERS[s.focusTier].nameZh;
@@ -591,7 +855,7 @@
     var stages = [
       { at: 10, done: !!law, title: 'I · 局部法则', value: law ? law.label : '等待原子稳态' },
       { at: 11, done: contactCount === 3, title: 'II · 接触记录', value: contactCount ? contactCount + ' / 3 项已封存' : '继承第一法则' },
-      { at: 16, done: reverseCount === 3, title: 'III · 反侧回应', value: reverseCount ? reverseCount + ' / 3 个客体已回应' : '反宇宙将模仿主路线' },
+      { at: 16, done: reverseCount === 3, title: 'III · 反侧回应', value: reverseCount ? reverseCount + ' / 3 个客体已回应' : '等待背面结构回应主路线' },
       { at: 18, done: !!complexity, title: 'IV · 发展伦理', value: complexity ? complexity.label : '等待细胞阶段' },
       { at: 23, done: s.flags.civilizationComplete, title: 'V · 文明提案', value: proposals.length ? proposals.map(function (proposal) { return proposal.title; }).join(' / ') : '汇总全部记录' },
     ];
@@ -806,7 +1070,7 @@
       return '<section class="reverse-object-card ' + stateClass + '"><span class="reverse-object-symbol">' + object.symbol + '</span><div><b>' + object.title + '</b><small>' + statusCopy + '</small><p>' + detail + '</p></div></section>';
     }).join('');
     var key = 'reverse-atlas:' + Math.floor(pressure) + ':' + atlas.map(function (object) { return object.state.status + ':' + (object.state.choice || ''); }).join('|') + ':' + (dominant ? dominant.id : 'none');
-    setContactContent(key, '<article class="reverse-atlas"><header><div><span>REVERSE OBJECT ATLAS / LIVE</span><strong>反宇宙不再只是敌人名录</strong></div><b>' + (pendingReverse ? '需要回应' : '持续观测') + '</b></header><div class="reverse-pressure"><span><b>反侧压力 ' + Math.round(pressure) + '%</b><em>高阶物质生产 −' + pressurePenalty.toFixed(1) + '%</em></span><div><i style="width:' + pressure + '%"></i></div><small>这不是生命值，也不会直接导致失败。重复当前主路线会让反侧更容易预测你；主动转向会降低压力，但也会稀释终局信号。</small><button type="button" class="inline-lore-link" data-lore-target="reverse-pressure">档案：反侧压力是什么？</button></div><div class="reverse-object-list">' + cards + '</div><footer><span>当前被模仿路线</span><strong>' + (dominant ? dominant.meta.name + ' / ' + dominant.meta.ending : '尚未形成') + '</strong><small>' + (dominant ? dominant.meta.goal : '后续决策会形成路线信号') + '</small></footer></article>');
+    setContactContent(key, '<article class="reverse-atlas"><header><div><span>REVERSE OBJECT ATLAS / LIVE</span><strong>背面结构档案</strong></div><b>' + (pendingReverse ? '需要回应' : '持续观测') + '</b></header><div class="reverse-pressure"><span><b>反侧压力 ' + Math.round(pressure) + '%</b><em>高阶物质生产 −' + pressurePenalty.toFixed(1) + '%</em></span><div><i style="width:' + pressure + '%"></i></div><small>这不是生命值，也不会直接导致失败。重复当前主路线会让反侧更容易预测你；主动转向会降低压力，但也会稀释终局信号。</small><button type="button" class="inline-lore-link" data-lore-target="reverse-pressure">档案：反侧压力是什么？</button></div><div class="reverse-object-list">' + cards + '</div><footer><span>当前被预测路线</span><strong>' + (dominant ? dominant.meta.name + ' / ' + dominant.meta.ending : '尚未形成') + '</strong><small>' + (dominant ? dominant.meta.goal : '后续决策会形成路线信号') + '</small></footer></article>');
   }
 
   function updateContact() {
@@ -854,7 +1118,7 @@
 
     if (enemy.status === 'hidden') {
       status.textContent = '未发现'; status.className = 'status-chip muted';
-      setContactContent('hidden', '<div class="empty-state"><span class="reticle-icon"></span><p>当前视界内没有稳定敌对结构。</p><small>第一次法则确定后，未被选择的可能性会开始积累。</small></div>');
+      setContactContent('hidden', '<div class="empty-state"><span class="reticle-icon"></span><p>当前视界内没有稳定敌对结构。</p><small>第一法则确定后，视界外信号会开始形成可测结构。</small></div>');
       return;
     }
 
@@ -1221,7 +1485,9 @@
         return;
       }
     }
-    var target = document.querySelector(descriptor.selector);
+    var resolvedTarget = resolveVisibleGuideTarget(descriptor);
+    descriptor = resolvedTarget.descriptor;
+    var target = resolvedTarget.target;
     if (!target) return;
 
     var stepChanged = lastGuideStep !== s.missionStep;
@@ -1289,8 +1555,9 @@
 
   function positionGuide() {
     if (guideCollapsed || el('guide-layer').hidden) return;
-    var descriptor = getGuideTarget(GS.getSlice());
-    var target = document.querySelector(descriptor.selector);
+    var resolvedTarget = resolveVisibleGuideTarget(getGuideTarget(GS.getSlice()));
+    var descriptor = resolvedTarget.descriptor;
+    var target = resolvedTarget.target;
     if (!target) return;
     var rect = getGuideRect(target, descriptor.center);
     var gap = 7;
@@ -1558,11 +1825,70 @@
     updateDiscovery();
     updateArchiveBadge();
     updateProgressiveDisclosure();
+    updateGoalRail();
+    updateOperationResourceStrip();
+    updateObservationPanel();
+    updateTalentPanel();
+    updateInterventionBadge();
+    updatePrimaryAction();
     updateGuide();
     if (I18n) I18n.apply(document.body);
   }
 
   function bindButtons() {
+    el('workspace-tabs').addEventListener('click', function (event) {
+      var button = event.target.closest('[data-workspace]');
+      if (!button) return;
+      if (setWorkspace(button.dataset.workspace, true)) refreshAll();
+    });
+    el('workspace-tabs').addEventListener('keydown', function (event) {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      var name = event.key === 'ArrowLeft' ? 'evolution' : 'intervention';
+      if (setWorkspace(name, false)) {
+        refreshAll();
+        el('workspace-' + name).focus();
+      }
+    });
+    el('operation-resource-list').addEventListener('click', function (event) {
+      var button = event.target.closest('[data-tier-jump]');
+      if (!button) return;
+      var tierId = parseInt(button.dataset.tierJump, 10);
+      setWorkspace('evolution', true);
+      refreshAll();
+      setTimeout(function () {
+        var card = el('card-' + tierId);
+        if (!card) {
+          el('workspace-evolution').focus();
+          return;
+        }
+        var focusTarget = card.querySelector('.is-primary-action:not([disabled]), button:not([disabled])');
+        if (focusTarget) focusTarget.focus({ preventScroll: true });
+        else el('workspace-evolution').focus({ preventScroll: true });
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 0);
+    });
+    el('observation-options').addEventListener('click', function (event) {
+      var button = event.target.closest('[data-observation-id]');
+      if (!button || button.disabled) return;
+      if (Slice.useObservationProtocol(button.dataset.observationId)) {
+        playSound('ui-focus-lock');
+        showActionFeedback(button, button.querySelector('b').textContent + ' · 已启动', 'green', true);
+        observationRenderKey = '';
+      }
+      refreshAll();
+    });
+    el('talent-grid').addEventListener('click', function (event) {
+      var button = event.target.closest('[data-talent-id]');
+      if (!button || button.disabled) return;
+      if (Slice.spendTalentPoint(button.dataset.talentId)) {
+        playSound('ui-tier-unlock');
+        showActionFeedback(button, button.querySelector('strong').textContent + ' · 已强化', 'green', true);
+        talentRenderKey = '';
+      }
+      refreshAll();
+    });
+
     for (var i = 0; i <= 6; i++) {
       (function (tierId) {
         var producer = el('btn-prod-' + tierId);
@@ -1765,12 +2091,16 @@
   }
 
   function init() {
+    setWorkspace(document.body.dataset.workspace || 'evolution', false);
     bindButtons();
     updateSoundToggle();
     refreshAll();
     document.addEventListener('tinycosmos:localechange', function () {
       eventRenderKey = '';
       contactRenderKey = '';
+      observationRenderKey = '';
+      talentRenderKey = '';
+      operationResourceRenderKey = '';
       lastLogSignature = '';
       refreshAll();
     });

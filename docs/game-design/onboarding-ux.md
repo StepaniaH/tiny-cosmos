@@ -1,6 +1,6 @@
 # 第一轮引导与交互反馈
 
-> 2026-07-22 的首次体验、渐进显示、可读性与本地化实现记录见 [onboarding-readability-localization.md](onboarding-readability-localization.md)；14 幕序章美术提示词见 [../art/prologue-storyboard-prompts.md](../art/prologue-storyboard-prompts.md)。
+> 2026-07-22 的首次体验、渐进显示、可读性与本地化实现记录见[历史归档](../archive/2026-07/onboarding-readability-localization.md)；14 幕序章美术提示词见 [../art/prologue-storyboard-prompts.md](../art/prologue-storyboard-prompts.md)。
 
 状态：已实现第一版
 更新日期：2026-07-18

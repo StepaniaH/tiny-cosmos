@@ -121,4 +121,4 @@ JSON 是完整记录，Markdown 用于评审摘要。
 - 第一轮大坍缩最长允许 24 个模拟小时。
 - 第二轮使用固定恒定点分配进行比较。
 
-当前协议见 `docs/balance/protocol.md`，后续工作见 `docs/balance/roadmap.md`。
+当前协议见 `docs/balance/protocol.md`，后续工作见 `docs/product/roadmap.md`。
